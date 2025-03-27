@@ -1,0 +1,34 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'product_info.g.dart';
+
+@JsonSerializable()
+class ProductInfo {
+  final int id;
+  final String image;
+  final String discountLabel;
+  final String name;
+  final String description;
+  final String price;
+  final String oldPrice;
+  final String discountPercent;
+  final int idVariant;
+  final int idColor;
+
+  ProductInfo({
+    required this.id,
+    required this.image,
+    required this.discountLabel,
+    required this.name,
+    required this.description,
+    required this.price,
+    required this.oldPrice,
+    required this.discountPercent,
+    required this.idVariant,
+    required this.idColor,
+  });
+
+  factory ProductInfo.fromJson(Map<String, dynamic> json) =>
+      _$ProductInfoFromJson(json);
+  Map<String, dynamic> toJson() => _$ProductInfoToJson(this);
+}
