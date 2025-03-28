@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public interface OrderDetailProjection {
     Integer getOrderId();
+    Integer getProductId();
     Integer getOrderDetailId();
     Integer getFkColorId();
     Integer getFkProductId();

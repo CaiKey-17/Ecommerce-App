@@ -373,7 +373,7 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           ),
                                           child: Text(
-                                            '🪙 100',
+                                            '🪙 0',
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
@@ -965,7 +965,9 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ProductPage(),
+                              builder:
+                                  (context) =>
+                                      ProductPage(productId: product.id),
                             ),
                           );
                         },
@@ -1163,7 +1165,9 @@ class _HomePageState extends State<HomePage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProductPage()),
+                  MaterialPageRoute(
+                    builder: (context) => ProductPage(productId: product.id),
+                  ),
                 );
               },
               child: Container(

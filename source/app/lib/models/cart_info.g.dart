@@ -17,6 +17,7 @@ CartInfo _$CartInfoFromJson(Map<String, dynamic> json) => CartInfo(
       image: json['image'] as String,
       colorName: json['colorName'] as String,
       nameVariant: json['nameVariant'] as String,
+      productId: (json['productId'] as num).toInt(),
       selected: json['selected'] as bool? ?? false,
     );
 
@@ -25,6 +26,7 @@ Map<String, dynamic> _$CartInfoToJson(CartInfo instance) => <String, dynamic>{
       'orderDetailId': instance.orderDetailId,
       'fkColorId': instance.fkColorId,
       'fkProductId': instance.fkProductId,
+      'productId': instance.productId,
       'price': instance.price,
       'quantity': instance.quantity,
       'total': instance.total,

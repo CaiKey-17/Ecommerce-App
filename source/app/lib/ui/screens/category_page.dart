@@ -1,4 +1,5 @@
 import 'package:app/models/category_info.dart';
+import 'package:app/ui/main_brand.dart';
 import 'package:app/ui/main_category.dart';
 import 'package:app/ui/search_page.dart';
 import 'package:flutter/material.dart';
@@ -91,13 +92,55 @@ class _CategoryPageListState extends State<CategoryPageList> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildCategorySection("Danh mục sản phẩm", categories),
-                _buildCategorySection("Danh mục thương hiệu", brands),
+                _buildBrandSection("Danh mục thương hiệu", brands),
                 SizedBox(height: 55),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBrandSection(String title, List<CategoryInfo> items) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            SizedBox(width: 10),
+            Text(
+              title,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        Padding(
+          padding: EdgeInsets.only(right: 10, left: 10, top: 5),
+          child: const Divider(),
+        ),
+
+        LayoutBuilder(
+          builder: (context, constraints) {
+            int crossAxisCount = constraints.maxWidth > 600 ? 6 : 4;
+            return GridView.builder(
+              padding: EdgeInsets.only(bottom: 12),
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 0.88,
+              ),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                return _buildBrandItem(items[index]);
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -231,6 +274,55 @@ class _CategoryPageListState extends State<CategoryPageList> {
           context,
           MaterialPageRoute(
             builder: (context) => CategoryPage(selectedCategory: category.name),
+          ),
+        );
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            height: 60,
+            width: 60,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey, width: 1),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child:
+                  category.images != null
+                      ? Image.network(category.images!, fit: BoxFit.cover)
+                      : Icon(Icons.category, size: 40, color: Colors.grey),
+            ),
+          ),
+          SizedBox(height: 5),
+          SizedBox(
+            height: 37,
+            child: Text(
+              category.name,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.black54.withOpacity(0.7),
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBrandItem(CategoryInfo category) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BrandPage(selectedBrand: category.name),
           ),
         );
       },

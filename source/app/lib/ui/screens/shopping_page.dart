@@ -1,4 +1,6 @@
 import 'package:app/models/cart_info.dart';
+import 'package:app/repositories/cart_repository.dart';
+import 'package:app/services/cart_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
@@ -7,7 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ShoppingCartPage extends StatefulWidget {
-  final bool isFromTab; // Thêm tham số isFromTab
+  final bool isFromTab;
 
   const ShoppingCartPage({super.key, this.isFromTab = true});
 
@@ -17,6 +19,8 @@ class ShoppingCartPage extends StatefulWidget {
 
 class _ShoppingCartPageState extends State<ShoppingCartPage> {
   late ApiService apiService;
+  late CartRepository cartRepository;
+  late CartService cartService;
   List<CartInfo> cartItems = [];
   bool isLoading = true;
   String token = "";
@@ -32,6 +36,8 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     super.initState();
     _loadUserData();
     apiService = ApiService(Dio());
+    cartRepository = CartRepository(apiService);
+    cartService = CartService(cartRepository: cartRepository);
   }
 
   Future<void> _loadUserData() async {
@@ -58,7 +64,6 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         response = await apiService.getItemInCart(token: token, id: userId);
         print("Cả token và userID được cung cấp");
       }
-      // Xử lý response nếu cần
       setState(() {
         cartItems = response;
         isLoading = false;
@@ -71,52 +76,44 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     }
   }
 
-  // List<Map<String, dynamic>> cartItems = [
-  //   {
-  //     "image": "assets/images/laptop.webp",
-  //     "name": "Máy giặt Toshiba Inverter 9.5 kg TW-BK105S3V(SK)",
-  //     "color": "Xám, 9.5 kg",
-  //     "price": 7289000,
-  //     "quantity": 1,
-  //     "selected": false,
-  //   },
-  //   {
-  //     "image": "assets/images/laptop.webp",
-  //     "name": "Laptop Dell Inspiron 14",
-  //     "color": "Bạc, 14 inch",
-  //     "price": 14990000,
-  //     "quantity": 1,
-  //     "selected": false,
-  //   },
-  // ];
-
   void _toggleSelection(int index, bool? value) {
     setState(() {
       cartItems[index].selected = value!;
     });
   }
 
-  void _incrementQuantity(int index) {
-    setState(() {
-      // cartItems[index].quantity++;
-    });
-    Provider.of<CartProvider>(
-      context,
-      listen: false,
-    ).updateItem(cartItems[index].orderDetailId, cartItems[index].quantity);
+  void _incrementQuantity(int index, int color, int variant, int id) async {
+    bool check = await cartService.addMoreToCart(
+      productID: variant,
+      colorId: color,
+      id: id,
+      token: token,
+      context: context,
+    );
+    if (check) {
+      setState(() {
+        cartItems[index].quantity++;
+      });
+    }
   }
 
-  void _decrementQuantity(int index) {
+  void _decrementQuantity(int index, int variant, int order, int id) async {
     if (cartItems[index].quantity > 1) {
-      setState(() {
-        // cartItems[index]["quantity"]--;
-      });
-      Provider.of<CartProvider>(
-        context,
-        listen: false,
-      ).updateItem(cartItems[index].orderDetailId, cartItems[index].quantity);
-    } else {
-      _removeItem(index);
+      bool check = await cartService.minusMoreToCart(
+        productId: variant,
+        orderId: order,
+        id: id,
+        context: context,
+      );
+      if (check) {
+        setState(() {
+          cartItems[index].quantity--;
+        });
+        Provider.of<CartProvider>(
+          context,
+          listen: false,
+        ).updateItem(cartItems[index].orderDetailId, cartItems[index].quantity);
+      }
     }
   }
 
@@ -265,6 +262,9 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                                                   onTap:
                                                       () => _decrementQuantity(
                                                         index,
+                                                        item.fkProductId,
+                                                        item.orderId,
+                                                        item.productId,
                                                       ),
                                                   child: const Icon(
                                                     Icons.remove,
@@ -291,6 +291,9 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                                                   onTap:
                                                       () => _incrementQuantity(
                                                         index,
+                                                        item.fkColorId,
+                                                        item.fkProductId,
+                                                        item.productId,
                                                       ),
                                                   child: const Icon(
                                                     Icons.add,

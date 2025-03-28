@@ -8,9 +8,10 @@ class CartInfo {
   final int orderDetailId;
   final int fkColorId;
   final int fkProductId;
-  final double price;
-  final int quantity;
-  final double total;
+  final int productId;
+  double price;
+  int quantity;
+  double total;
   final String image;
   final String colorName;
   final String nameVariant;
@@ -29,6 +30,7 @@ class CartInfo {
     required this.image,
     required this.colorName,
     required this.nameVariant,
+    required this.productId,
     this.selected = false,
   });
 
