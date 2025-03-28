@@ -22,7 +22,6 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   late int _selectedIndex;
-  int cartItemCount = 3; // Giả sử có 3 sản phẩm trong giỏ hàng
 
   List<Widget> pages = const [
     HomePage(),

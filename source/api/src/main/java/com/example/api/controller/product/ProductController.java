@@ -1,6 +1,7 @@
 package com.example.api.controller.product;
 
 import com.example.api.dto.ProductDTO;
+import com.example.api.dto.ProductDetailDTO;
 import com.example.api.model.Address;
 import com.example.api.model.Customer;
 import com.example.api.model.Users;
@@ -41,6 +42,19 @@ public class ProductController {
         List<ProductDTO> products = productService.getAllProductsByCategory(fk_category);
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
+
+    @GetMapping("/brand")
+    public ResponseEntity<List<ProductDTO>> getProductsByBrand(@RequestParam String fk_brand) {
+        List<ProductDTO> products = productService.getAllProductsByBrand(fk_brand);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/detail")
+    public ResponseEntity<ProductDetailDTO> getProductsDetail(@RequestParam int id) {
+        ProductDetailDTO product = productService.getDetailProduct(id);
+        return new ResponseEntity<>(product, HttpStatus.OK);
+    }
+
 
 //    @GetMapping("/cart")
 //    public ResponseEntity<?> getProductsInCart(@RequestHeader("Authorization") String token) {

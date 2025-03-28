@@ -1,6 +1,6 @@
 package com.example.api.service;
 
-import com.example.api.dto.ProductDTO;
+import com.example.api.dto.*;
 import com.example.api.model.Product;
 import com.example.api.model.Product_color;
 import com.example.api.model.Product_image;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -98,5 +99,131 @@ public class ProductService {
 
         return productDTOs;
     }
+
+    public List<ProductDTO> getAllProductsByBrand(String fk_brand) {
+        List<Product> products = productRepository.findByFkBrand(fk_brand);
+        List<ProductDTO> productDTOs = new ArrayList<>();
+
+        for (Product product : products) {
+            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+            if (!variants.isEmpty()) {
+                Product_variant variant = variants.get(0);
+                List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
+                ProductDTO dto = new ProductDTO();
+                dto.setId(product.getId());
+                dto.setImage(product.getMainImage());
+                dto.setDiscountLabel("TIẾT KIỆM\n" + (variant.getOriginalPrice() - variant.getPrice()) + " đ");
+                dto.setName(product.getName());
+                dto.setDescription(product.getShortDescription());
+                dto.setPrice(variant.getPrice() + " đ");
+                dto.setOldPrice(variant.getOriginalPrice() + " đ");
+                dto.setDiscountPercent("-" + variant.getDiscountPercent() + "%");
+                dto.setIdVariant(variant.getId());
+                if (!colors.isEmpty()) {
+                    dto.setIdColor(colors.get(0).getId());
+                } else {
+                    dto.setIdColor(-1);
+                }
+
+                productDTOs.add(dto);
+            }
+
+        }
+
+        return productDTOs;
+    }
+    public ProductDetailDTO getDetailProduct(int id) {
+        Product product = productRepository.findById(id).orElse(null);
+        if (product == null) {
+            return null;
+        }
+
+        ProductDetailDTO productDTO = new ProductDetailDTO();
+        productDTO.setId(product.getId());
+        productDTO.setBrand(product.getFkBrand());
+        productDTO.setDescription(product.getShortDescription());
+
+        List<ImageDTO> imageDTOs = productImageRepository.findByFkImageProduct(product.getId()).stream()
+                .map(image -> {
+                    ImageDTO imgDto = new ImageDTO();
+                    imgDto.setId(image.getId());
+                    imgDto.setImage(image.getImage());
+                    return imgDto;
+                })
+                .collect(Collectors.toList());
+        productDTO.setImages(imageDTOs);
+
+        List<VariantDTO> variantDTOs = productVariantRepository.findByFkVariantProduct(product.getId()).stream()
+                .map(variant -> {
+                    VariantDTO variantDTO = new VariantDTO();
+                    variantDTO.setId(variant.getId());
+                    variantDTO.setName(variant.getNameVariant());
+                    variantDTO.setDiscountPercent(variant.getDiscountPercent());
+                    variantDTO.setOldPrice(variant.getOriginalPrice());
+                    variantDTO.setPrice(variant.getPrice());
+
+                    List<ColorDTO> colorDTOs = productColorRepository.findByFkVariantProduct(variant.getId()).stream()
+                            .map(color -> {
+                                ColorDTO colorDTO = new ColorDTO();
+                                colorDTO.setId(color.getId());
+                                colorDTO.setName_color(color.getColorName());
+                                colorDTO.setPrice(color.getColorPrice());
+                                colorDTO.setImage(color.getImage());
+                                return colorDTO;
+                            })
+                            .collect(Collectors.toList());
+
+                    variantDTO.setColors(colorDTOs);
+                    return variantDTO;
+                })
+                .collect(Collectors.toList());
+
+        productDTO.setVariants(variantDTOs);
+
+
+        return productDTO;
+    }
+
+
+//    public ProductDTO getDetailProduct(int id) {
+////        List<ProductDTO> productDTOs = new ArrayList<>();
+//
+//        Product product = productRepository.findById(id).orElse(null);
+//        if(product !=null){
+//            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+//            for(Product_variant i: variants) {
+//                List<Product_color> colors = productColorRepository.findByFkVariantProduct(i.getId());
+//                ProductDTO dto = new ProductDTO();
+//
+//
+//            }
+//
+//        }
+//
+//            if (!variants.isEmpty()) {
+//                Product_variant variant = variants.get(0);
+//                dto.setId(product.getId());
+//                dto.setImage(product.getMainImage());
+//                dto.setDiscountLabel("TIẾT KIỆM\n" + (variant.getOriginalPrice() - variant.getPrice()) + " đ");
+//                dto.setName(product.getName());
+//                dto.setDescription(product.getShortDescription());
+//                dto.setPrice(variant.getPrice() + " đ");
+//                dto.setOldPrice(variant.getOriginalPrice() + " đ");
+//                dto.setDiscountPercent("-" + variant.getDiscountPercent() + "%");
+//                dto.setIdVariant(variant.getId());
+//                if (!colors.isEmpty()) {
+//                    dto.setIdColor(colors.get(0).getId());
+//                } else {
+//                    dto.setIdColor(-1);
+//                }
+//
+//                productDTOs.add(dto);
+//            }
+//
+//        }
+//
+//        return productDTOs;
+//    }
+
 
 }

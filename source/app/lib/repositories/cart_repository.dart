@@ -43,4 +43,28 @@ class CartRepository {
       return {"error": "Lỗi hệ thống! Vui lòng thử lại.", "statusCode": 500};
     }
   }
+
+  Future<Map<String, dynamic>> minusToCart({
+    required int productId,
+    required int orderId,
+  }) async {
+    try {
+      final response = await apiService.minusToCart(productId, orderId);
+
+      print("✅ Phản hồi API: $response");
+
+      return response;
+    } on DioException catch (e) {
+      print("❌ Lỗi API: ${e.response?.data ?? e.message}");
+
+      return {
+        "error": e.response?.data["error"] ?? "Không thể trừ khỏi vào giỏ hàng",
+        "statusCode": e.response?.statusCode ?? 500,
+      };
+    } catch (e) {
+      print("⚠️ Lỗi không xác định: $e");
+
+      return {"error": "Lỗi hệ thống! Vui lòng thử lại.", "statusCode": 500};
+    }
+  }
 }

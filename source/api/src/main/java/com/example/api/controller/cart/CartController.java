@@ -105,6 +105,15 @@ public class CartController {
         return ResponseEntity.ok(Map.of("message", "Thêm vào giỏ hàng", "id", id, "temp_id", tempID));
     }
 
+    @PostMapping("/minus")
+    public ResponseEntity<?> minusToCart(
+            @RequestParam int productId,
+            @RequestParam int orderId) {
+
+        cartService.minusToCart(productId, orderId);
+        return ResponseEntity.ok(Map.of("message", "Đã trừ trong giỏ hàng"));
+    }
+
 
     @GetMapping("/list")
     public ResponseEntity<List<OrderDetailProjection>> listItemCarts(

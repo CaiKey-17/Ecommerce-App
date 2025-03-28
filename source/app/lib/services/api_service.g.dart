@@ -10,7 +10,7 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://192.168.1.54:8080/api';
+    baseUrl ??= 'http://192.168.70.182:8080/api';
   }
 
   final Dio _dio;
@@ -214,6 +214,31 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<List<ProductInfo>> getProductsByBrand(fk_brand) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'fk_brand': fk_brand};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<ProductInfo>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/products/brand',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!
+            .map((dynamic i) => ProductInfo.fromJson(i as Map<String, dynamic>))
+            .toList();
+    return value;
+  }
+
+  @override
   Future<List<CartInfo>> getItemInCart({token, id}) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'id': id};
@@ -292,6 +317,31 @@ class _ApiService implements ApiService {
       ),
     );
 
+    var value = Map<String, dynamic>.from(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<Map<String, dynamic>> minusToCart(productId, orderId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'productId': productId,
+      r'orderId': orderId,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Map<String, dynamic>>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/cart/minus',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
     var value = Map<String, dynamic>.from(_result.data!);
     return value;
   }

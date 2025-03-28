@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class ProductPage extends StatefulWidget {
+  final int productId;
+
+  const ProductPage({super.key, required this.productId});
+
   @override
   _ProductPageState createState() => _ProductPageState();
 }
@@ -150,7 +154,7 @@ class _ProductPageState extends State<ProductPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Iphone 15 sang xịn mịn',
+                        widget.productId.toString(),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

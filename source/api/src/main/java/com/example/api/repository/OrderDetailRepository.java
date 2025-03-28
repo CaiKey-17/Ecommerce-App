@@ -35,6 +35,7 @@ public interface OrderDetailRepository extends JpaRepository<Order_detail, Integ
             "  END AS price, " +
             "  o.quantity, " +
             "  o.total, " +
+            "  p.id as productId, " +
             "  COALESCE(pc.color_name, '') AS color_name, " +
             "  v.name_variant, " +
             "  CASE " +

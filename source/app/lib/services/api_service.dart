@@ -15,7 +15,7 @@ import '../models/cart_info.dart';
 
 part 'api_service.g.dart';
 
-@RestApi(baseUrl: "http://192.168.1.54:8080/api")
+@RestApi(baseUrl: "http://192.168.70.182:8080/api")
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -45,6 +45,11 @@ abstract class ApiService {
     @Query("fk_category") String fk_category,
   );
 
+  @GET("/products/brand")
+  Future<List<ProductInfo>> getProductsByBrand(
+    @Query("fk_brand") String fk_brand,
+  );
+
   @GET("/cart/list")
   Future<List<CartInfo>> getItemInCart({
     @Header("Authorization") String? token,
@@ -61,5 +66,11 @@ abstract class ApiService {
     @Query("colorId") int colorId,
     @Query("quantity") int quantity,
     @Query("id") int? id,
+  );
+
+  @POST("/cart/minus")
+  Future<Map<String, dynamic>> minusToCart(
+    @Query("productId") int productId,
+    @Query("orderId") int orderId,
   );
 }
