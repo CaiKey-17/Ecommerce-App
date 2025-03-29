@@ -1,5 +1,6 @@
 import 'package:app/models/category_info.dart';
 import 'package:app/models/product_info.dart';
+import 'package:app/models/product_info_detail.dart';
 import 'package:app/models/valid_response.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -44,6 +45,9 @@ abstract class ApiService {
   Future<List<ProductInfo>> getProductsByCategory(
     @Query("fk_category") String fk_category,
   );
+
+  @GET("/products/detail")
+  Future<Product> getProductDetail(@Query("id") int id);
 
   @GET("/products/brand")
   Future<List<ProductInfo>> getProductsByBrand(

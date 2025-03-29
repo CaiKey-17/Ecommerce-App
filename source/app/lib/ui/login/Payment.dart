@@ -1,9 +1,8 @@
-import 'UpdateAddressScreen.dart';
+import 'package:app/ui/login/UpdateAddressScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class PaymentConfirmationScreen extends StatefulWidget {
-  const PaymentConfirmationScreen({Key? key}) : super(key: key);
   @override
   _PaymentConfirmationScreenState createState() =>
       _PaymentConfirmationScreenState();
@@ -21,6 +20,14 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   bool isCouponApplied = false;
   bool isMemberPointsUsed = false;
 
+  double get tax => productPrice * 0.05;
+
+  double get totalAmount {
+    double subtotal = productPrice + tax;
+    double total = subtotal - totalDiscount + shippingFee;
+    return total < 0 ? 0 : total;
+  }
+
   final currencyFormatter = NumberFormat("#,###", "vi_VN");
 
   double get totalDiscount {
@@ -29,16 +36,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     return appliedDiscount + appliedMemberPoints;
   }
 
-  double get totalAmount {
-    double subtotal = productPrice;
-    double total = subtotal - totalDiscount + shippingFee;
-    return total < 0 ? 0 : total;
-  }
-
+  // mã giảm giá
   void _applyCoupon(String code) {
     setState(() {
-      if (code == "GIAM1800") {
-        discount = 1800000;
+      if (code == "GIAMGIA") {
+        discount = 100000;
         isCouponApplied = true;
       } else {
         discount = 0;
@@ -46,12 +48,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       }
     });
   }
-
-  // void _toggleMemberPoints(bool value) {
-  //   setState(() {
-  //     isMemberPointsUsed = value;
-  //   });
-  // }
 
   void _changeAddress() async {
     final newAddress = await Navigator.push(
@@ -68,11 +64,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     }
   }
 
-  // @override
-  // void dispose() {
-  //   _couponController.dispose();
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    _couponController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +141,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
             _buildSummaryRow("Tổng tạm tính:", productPrice),
             _buildSummaryRow("Phí vận chuyển:", shippingFee),
-            _buildSummaryRow("Giảm giá từ mã khuyến mãi:", discount),
+            _buildSummaryRow("Thuế (5%):", tax),
+            _buildSummaryRow("Giảm giá từ mã khuyến mãi:", -discount),
             _buildSummaryRow(
               "Giảm giá điểm thành viên:",
               isMemberPointsUsed ? -50000 : 0,
@@ -241,36 +238,62 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   Widget _buildCouponInput() {
-    return TextField(
-      style: TextStyle(fontSize: 16),
-      decoration: InputDecoration(
-        labelText: "Chọn hoặc nhập khuyến mãi",
-        labelStyle: TextStyle(fontSize: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        suffixIcon: IntrinsicWidth(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.arrow_drop_down),
-              SizedBox(width: 8),
-              TextButton(
-                onPressed: () {
-                  _applyCoupon(_couponController.text);
-                },
-                child: Text(
-                  "Áp dụng",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isMemberPointsUsed ? Colors.blue : Colors.blue,
-                  ),
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 48,
+            child: TextField(
+              controller: _couponController,
+              style: TextStyle(fontSize: 16),
+              decoration: InputDecoration(
+                hintText: "Vui lòng nhập mã voucher",
+                hintStyle: TextStyle(fontSize: 16, color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
                 ),
               ),
-            ],
+              onChanged: (value) {
+                _couponController.notifyListeners();
+              },
+              onSubmitted: (value) => _applyCoupon(value),
+            ),
           ),
         ),
-      ),
-      controller: _couponController,
-      onSubmitted: (value) => _applyCoupon(value),
+
+        SizedBox(width: 8),
+        ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _couponController,
+          builder: (context, value, child) {
+            return SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                onPressed:
+                    value.text.isNotEmpty
+                        ? () => _applyCoupon(value.text)
+                        : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      value.text.isNotEmpty ? Colors.blue : Colors.black,
+                  foregroundColor: Colors.black,
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text("Áp dụng", style: TextStyle(fontSize: 16)),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -340,7 +363,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               color:
                   isTotal
                       ? Colors.red
-                      : (isDiscountTotal ? Colors.green : Colors.black),
+                      : (isDiscountTotal ? Colors.blue : Colors.black),
             ),
           ),
         ],

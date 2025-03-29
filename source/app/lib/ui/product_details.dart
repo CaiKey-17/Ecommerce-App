@@ -1,7 +1,19 @@
 import 'dart:math';
 
+import 'package:app/models/color_model.dart';
+import 'package:app/models/image_model.dart';
+import 'package:app/models/product_info.dart';
+import 'package:app/models/product_info_detail.dart';
+import 'package:app/models/variant_model.dart';
+import 'package:app/repositories/cart_repository.dart';
+import 'package:app/services/api_service.dart';
+import 'package:app/services/cart_service.dart';
+import 'package:app/ui/main_page.dart';
+import 'package:app/ui/screens/shopping_page.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductPage extends StatefulWidget {
   final int productId;
@@ -13,18 +25,19 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
+  late ApiService apiService;
   int selectedColorIndex = 0;
   int selectedVersionIndex = 0;
+  String name = "";
+  double? price;
+
   double basePrice = 1990000;
   int _currentIndex = 0;
 
-  final List<String> images = [
-    'assets/images/manhinh.webp',
-    'assets/images/laptop.webp',
-    'assets/images/linhkien.webp',
-  ];
-  final List<String> colors = ['Đỏ', 'Xanh', 'Đen'];
-  final List<String> versions = ['128GB', '256GB', '512GB'];
+  List<String> images = [];
+
+  List<ColorOption> colors = [];
+  List<Variant> versions = [];
   final List<double> priceModifiers = [0, 200000, 500000];
 
   final List<Map<String, dynamic>> reviews = [
@@ -62,298 +75,460 @@ class _ProductPageState extends State<ProductPage> {
     },
   ];
 
-  double get selectedPrice => basePrice + priceModifiers[selectedVersionIndex];
+  bool isLoading = true;
+  Product? product;
+
+  @override
+  void initState() {
+    super.initState();
+    apiService = ApiService(Dio());
+    cartRepository = CartRepository(apiService);
+    cartService = CartService(cartRepository: cartRepository);
+    fetchProductDetail();
+  }
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? "";
+    });
+  }
+
+  Future<void> fetchProductDetail() async {
+    try {
+      final response = await apiService.getProductDetail(widget.productId);
+      setState(() {
+        product = response;
+        for (ProductImage i in product!.images) {
+          images.add(i.image);
+        }
+        versions = product!.variants;
+        if (versions.isNotEmpty) {
+          selectedVersionIndex = 0;
+          name = versions[0].name;
+          colors = versions[0].colors;
+
+          if (colors.isNotEmpty) {
+            selectedColorIndex = 0;
+            price = colors[0].price;
+            for (ColorOption i in colors) {
+              images.add(i.image);
+            }
+          } else {
+            selectedColorIndex = -1;
+            price = versions[0].price;
+          }
+        }
+        fetchProductsBrand(product!.brand);
+        fetchProductsCategory(product!.category);
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsBrand(String brand) async {
+    try {
+      final response = await apiService.getProductsByBrand(brand);
+      setState(() {
+        for (ProductInfo i in response) {
+          if (i.id != widget.productId) {
+            products_brand.add(i);
+          }
+        }
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsCategory(String category) async {
+    try {
+      final response = await apiService.getProductsByCategory(category);
+      setState(() {
+        for (ProductInfo i in response) {
+          if (i.id != widget.productId) {
+            products_category.add(i);
+          }
+        }
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.blue,
         leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: Colors.grey),
+          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
+        title: Center(
+          child: Text(
+            "Thông tin chi tiết",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.shopping_cart, color: Colors.grey),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.home, color: Colors.grey),
-            onPressed: () {},
+            icon: Icon(Icons.shopping_cart, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MainPage(initialIndex: 2),
+                ),
+              );
+            },
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 200,
-              child: Stack(
-                children: [
-                  CarouselSlider.builder(
-                    itemCount: images.length,
-                    itemBuilder: (context, index, realIndex) {
-                      return Container(
-                        margin: EdgeInsets.symmetric(horizontal: 5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          image: DecorationImage(
-                            image: AssetImage(images[index]),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      );
-                    },
-                    options: CarouselOptions(
-                      height: 250,
-                      enlargeCenterPage: false,
-                      autoPlay: true,
-                      autoPlayInterval: Duration(seconds: 3),
-                      viewportFraction: 1.0,
-                      onPageChanged: (index, reason) {
-                        setState(() {
-                          _currentIndex = index;
-                        });
-                      },
-                    ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    right: 15,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: Text(
-                        '${_currentIndex + 1}/${images.length}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(10),
+      body:
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Container(
+                color: Colors.white,
+                child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.productId.toString(),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Loại: Điện thoại',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      SizedBox(height: 8),
-
-                      Row(
-                        children: [
-                          Row(
-                            children: List.generate(5, (index) {
-                              return Icon(
-                                index < 4 ? Icons.star : Icons.star_half,
-                                color: Colors.amber,
-                                size: 18,
-                              );
-                            }),
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            '4.8 (200 Đánh giá)',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(versions.length, (index) {
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedVersionIndex = index;
-                              });
-                            },
-                            child: Container(
-                              width: 120,
-                              padding: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color:
-                                      selectedVersionIndex == index
-                                          ? Colors.blue
-                                          : Colors.grey,
-                                  width: selectedVersionIndex == index ? 2 : 1,
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    versions[index],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
+                      SizedBox(
+                        height: 200,
+                        child: Stack(
+                          children: [
+                            CarouselSlider.builder(
+                              itemCount: images.length,
+                              itemBuilder: (context, index, realIndex) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: NetworkImage(images[index]),
+                                      fit: BoxFit.fitHeight,
                                     ),
                                   ),
-                                  Text(
-                                    '${(basePrice + priceModifiers[index]).toStringAsFixed(0)}đ',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                                );
+                              },
+                              options: CarouselOptions(
+                                height: 250,
+                                enlargeCenterPage: false,
+                                autoPlay: true,
+                                autoPlayInterval: Duration(seconds: 3),
+                                viewportFraction: 1.0,
+                                onPageChanged: (index, reason) {
+                                  setState(() {
+                                    _currentIndex = index;
+                                  });
+                                },
                               ),
                             ),
-                          );
-                        }),
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Chọn màu:',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(colors.length, (index) {
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedColorIndex = index;
-                              });
-                            },
-                            child: Container(
-                              width: 120,
-                              padding: EdgeInsets.symmetric(
-                                vertical: 5,
-                                horizontal: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color:
-                                      selectedColorIndex == index
-                                          ? Colors.blue
-                                          : Colors.grey,
-                                  width: selectedColorIndex == index ? 2 : 1,
+                            Positioned(
+                              top: 10,
+                              right: 15,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
                                 ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    colors[index],
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Text(
+                                  '${_currentIndex + 1}/${images.length}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Text(
-                                    '${(basePrice).toStringAsFixed(0)}đ',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          );
-                        }),
-                      ),
-                      SizedBox(height: 16),
-                      Container(
-                        height: 60,
-                        width: double.infinity,
-                        alignment: Alignment.center,
-                        color: Colors.grey[200],
-                        child: Text(
-                          '${selectedPrice.toStringAsFixed(0)}đ',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: const Color.fromARGB(255, 16, 118, 201),
-                          ),
+                          ],
                         ),
                       ),
-                      SizedBox(height: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Thông tin chi tiết',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Thương hiệu: ${product?.brand}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+
+                                Row(
+                                  children: [
+                                    Row(
+                                      children: List.generate(5, (index) {
+                                        return Icon(
+                                          index < 4
+                                              ? Icons.star
+                                              : Icons.star_half,
+                                          color: Colors.amber,
+                                          size: 18,
+                                        );
+                                      }),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '4.8 (200 Đánh giá)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: List.generate(versions.length, (
+                                    index,
+                                  ) {
+                                    return Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            selectedVersionIndex = index;
+                                            name = versions[index].name;
+                                            colors = versions[index].colors;
+
+                                            if (colors.isNotEmpty) {
+                                              selectedColorIndex = 0;
+                                              price = colors[0].price;
+                                            } else {
+                                              selectedColorIndex = -1;
+                                              price = versions[index].price;
+                                            }
+                                          });
+                                        },
+
+                                        child: Container(
+                                          margin: EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                          width: 120,
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 5,
+                                            horizontal: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color:
+                                                  selectedVersionIndex == index
+                                                      ? Colors.blue
+                                                      : Colors.grey,
+                                              width:
+                                                  selectedVersionIndex == index
+                                                      ? 2
+                                                      : 1,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                versions[index].name,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                                SizedBox(height: 12),
+                                Text(
+                                  'Chọn màu:',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: List.generate(colors.length, (
+                                    index,
+                                  ) {
+                                    return Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          if (colors.isNotEmpty) {
+                                            setState(() {
+                                              selectedColorIndex = index;
+                                              price = colors[index].price;
+                                            });
+                                          }
+                                        },
+                                        child: Container(
+                                          margin: EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                          width: 120,
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 5,
+                                            horizontal: 10,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color:
+                                                  selectedColorIndex == index
+                                                      ? Colors.blue
+                                                      : Colors.grey,
+                                              width:
+                                                  selectedColorIndex == index
+                                                      ? 2
+                                                      : 1,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                colors[index].nameColor,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                '${(colors[index].price).toStringAsFixed(0)}đ',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                                SizedBox(height: 16),
+                                Container(
+                                  height: 60,
+                                  width: double.infinity,
+                                  alignment: Alignment.center,
+                                  color: Colors.grey[200],
+                                  child: Text(
+                                    price.toString(),
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color.fromARGB(
+                                        255,
+                                        16,
+                                        118,
+                                        201,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Thông tin chi tiết',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 10),
+                                    SpecificationWidget(),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      'Mô tả sản phẩm',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(height: 10),
+                                    DescriptionWidget(),
+                                    SizedBox(height: 10),
+                                    ProductRatingWidget(
+                                      productName: "Sản phẩm A",
+                                      reviews: reviews,
+                                      onViewMoreReviews:
+                                          () => print('Xem thêm đánh giá'),
+                                      onWriteReview:
+                                          () => print('Viết đánh giá'),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10),
+                                _buildTitle("Sản phẩm cùng hãng", () {
+                                  print("Xem thêm được bấm!");
+                                }),
+                                Divider(color: Colors.grey, thickness: 1),
+                                SizedBox(height: 10),
+
+                                _buildListView(products_brand),
+                                SizedBox(height: 10),
+
+                                _buildTitle("Sản phẩm liên quan ", () {
+                                  print("Xem thêm được bấm!");
+                                }),
+                                Divider(color: Colors.grey, thickness: 1),
+                                SizedBox(height: 10),
+
+                                _buildListView(products_category),
+                                SizedBox(height: 10),
+                              ],
                             ),
-                          ),
-                          SizedBox(height: 10),
-                          SpecificationWidget(),
-                          SizedBox(height: 10),
-                          Text(
-                            'Mô tả sản phẩm',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          DescriptionWidget(),
-                          SizedBox(height: 10),
-                          ProductRatingWidget(
-                            productName: "Sản phẩm A",
-                            reviews: reviews,
-                            onViewMoreReviews: () => print('Xem thêm đánh giá'),
-                            onWriteReview: () => print('Viết đánh giá'),
                           ),
                         ],
                       ),
                       SizedBox(height: 10),
-                      _buildTitle("Danh sách sản phẩm", () {
-                        print("Xem thêm được bấm!");
-                      }),
-                      Divider(color: Colors.grey, thickness: 1),
                     ],
                   ),
                 ),
-
-                _buildListView(),
-              ],
-            ),
-            SizedBox(height: 10),
-          ],
-        ),
-      ),
+              ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(color: Colors.white),
         padding: EdgeInsets.fromLTRB(16, 8, 16, 20),
@@ -361,7 +536,15 @@ class _ProductPageState extends State<ProductPage> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  // cartService.addToCart(
+                  //   productID: versions[index].id,
+                  //   colorId: product.idColor,
+                  //   id: product.id,
+                  //   token: token,
+                  //   context: context,
+                  // );
+                },
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.blue, width: 1.5),
                   padding: EdgeInsets.symmetric(vertical: 12),
@@ -1065,21 +1248,27 @@ Widget _buildStarRating(int stars) {
   );
 }
 
-final List<Map<String, dynamic>> products = List.generate(
-  10,
-  (index) => {
-    "image": "assets/images/laptop.webp",
-    "discountLabel": "TIẾT KIỆM\n700.000 đ",
-    "name": "ADATA",
-    "description":
-        "Ram Desktop ADATA XPG D50 DDR4 16GB (1x16GB) 3200 RGB Grey...",
-    "price": "990.000 đ",
-    "oldPrice": "1.690.000 đ",
-    "discountPercent": "-41,42%",
-  },
-);
+List<ProductInfo> products_brand = [];
+List<ProductInfo> products_category = [];
+late CartRepository cartRepository;
+late CartService cartService;
+String token = "";
 
-Widget _buildListView() {
+// final List<Map<String, dynamic>> products = List.generate(
+//   10,
+//   (index) => {
+//     "image": "assets/images/laptop.webp",
+//     "discountLabel": "TIẾT KIỆM\n700.000 đ",
+//     "name": "ADATA",
+//     "description":
+//         "Ram Desktop ADATA XPG D50 DDR4 16GB (1x16GB) 3200 RGB Grey...",
+//     "price": "990.000 đ",
+//     "oldPrice": "1.690.000 đ",
+//     "discountPercent": "-41,42%",
+//   },
+// );
+
+Widget _buildListView(List<ProductInfo> products) {
   return Container(
     height: 400,
     child: ListView.builder(
@@ -1115,8 +1304,8 @@ Widget _buildListView() {
                       borderRadius: BorderRadius.vertical(
                         top: Radius.circular(10),
                       ),
-                      child: Image.asset(
-                        product["image"],
+                      child: Image.network(
+                        product.image,
                         width: double.infinity,
                         height: 150,
                         fit: BoxFit.cover,
@@ -1131,15 +1320,17 @@ Widget _buildListView() {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      product["name"],
+                      product.name,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 4),
                     Text(
-                      product["description"],
+                      product.description,
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade700,
@@ -1149,7 +1340,7 @@ Widget _buildListView() {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      product["price"],
+                      product.price,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1159,7 +1350,7 @@ Widget _buildListView() {
                     Row(
                       children: [
                         Text(
-                          product["oldPrice"],
+                          product.oldPrice,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -1168,7 +1359,7 @@ Widget _buildListView() {
                         ),
                         SizedBox(width: 4),
                         Text(
-                          product["discountPercent"],
+                          product.discountPercent,
                           style: TextStyle(fontSize: 12, color: Colors.red),
                         ),
                       ],
@@ -1192,7 +1383,15 @@ Widget _buildListView() {
                 child: SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      cartService.addToCart(
+                        productID: product.idVariant,
+                        colorId: product.idColor,
+                        id: product.id,
+                        token: token,
+                        context: context,
+                      );
+                    },
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.blue, width: 1),
                       foregroundColor: Colors.blue,
