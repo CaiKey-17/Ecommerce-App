@@ -141,6 +141,7 @@ public class ProductService {
         ProductDetailDTO productDTO = new ProductDetailDTO();
         productDTO.setId(product.getId());
         productDTO.setBrand(product.getFkBrand());
+        productDTO.setCategory(product.getFkCategory());
         productDTO.setDescription(product.getShortDescription());
 
         List<ImageDTO> imageDTOs = productImageRepository.findByFkImageProduct(product.getId()).stream()

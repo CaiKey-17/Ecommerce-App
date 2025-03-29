@@ -1,15 +1,13 @@
-import 'package:app/ui/login/Payment.dart';
-import 'package:app/ui/login/VerificationCodeScreen.dart';
-import 'package:app/ui/main_page.dart';
-import 'package:app/ui/payment_success.dart';
+import 'package:app/ui/screens/shopping_page.dart';
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-
-import '/ui/login/login_page.dart';
+import 'package:lottie/lottie.dart';
+import 'dart:async';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/cart_provider.dart';
+import 'ui/main_page.dart';
+import 'ui/login/login_page.dart';
+import 'ui/login/VerificationCodeScreen.dart';
+import 'ui/login/Payment.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +15,6 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -31,11 +27,52 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
+          '/': (context) => SplashScreen(),
+          '/main': (context) => MainPage(),
           '/login': (context) => LoginPage(),
-          '/': (context) => MainPage(),
           '/otp': (context) => VerifyOtpScreen(),
           '/payment': (context) => PaymentConfirmationScreen(),
+          '/cart': (context) => ShoppingCartPage(),
         },
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Timer(Duration(seconds: 3), () {
+      Navigator.of(context).pushReplacementNamed('/main');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.blue,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Lottie.asset('assets/animations/animation.json', width: 200),
+            SizedBox(height: 15),
+            Text(
+              "TechZone",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

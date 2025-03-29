@@ -85,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
 
-      Navigator.pushNamedAndRemoveUntil(context, "/", (route) => false);
+      Navigator.pushNamedAndRemoveUntil(context, "/main", (route) => false);
     } else {
       print("Không thể lấy thông tin người dùng.");
     }
@@ -277,7 +277,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       TextButton(
                         onPressed: () {
-                          Navigator.pushReplacementNamed(context, "/");
+                          Navigator.pushReplacementNamed(context, "/main");
                         },
                         child: Text(
                           "Mua hàng không cần đăng nhập",

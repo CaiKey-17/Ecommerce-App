@@ -29,7 +29,7 @@ class _DemoState extends State<Demo> {
   bool isCollapsed = false;
   String fullName = "";
   int points = 0;
-  bool _isFetching = false; // Theo dõi trạng thái fetching
+  bool _isFetching = false;
 
   @override
   void initState() {
@@ -65,7 +65,7 @@ class _DemoState extends State<Demo> {
 
     try {
       await Future.delayed(const Duration(seconds: 2));
-      
+
       final newItems = List.generate(
         _pageSize,
         (index) => {
@@ -100,8 +100,8 @@ class _DemoState extends State<Demo> {
     final maxScrollExtent = _scrollController.position.maxScrollExtent;
 
     // Kiểm tra khi scroll đến gần cuối để tải thêm dữ liệu
-    if (currentOffset >= maxScrollExtent - 200 && 
-        !_isFetching && 
+    if (currentOffset >= maxScrollExtent - 200 &&
+        !_isFetching &&
         _pagingController.nextPageKey != null) {
       _fetchPage(_pagingController.nextPageKey!);
     }
@@ -123,76 +123,99 @@ class _DemoState extends State<Demo> {
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        SliverAppBar(
-          automaticallyImplyLeading: false,
-          pinned: true,
-          expandedHeight: 100.0,
-          backgroundColor: Colors.transparent,
-          flexibleSpace: LayoutBuilder(
-            builder: (context, constraints) {
-              bool isFullyCollapsed = constraints.maxHeight == kToolbarHeight;
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverAppBar(
+            automaticallyImplyLeading: false,
+            pinned: true,
+            expandedHeight: 100.0,
+            backgroundColor: Colors.transparent,
+            flexibleSpace: LayoutBuilder(
+              builder: (context, constraints) {
+                bool isFullyCollapsed = constraints.maxHeight == kToolbarHeight;
 
-              return Container(
-                decoration: BoxDecoration(
-                  gradient: isFullyCollapsed
-                      ? LinearGradient(colors: [Colors.blue, Colors.blue])
-                      : LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.blue, Colors.blue, Colors.white],
-                          stops: const [0.0, 0.5, 1.0],
-                        ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (!isCollapsed)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8), // Sửa thành bottom: 8
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Xin chào ${fullName.isNotEmpty ? fullName : 'bạn'}",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'Pacifico',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient:
+                        isFullyCollapsed
+                            ? LinearGradient(colors: [Colors.blue, Colors.blue])
+                            : LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.blue, Colors.blue, Colors.white],
+                              stops: const [0.0, 0.5, 1.0],
+                            ),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: SafeArea(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (!isCollapsed)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: 8,
+                            ), // Sửa thành bottom: 8
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Xin chào ${fullName.isNotEmpty ? fullName : 'bạn'}",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'Pacifico',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              ),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue.shade100,
+                                        borderRadius: BorderRadius.circular(40),
+                                        border: Border.all(
+                                          color: Colors.blue.shade700,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '🪙 $points',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue.shade700,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.support_agent_rounded,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (isFullyCollapsed) // Thêm giao diện khi thu gọn hoàn toàn
+                          Column(
+                            children: [
                               Row(
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue.shade100,
-                                      borderRadius: BorderRadius.circular(40),
-                                      border: Border.all(
-                                        color: Colors.blue.shade700,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      '🪙 $points',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue.shade700,
-                                      ),
-                                    ),
-                                  ),
+                                  Expanded(child: _buildSearchBar()),
                                   const SizedBox(width: 8),
                                   const Icon(
                                     Icons.support_agent_rounded,
@@ -201,120 +224,106 @@ Widget build(BuildContext context) {
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 3),
                             ],
                           ),
-                        ),
-                      if (isFullyCollapsed) // Thêm giao diện khi thu gọn hoàn toàn
-                        Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(child: _buildSearchBar()),
-                                const SizedBox(width: 8),
-                                const Icon(
-                                  Icons.support_agent_rounded,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 3),
-                          ],
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-        SliverList(
-          delegate: SliverChildListDelegate([
-            
-            _buildListView1(),
-            _buildGridView(), // Di chuyển _buildGridView() vào đây
-            const SizedBox(height: 55), // Thêm khoảng cách cuối
-          ]),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildSearchBar() {
-  return GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => SearchPage()),
-      );
-    },
-    child: Container(
-      height: 37,
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 248, 252, 255),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 5,
-            offset: Offset(0, 3),
+          SliverList(
+            delegate: SliverChildListDelegate([
+              _buildListView1(),
+              _buildGridView(), // Di chuyển _buildGridView() vào đây
+              const SizedBox(height: 55), // Thêm khoảng cách cuối
+            ]),
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 37,
-                  padding: EdgeInsets.only(left: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      bottomLeft: Radius.circular(8),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SearchPage()),
+        );
+      },
+      child: Container(
+        height: 37,
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 248, 252, 255),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 5,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 37,
+                    padding: EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        bottomLeft: Radius.circular(8),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              Container(
-                width: 50,
-                height: 37,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(8),
-                    bottomRight: Radius.circular(8),
+                Container(
+                  width: 50,
+                  height: 37,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.camera_alt_outlined,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      print("Camera pressed");
+                    },
                   ),
                 ),
-                child: IconButton(
-                  icon: Icon(Icons.camera_alt_outlined, color: Colors.grey, size: 20),
-                  onPressed: () {
-                    print("Camera pressed");
-                  },
+              ],
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.search, color: Colors.grey, size: 19),
+                SizedBox(width: 8),
+                Text(
+                  "Bạn muốn mua gì hôm nay",
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.search, color: Colors.grey, size: 19),
-              SizedBox(width: 8),
-              Text(
-                "Bạn muốn mua gì hôm nay",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildProductItem(Map<String, dynamic> product) {
     return Container(
@@ -355,7 +364,10 @@ Widget _buildSearchBar() {
               children: [
                 Text(
                   product["name"] ?? '',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -411,7 +423,10 @@ Widget _buildSearchBar() {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text("Thêm giỏ hàng", style: TextStyle(fontSize: 14)),
+                child: const Text(
+                  "Thêm giỏ hàng",
+                  style: TextStyle(fontSize: 14),
+                ),
               ),
             ),
           ),
@@ -428,8 +443,10 @@ Widget _buildSearchBar() {
         return Column(
           children: [
             GridView.builder(
-              shrinkWrap: true, // Đảm bảo GridView không chiếm không gian dư thừa
-              physics: const NeverScrollableScrollPhysics(), // Tắt scroll của GridView
+              shrinkWrap:
+                  true, // Đảm bảo GridView không chiếm không gian dư thừa
+              physics:
+                  const NeverScrollableScrollPhysics(), // Tắt scroll của GridView
               padding: const EdgeInsets.all(8),
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 250,
@@ -468,160 +485,160 @@ Widget _buildSearchBar() {
 }
 
 Widget _buildListView1() {
-    return Container(
-      height: 420,
-      child: ListView.builder(
-        padding: EdgeInsets.all(8),
-        scrollDirection: Axis.horizontal,
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          final product = products[index];
-          final int rating = Random().nextInt(3) + 3;
+  return Container(
+    height: 420,
+    child: ListView.builder(
+      padding: EdgeInsets.all(8),
+      scrollDirection: Axis.horizontal,
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        final int rating = Random().nextInt(3) + 3;
 
-          return Container(
-            width: 180,
-            margin: EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade300,
-                  blurRadius: 5,
-                  spreadRadius: 2,
+        return Container(
+          width: 180,
+          margin: EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.shade300,
+                blurRadius: 5,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(10),
+                      ),
+                      child: Image.asset(
+                        product["image"],
+                        width: double.infinity,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(10),
-                        ),
-                        child: Image.asset(
-                          product["image"],
-                          width: double.infinity,
-                          height: 150,
-                          fit: BoxFit.cover,
-                        ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product["name"],
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product["name"],
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      product["description"],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        product["description"],
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      product["price"],
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        product["price"],
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            product["oldPrice"],
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          product["oldPrice"],
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
                           ),
-                          SizedBox(width: 4),
-                          Text(
-                            product["discountPercent"],
-                            style: TextStyle(fontSize: 12, color: Colors.red),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      Row(
-                        children: List.generate(5, (index) {
-                          return Icon(
-                            index < rating ? Icons.star : Icons.star_border,
-                            color: Colors.amber,
-                            size: 16,
-                          );
-                        }),
-                      ),
-                    ],
-                  ),
-                ),
-                Spacer(),
-                Padding(
-                  padding: EdgeInsets.all(8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.blue, width: 1),
-                        foregroundColor: Colors.blue,
-                        padding: EdgeInsets.symmetric(vertical: 9),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        SizedBox(width: 4),
+                        Text(
+                          product["discountPercent"],
+                          style: TextStyle(fontSize: 12, color: Colors.red),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Row(
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                          size: 16,
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+              Spacer(),
+              Padding(
+                padding: EdgeInsets.all(8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.blue, width: 1),
+                      foregroundColor: Colors.blue,
+                      padding: EdgeInsets.symmetric(vertical: 9),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Text(
-                        "Thêm giỏ hàng",
-                        style: TextStyle(fontSize: 14),
-                      ),
+                    ),
+                    child: Text(
+                      "Thêm giỏ hàng",
+                      style: TextStyle(fontSize: 14),
                     ),
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-   final List<Map<String, dynamic>> products = List.generate(
-    10,
-    (index) => {
-      "image": "assets/images/laptop.webp",
-      "discountLabel": "TIẾT KIỆM\n700.000 đ",
-      "name": "ADATAfdsfadfdnmafdam,fnasdm,f fdmas,fndasm,fnasdmfdnassfmadnf",
-      "description":
-          "Ram Desktop ADATA XPG D50 DDR4 16GB (1x16GB) 3200 RGB Grey...",
-      "price": "990.000 đ",
-      "oldPrice": "1.690.000 đ",
-      "discountPercent": "-41,42%",
-    },
+              ),
+            ],
+          ),
+        );
+      },
+    ),
   );
+}
+
+final List<Map<String, dynamic>> products = List.generate(
+  10,
+  (index) => {
+    "image": "assets/images/laptop.webp",
+    "discountLabel": "TIẾT KIỆM\n700.000 đ",
+    "name": "ADATAfdsfadfdnmafdam,fnasdm,f fdmas,fndasm,fnasdmfdnassfmadnf",
+    "description":
+        "Ram Desktop ADATA XPG D50 DDR4 16GB (1x16GB) 3200 RGB Grey...",
+    "price": "990.000 đ",
+    "oldPrice": "1.690.000 đ",
+    "discountPercent": "-41,42%",
+  },
+);

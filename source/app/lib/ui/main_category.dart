@@ -184,7 +184,7 @@ class _CategoryPageState extends State<CategoryPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: Colors.grey),
+          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.grey),
           onPressed: () => {Navigator.pop(context)},
         ),
         title: _buildSearchBar(),
