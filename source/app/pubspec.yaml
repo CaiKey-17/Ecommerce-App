@@ -53,6 +53,17 @@ dependencies:
   infinite_scroll_pagination: ^4.0.0
   shimmer: ^3.0.0
 
+  syncfusion_flutter_charts: ^28.2.12
+  responsive_framework: ^1.5.1
+  flutter_vector_icons: ^2.0.0
+  image_picker: ^1.1.2
+
+  fl_chart: ^0.70.2
+
+  permission_handler: ^11.0.1
+  url_launcher: ^6.3.1
+  get: ^4.7.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
