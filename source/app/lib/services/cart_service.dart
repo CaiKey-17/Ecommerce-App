@@ -158,4 +158,36 @@ class CartService {
     }
     return false;
   }
+
+  Future<bool> deleteToCart({
+    required int orderDetailId,
+    required dynamic context,
+  }) async {
+    try {
+      var response = await cartRepository.deleteToCart(
+        orderDetailId: orderDetailId,
+      );
+
+      int statusCode = response["statusCode"] ?? 500;
+
+      if (statusCode == 400) {
+        Fluttertoast.showToast(
+          msg: response["error"] ?? "Lỗi không xác định!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+        );
+      } else {
+        // Provider.of<CartProvider>(context, listen: false).removeItem(id);
+        return true;
+      }
+    } catch (error) {
+      print("Lỗi khi gọi API: $error");
+      Fluttertoast.showToast(
+        msg: "Lỗi hệ thống! Vui lòng thử lại.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+      );
+    }
+    return false;
+  }
 }

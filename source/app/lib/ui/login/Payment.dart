@@ -1,4 +1,5 @@
 import 'package:app/ui/login/UpdateAddressScreen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -218,21 +219,70 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   Widget _buildProductItem() {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Image.network(
-        "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/apple-tv-4k-hero-select-202210_FMT_WHH?wid=640&hei=640&fmt=jpeg&qlt=95&.v=1664896361380",
-        width: 60,
-        height: 60,
-        fit: BoxFit.cover,
+    int quantity = 1; // Số lượng sản phẩm
+    double originalPrice = 5123000; // Giá gốc của sản phẩm
+
+    return Container(
+      padding: EdgeInsets.all(8), // Khoảng cách lề
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
       ),
-      title: Text(
-        "Apple TV 4K (3rd Gen) Wifi + Ethernet",
-        style: TextStyle(fontSize: 16),
-      ),
-      trailing: Text(
-        "${currencyFormatter.format(productPrice)} đ",
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hình ảnh sản phẩm
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/apple-tv-4k-hero-select-202210_FMT_WHH?wid=640&hei=640&fmt=jpeg&qlt=95&.v=1664896361380",
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+            ),
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tên sản phẩm
+                Text(
+                  "Apple TV 4K (3rd Gen) Wifi + Ethernet",
+                  style: TextStyle(fontSize: 16),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: 5),
+                // Giá bán
+                Text(
+                  "${currencyFormatter.format(productPrice)} đ",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black, // Làm nổi bật giá bán
+                  ),
+                ),
+                SizedBox(height: 3),
+                // Giá gốc bị gạch ngang
+                Text(
+                  "${currencyFormatter.format(originalPrice)} đ",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    decoration: TextDecoration.lineThrough, // Gạch ngang
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 10), // Khoảng cách giữa giá tiền và số lượng
+          // Số lượng sản phẩm
+          Text(
+            "x$quantity",
+            style: TextStyle(fontSize: 16, color: Colors.black),
+          ),
+        ],
       ),
     );
   }

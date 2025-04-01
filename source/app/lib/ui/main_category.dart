@@ -251,7 +251,7 @@ class _CategoryPageState extends State<CategoryPage> {
             crossAxisSpacing: 8,
             childAspectRatio: 0.6,
           ),
-          itemCount: 4, // Số lượng item giả lập (có thể thay đổi)
+          itemCount: 4,
           itemBuilder: (context, index) => _buildProductItemShimmer(),
         ),
       ],

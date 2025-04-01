@@ -4,7 +4,6 @@ import 'register_page.dart';
 import '../../models/login_request.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
-import '../../models/login_response.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -271,21 +270,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, "/main");
-                        },
-                        child: Text(
-                          "Mua hàng không cần đăng nhập",
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                      ),
-                    ],
-                  ),
+                  SizedBox(height: 10),
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -314,7 +300,27 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, "/main");
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        side: BorderSide(color: Colors.blue),
+                      ),
+                      child: Text(
+                        "Mua hàng không cần đăng nhập",
+                        style: TextStyle(fontSize: 16, color: Colors.blue),
+                      ),
+                    ),
+                  ),
 
                   Expanded(
                     child: Column(

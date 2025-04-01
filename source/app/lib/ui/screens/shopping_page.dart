@@ -117,16 +117,146 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     }
   }
 
-  void _removeItem(int index) {
-    int itemId = cartItems[index].orderDetailId;
-    setState(() {
-      cartItems.removeAt(index);
-    });
-    Provider.of<CartProvider>(context, listen: false).removeItem(itemId);
+  void _removeItem(int index, int orderDetailId) async {
+    bool check = await cartService.deleteToCart(
+      orderDetailId: orderDetailId,
+      context: context,
+    );
+    if (check) {
+      setState(() {
+        cartItems.removeAt(index);
+      });
+      int itemId = cartItems[index].orderDetailId;
+
+      Provider.of<CartProvider>(context, listen: false).removeItem(itemId);
+    }
   }
 
   double get totalPrice {
     return cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
+  }
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    int index,
+    int orderDetailId,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Xác nhận xoá"),
+          content: const Text("Bạn có chắc chắn muốn xoá sản phẩm này?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Hủy"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _removeItem(index, orderDetailId);
+              },
+              child: const Text("Xóa", style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _removeSelectedItems() async {
+    List<int> orderDetailIds;
+
+    if (cartItems.any((item) => item.selected)) {
+      orderDetailIds =
+          cartItems
+              .where((item) => item.selected)
+              .map((item) => item.orderDetailId)
+              .toList();
+    } else {
+      orderDetailIds = cartItems.map((item) => item.orderDetailId).toList();
+    }
+
+    for (int i = orderDetailIds.length - 1; i >= 0; i--) {
+      bool check = await cartService.deleteToCart(
+        orderDetailId: orderDetailIds[i],
+        context: context,
+      );
+      if (check) {
+        setState(() {
+          cartItems.removeWhere(
+            (item) => item.orderDetailId == orderDetailIds[i],
+          );
+        });
+
+        Provider.of<CartProvider>(
+          context,
+          listen: false,
+        ).removeItem(orderDetailIds[i]);
+      }
+    }
+  }
+
+  void _showDeleteAllConfirmation(BuildContext context) {
+    bool hasSelectedItems = cartItems.any((item) => item.selected);
+
+    String message =
+        hasSelectedItems
+            ? "Bạn có chắc chắn muốn xoá các sản phẩm đã chọn?"
+            : "Bạn có chắc chắn muốn xoá toàn bộ giỏ hàng?";
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.blue,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                "Xác nhận xoá",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          content: Text(message, style: const TextStyle(fontSize: 16)),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.blue),
+              child: const Text("Hủy"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _removeSelectedItems();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Xóa"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -144,23 +274,48 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                   icon: const Icon(Icons.chevron_left, color: Colors.grey),
                   onPressed: () => Navigator.pop(context),
                 ),
+
         title: const Text('Giỏ hàng'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         titleTextStyle: const TextStyle(
           fontSize: 18,
-          color: Colors.blue,
           fontWeight: FontWeight.bold,
         ),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.blue),
-            onPressed: () => setState(() => cartItems.clear()),
+            icon: const Icon(Icons.delete_outline, color: Colors.white),
+            onPressed: () => _showDeleteAllConfirmation(context),
           ),
         ],
       ),
       body:
           cartItems.isEmpty
-              ? const Center(child: Text("Giỏ hàng trống"))
+              ? Container(
+                color: const Color.fromARGB(255, 239, 239, 239),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.remove_shopping_cart_outlined,
+                        size: 48,
+                        color: Colors.black87,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Giỏ hàng trống",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
               : Container(
                 color: Colors.white,
                 child: ListView.builder(
@@ -317,7 +472,12 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                           right: -6,
                           top: -6,
                           child: IconButton(
-                            onPressed: () => _removeItem(index),
+                            onPressed:
+                                () => _showDeleteConfirmation(
+                                  context,
+                                  index,
+                                  item.orderDetailId,
+                                ),
                             icon: const Icon(Icons.close, size: 14),
                             color: Colors.grey.shade600,
                             padding: EdgeInsets.zero,
@@ -352,14 +512,11 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
               ),
             ),
             ElevatedButton(
-              onPressed:
-                  cartItems.isEmpty
-                      ? null
-                      : () {
-                        Navigator.pushNamed(context, '/payment');
-                      },
+              onPressed: () {
+                Navigator.pushNamed(context, '/payment');
+              },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 11, 79, 134),
+                backgroundColor: const Color(0xFF8192ae),
                 foregroundColor: Colors.white,
                 textStyle: const TextStyle(
                   fontSize: 14,

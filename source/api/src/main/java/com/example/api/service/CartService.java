@@ -58,6 +58,18 @@ public class CartService {
         });
     }
 
+    public void deleteToCart(int productDetailId) {
+        String sql = "{CALL DeleteToCart(?)}";
+        jdbcTemplate.execute((Connection con) -> {
+            try (CallableStatement cs = con.prepareCall(sql)) {
+                cs.setInt(1, productDetailId);
+                cs.execute();
+            }
+            return null;
+        });
+    }
+
+
 
 }
 

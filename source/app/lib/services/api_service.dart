@@ -77,4 +77,9 @@ abstract class ApiService {
     @Query("productId") int productId,
     @Query("orderId") int orderId,
   );
+
+  @POST("/cart/delete")
+  Future<Map<String, dynamic>> deleteToCart(
+    @Query("orderDetailId") int orderDetailId,
+  );
 }
