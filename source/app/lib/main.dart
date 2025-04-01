@@ -1,3 +1,4 @@
+import 'package:app/ui/admin/screens/dashboard_screen.dart';
 import 'package:app/ui/screens/shopping_page.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => SplashScreen(),
-          '/main': (context) => MainPage(),
+          '/main': (context) => DashboardScreen(),
           '/login': (context) => LoginPage(),
           '/otp': (context) => VerifyOtpScreen(),
           '/payment': (context) => PaymentConfirmationScreen(),
