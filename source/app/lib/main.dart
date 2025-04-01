@@ -1,4 +1,5 @@
 import 'package:app/ui/admin/screens/dashboard_screen.dart';
+import 'package:app/ui/product_details.dart';
 import 'package:app/ui/screens/shopping_page.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -9,6 +10,7 @@ import 'ui/main_page.dart';
 import 'ui/login/login_page.dart';
 import 'ui/login/VerificationCodeScreen.dart';
 import 'ui/login/Payment.dart';
+import 'ui/product_details.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -9,7 +9,6 @@ import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
 import 'package:app/ui/main_page.dart';
-import 'package:app/ui/screens/shopping_page.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -48,6 +47,8 @@ class _ProductPageState extends State<ProductPage> {
       'likes': 16,
       'days': 7,
       'verified': true,
+      'goodCount': 0,
+      'badCount': 0,
     },
     {
       'name': 'L',
@@ -56,6 +57,8 @@ class _ProductPageState extends State<ProductPage> {
       'likes': 9,
       'days': 4,
       'verified': true,
+      'goodCount': 0,
+      'badCount': 0,
     },
     {
       'name': 'Nguyễn Văn A',
@@ -64,6 +67,8 @@ class _ProductPageState extends State<ProductPage> {
       'likes': 5,
       'days': 3,
       'verified': true,
+      'goodCount': 0,
+      'badCount': 0,
     },
     {
       'name': 'Bùi Bảo',
@@ -72,6 +77,8 @@ class _ProductPageState extends State<ProductPage> {
       'likes': 2,
       'days': 1,
       'verified': false,
+      'goodCount': 0,
+      'badCount': 0,
     },
   ];
 
@@ -175,12 +182,12 @@ class _ProductPageState extends State<ProductPage> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: Center(
+        title: const Center(
           child: Text(
             "Thông tin chi tiết",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -188,135 +195,133 @@ class _ProductPageState extends State<ProductPage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.shopping_cart, color: Colors.white),
+            icon: const Icon(Icons.shopping_cart, color: Colors.white),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MainPage(initialIndex: 2),
+                  builder: (context) => const MainPage(initialIndex: 2),
                 ),
               );
             },
           ),
         ],
       ),
-      body:
-          isLoading
-              ? Center(child: CircularProgressIndicator())
-              : Container(
-                color: Colors.white,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: 200,
-                        child: Stack(
-                          children: [
-                            CarouselSlider.builder(
-                              itemCount: images.length,
-                              itemBuilder: (context, index, realIndex) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                      image: NetworkImage(images[index]),
-                                      fit: BoxFit.fitHeight,
-                                    ),
-                                  ),
-                                );
-                              },
-                              options: CarouselOptions(
-                                height: 250,
-                                enlargeCenterPage: false,
-                                autoPlay: true,
-                                autoPlayInterval: Duration(seconds: 3),
-                                viewportFraction: 1.0,
-                                onPageChanged: (index, reason) {
-                                  setState(() {
-                                    _currentIndex = index;
-                                  });
-                                },
-                              ),
-                            ),
-                            Positioned(
-                              top: 10,
-                              right: 15,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: Text(
-                                  '${_currentIndex + 1}/${images.length}',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Container(
+              color: Colors.white,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 200,
+                      child: Stack(
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                          CarouselSlider.builder(
+                            itemCount: images.length,
+                            itemBuilder: (context, index, realIndex) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    image: NetworkImage(images[index]),
+                                    fit: BoxFit.fitHeight,
                                   ),
                                 ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Thương hiệu: ${product?.brand}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
+                              );
+                            },
+                            options: CarouselOptions(
+                              height: 250,
+                              enlargeCenterPage: false,
+                              autoPlay: true,
+                              autoPlayInterval: const Duration(seconds: 3),
+                              viewportFraction: 1.0,
+                              onPageChanged: (index, reason) {
+                                setState(() {
+                                  _currentIndex = index;
+                                });
+                              },
+                            ),
+                          ),
+                          Positioned(
+                            top: 10,
+                            right: 15,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Text(
+                                '${_currentIndex + 1}/${images.length}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Thương hiệu: ${product?.brand}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Row(
+                                    children: List.generate(5, (index) {
+                                      return Icon(
+                                        index < 4
+                                            ? Icons.star
+                                            : Icons.star_half,
+                                        color: Colors.amber,
+                                        size: 18,
+                                      );
+                                    }),
                                   ),
-                                ),
-                                SizedBox(height: 8),
-
-                                Row(
-                                  children: [
-                                    Row(
-                                      children: List.generate(5, (index) {
-                                        return Icon(
-                                          index < 4
-                                              ? Icons.star
-                                              : Icons.star_half,
-                                          color: Colors.amber,
-                                          size: 18,
-                                        );
-                                      }),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '4.8 (200 Đánh giá)',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
                                     ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      '4.8 (200 Đánh giá)',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: List.generate(versions.length, (
-                                    index,
-                                  ) {
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: List.generate(
+                                  versions.length,
+                                  (index) {
                                     return Expanded(
                                       child: GestureDetector(
                                         onTap: () {
@@ -334,36 +339,34 @@ class _ProductPageState extends State<ProductPage> {
                                             }
                                           });
                                         },
-
                                         child: Container(
-                                          margin: EdgeInsets.symmetric(
+                                          margin: const EdgeInsets.symmetric(
                                             horizontal: 4,
                                           ),
                                           width: 120,
-                                          padding: EdgeInsets.symmetric(
+                                          padding: const EdgeInsets.symmetric(
                                             vertical: 5,
                                             horizontal: 10,
                                           ),
                                           decoration: BoxDecoration(
                                             border: Border.all(
-                                              color:
-                                                  selectedVersionIndex == index
-                                                      ? Colors.blue
-                                                      : Colors.grey,
-                                              width:
-                                                  selectedVersionIndex == index
-                                                      ? 2
-                                                      : 1,
+                                              color: selectedVersionIndex ==
+                                                      index
+                                                  ? Colors.blue
+                                                  : Colors.grey,
+                                              width: selectedVersionIndex ==
+                                                      index
+                                                  ? 2
+                                                  : 1,
                                             ),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
                                           ),
                                           child: Column(
                                             children: [
                                               Text(
                                                 versions[index].name,
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.bold,
                                                 ),
@@ -373,22 +376,23 @@ class _ProductPageState extends State<ProductPage> {
                                         ),
                                       ),
                                     );
-                                  }),
+                                  },
                                 ),
-                                SizedBox(height: 12),
-                                Text(
-                                  'Chọn màu:',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Chọn màu:',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: List.generate(colors.length, (
-                                    index,
-                                  ) {
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: List.generate(
+                                  colors.length,
+                                  (index) {
                                     return Expanded(
                                       child: GestureDetector(
                                         onTap: () {
@@ -400,41 +404,40 @@ class _ProductPageState extends State<ProductPage> {
                                           }
                                         },
                                         child: Container(
-                                          margin: EdgeInsets.symmetric(
+                                          margin: const EdgeInsets.symmetric(
                                             horizontal: 4,
                                           ),
                                           width: 120,
-                                          padding: EdgeInsets.symmetric(
+                                          padding: const EdgeInsets.symmetric(
                                             vertical: 5,
                                             horizontal: 10,
                                           ),
                                           decoration: BoxDecoration(
                                             border: Border.all(
-                                              color:
-                                                  selectedColorIndex == index
-                                                      ? Colors.blue
-                                                      : Colors.grey,
-                                              width:
-                                                  selectedColorIndex == index
-                                                      ? 2
-                                                      : 1,
+                                              color: selectedColorIndex ==
+                                                      index
+                                                  ? Colors.blue
+                                                  : Colors.grey,
+                                              width: selectedColorIndex ==
+                                                      index
+                                                  ? 2
+                                                  : 1,
                                             ),
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
                                           ),
                                           child: Column(
                                             children: [
                                               Text(
                                                 colors[index].nameColor,
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   fontSize: 14,
                                                   fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                               Text(
-                                                '${(colors[index].price).toStringAsFixed(0)}đ',
-                                                style: TextStyle(
+                                                '${colors[index].price.toStringAsFixed(0)}đ',
+                                                style: const TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.black,
                                                   fontWeight: FontWeight.w400,
@@ -445,131 +448,119 @@ class _ProductPageState extends State<ProductPage> {
                                         ),
                                       ),
                                     );
-                                  }),
+                                  },
                                 ),
-                                SizedBox(height: 16),
-                                Container(
-                                  height: 60,
-                                  width: double.infinity,
-                                  alignment: Alignment.center,
-                                  color: Colors.grey[200],
-                                  child: Text(
-                                    price.toString(),
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color.fromARGB(
-                                        255,
-                                        16,
-                                        118,
-                                        201,
-                                      ),
-                                    ),
+                              ),
+                              const SizedBox(height: 16),
+                              Container(
+                                height: 60,
+                                width: double.infinity,
+                                alignment: Alignment.center,
+                                color: Colors.grey[200],
+                                child: Text(
+                                  price.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color.fromARGB(255, 16, 118, 201),
                                   ),
                                 ),
-                                SizedBox(height: 16),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Thông tin chi tiết',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                              ),
+                              const SizedBox(height: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Thông tin chi tiết',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    SizedBox(height: 10),
-                                    SpecificationWidget(),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      'Mô tả sản phẩm',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const SpecificationWidget(),
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    'Mô tả sản phẩm',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    SizedBox(height: 10),
-                                    DescriptionWidget(),
-                                    SizedBox(height: 10),
-                                    ProductRatingWidget(
-                                      productName: "Sản phẩm A",
-                                      reviews: reviews,
-                                      onViewMoreReviews:
-                                          () => print('Xem thêm đánh giá'),
-                                      onWriteReview:
-                                          () => print('Viết đánh giá'),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 10),
-                                _buildTitle("Sản phẩm cùng hãng", () {
-                                  print("Xem thêm được bấm!");
-                                }),
-                                Divider(color: Colors.grey, thickness: 1),
-                                SizedBox(height: 10),
-
-                                _buildListView(products_brand),
-                                SizedBox(height: 10),
-
-                                _buildTitle("Sản phẩm liên quan ", () {
-                                  print("Xem thêm được bấm!");
-                                }),
-                                Divider(color: Colors.grey, thickness: 1),
-                                SizedBox(height: 10),
-
-                                _buildListView(products_category),
-                                SizedBox(height: 10),
-                              ],
-                            ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const DescriptionWidget(),
+                                  const SizedBox(height: 10),
+                                  ProductRatingWidget(
+                                    productName: "Sản phẩm A",
+                                    reviews: reviews,
+                                    images: images,
+                                    onViewMoreReviews: () {
+                                      setState(() {
+                                        // Hiển thị tất cả đánh giá
+                                      });
+                                    },
+                                    onWriteReview: () => print('Viết đánh giá'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              _buildTitle("Sản phẩm cùng hãng", () {
+                                print("Xem thêm được bấm!");
+                              }),
+                              const Divider(color: Colors.grey, thickness: 1),
+                              const SizedBox(height: 10),
+                              _buildListView(products_brand),
+                              const SizedBox(height: 10),
+                              _buildTitle("Sản phẩm liên quan ", () {
+                                print("Xem thêm được bấm!");
+                              }),
+                              const Divider(color: Colors.grey, thickness: 1),
+                              const SizedBox(height: 10),
+                              _buildListView(products_category),
+                              const SizedBox(height: 10),
+                            ],
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                 ),
               ),
+            ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(color: Colors.white),
-        padding: EdgeInsets.fromLTRB(16, 8, 16, 20),
+        decoration: const BoxDecoration(color: Colors.white),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
         child: Row(
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () {
-                  // cartService.addToCart(
-                  //   productID: versions[index].id,
-                  //   colorId: product.idColor,
-                  //   id: product.id,
-                  //   token: token,
-                  //   context: context,
-                  // );
-                },
+                onPressed: () {},
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.blue, width: 1.5),
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  side: const BorderSide(color: Colors.blue, width: 1.5),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Thêm vào giỏ hàng',
                   style: TextStyle(color: Colors.blue, fontSize: 16),
                 ),
               ),
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Mua ngay',
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
@@ -583,7 +574,9 @@ class _ProductPageState extends State<ProductPage> {
 }
 
 class SpecificationWidget extends StatelessWidget {
-  final List<Map<String, String>> specifications = [
+  const SpecificationWidget({super.key});
+
+  final List<Map<String, String>> specifications = const [
     {"title": "Thông số kỹ thuật"},
     {"CPU": "Snapdragon 8 Gen 2"},
     {"RAM": "12GB"},
@@ -597,13 +590,12 @@ class SpecificationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> filteredSpecs =
-        specifications
-            .where((spec) => !spec.keys.first.toLowerCase().contains("title"))
-            .toList();
+    List<Map<String, String>> filteredSpecs = specifications
+        .where((spec) => !spec.keys.first.toLowerCase().contains("title"))
+        .toList();
 
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -628,14 +620,14 @@ class SpecificationWidget extends StatelessWidget {
                     vertical: 6,
                     horizontal: 8,
                   ),
-                  margin: EdgeInsets.symmetric(vertical: 4),
+                  margin: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
                       Expanded(
                         flex: 3,
                         child: Text(
                           key,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -643,13 +635,13 @@ class SpecificationWidget extends StatelessWidget {
                       ),
                       Expanded(
                         flex: 5,
-                        child: Text(value, style: TextStyle(fontSize: 14)),
+                        child: Text(value, style: const TextStyle(fontSize: 14)),
                       ),
                     ],
                   ),
                 );
               }).toList(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Center(
                 child: TextButton(
                   onPressed: () {
@@ -660,16 +652,15 @@ class SpecificationWidget extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          insetPadding: EdgeInsets.symmetric(
+                          insetPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 20,
                           ),
                           backgroundColor: Colors.white,
                           child: Container(
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width * 0.95,
+                              maxWidth: MediaQuery.of(context).size.width * 0.95,
                               maxHeight:
                                   MediaQuery.of(context).size.height * 0.95,
                             ),
@@ -680,7 +671,7 @@ class SpecificationWidget extends StatelessWidget {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
+                                    const Text(
                                       "Thông số chi tiết",
                                       style: TextStyle(
                                         fontSize: 18,
@@ -688,12 +679,12 @@ class SpecificationWidget extends StatelessWidget {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.close),
+                                      icon: const Icon(Icons.close),
                                       onPressed: () => Navigator.pop(context),
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: 10),
+                                const SizedBox(height: 10),
                                 Expanded(
                                   child: ListView.builder(
                                     itemCount: specifications.length,
@@ -702,66 +693,60 @@ class SpecificationWidget extends StatelessWidget {
                                           specifications[index];
                                       String key = spec.keys.first;
                                       String value = spec.values.first;
-                                      bool isTitle = key.toLowerCase().contains(
-                                        "title",
-                                      );
+                                      bool isTitle =
+                                          key.toLowerCase().contains("title");
 
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 4,
                                         ),
-                                        child:
-                                            isTitle
-                                                ? Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        top: 10,
-                                                        bottom: 5,
-                                                      ),
-                                                  child: Text(
-                                                    value,
-                                                    style: TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                )
-                                                : Container(
-                                                  color:
-                                                      index % 2 == 0
-                                                          ? Colors.grey[100]
-                                                          : Colors.white,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 6,
-                                                        horizontal: 8,
-                                                      ),
-                                                  child: Row(
-                                                    children: [
-                                                      Expanded(
-                                                        flex: 3,
-                                                        child: Text(
-                                                          key,
-                                                          style: TextStyle(
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        flex: 5,
-                                                        child: Text(
-                                                          value,
-                                                          style: TextStyle(
-                                                            fontSize: 14,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
+                                        child: isTitle
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                  top: 10,
+                                                  bottom: 5,
+                                                ),
+                                                child: Text(
+                                                  value,
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
+                                              )
+                                            : Container(
+                                                color: index % 2 == 0
+                                                    ? Colors.grey[100]
+                                                    : Colors.white,
+                                                padding: const EdgeInsets.symmetric(
+                                                  vertical: 6,
+                                                  horizontal: 8,
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      flex: 3,
+                                                      child: Text(
+                                                        key,
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      flex: 5,
+                                                      child: Text(
+                                                        value,
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                       );
                                     },
                                   ),
@@ -773,7 +758,7 @@ class SpecificationWidget extends StatelessWidget {
                       },
                     );
                   },
-                  child: Text(
+                  child: const Text(
                     "Xem thêm",
                     style: TextStyle(
                       fontSize: 14,
@@ -785,7 +770,6 @@ class SpecificationWidget extends StatelessWidget {
               ),
             ],
           ),
-
           Positioned(
             left: 0,
             right: 0,
@@ -822,16 +806,17 @@ const String productDescription =
     "tạo điểm nhấn độc đáo và đầy cảm hứng. Thiết kế tối giản này tạo điều kiện thuận lợi khi thiết lập đa màn hình, đáp ứng linh hoạt nhu cầu sử dụng.";
 
 class DescriptionWidget extends StatelessWidget {
+  const DescriptionWidget({super.key});
+
   @override
   Widget build(BuildContext context) {
     bool isLongText = productDescription.length > 200;
-    String shortDescription =
-        isLongText
-            ? productDescription.substring(0, 400) + "..."
-            : productDescription;
+    String shortDescription = isLongText
+        ? "${productDescription.substring(0, 400)}..."
+        : productDescription;
 
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -848,8 +833,8 @@ class DescriptionWidget extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 8),
-              Text(shortDescription, style: TextStyle(fontSize: 14)),
+              const SizedBox(height: 8),
+              Text(shortDescription, style: const TextStyle(fontSize: 14)),
               if (isLongText)
                 TextButton(
                   onPressed: () {
@@ -860,16 +845,15 @@ class DescriptionWidget extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          insetPadding: EdgeInsets.symmetric(
+                          insetPadding: const EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 20,
                           ),
                           backgroundColor: Colors.white,
                           child: Container(
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width * 0.95,
+                              maxWidth: MediaQuery.of(context).size.width * 0.95,
                               maxHeight:
                                   MediaQuery.of(context).size.height * 0.9,
                             ),
@@ -880,7 +864,7 @@ class DescriptionWidget extends StatelessWidget {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
+                                    const Text(
                                       "Chi tiết mô tả",
                                       style: TextStyle(
                                         fontSize: 18,
@@ -888,17 +872,17 @@ class DescriptionWidget extends StatelessWidget {
                                       ),
                                     ),
                                     IconButton(
-                                      icon: Icon(Icons.close),
+                                      icon: const Icon(Icons.close),
                                       onPressed: () => Navigator.pop(context),
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: 10),
+                                const SizedBox(height: 10),
                                 Expanded(
                                   child: SingleChildScrollView(
                                     child: Text(
                                       productDescription,
-                                      style: TextStyle(fontSize: 14),
+                                      style: const TextStyle(fontSize: 14),
                                     ),
                                   ),
                                 ),
@@ -909,7 +893,7 @@ class DescriptionWidget extends StatelessWidget {
                       },
                     );
                   },
-                  child: Center(
+                  child: const Center(
                     child: Text(
                       "Xem thêm",
                       style: TextStyle(
@@ -922,13 +906,12 @@ class DescriptionWidget extends StatelessWidget {
                 ),
             ],
           ),
-
           if (isLongText)
             Positioned(
               left: 0,
               right: 0,
-              bottom: 30, // Điều chỉnh vị trí gradient
-              height: 40, // Điều chỉnh chiều cao của hiệu ứng mờ
+              bottom: 30,
+              height: 40,
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -952,6 +935,7 @@ class DescriptionWidget extends StatelessWidget {
 class ProductRatingWidget extends StatefulWidget {
   final String productName;
   final List<Map<String, dynamic>> reviews;
+  final List<String> images;
   final VoidCallback? onViewMoreReviews;
   final VoidCallback? onWriteReview;
 
@@ -959,6 +943,7 @@ class ProductRatingWidget extends StatefulWidget {
     super.key,
     required this.productName,
     required this.reviews,
+    required this.images,
     this.onViewMoreReviews,
     this.onWriteReview,
   });
@@ -969,21 +954,36 @@ class ProductRatingWidget extends StatefulWidget {
 
 class _ProductRatingWidgetState extends State<ProductRatingWidget> {
   bool showAllReviews = false;
+  int selectedRating = 0;
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    for (var review in widget.reviews) {
+      review['liked'] = false;
+      review['disliked'] = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> displayedReviews =
         showAllReviews ? widget.reviews : widget.reviews.take(3).toList();
-    double averageRating =
-        widget.reviews.isEmpty
-            ? 0
-            : widget.reviews.map((r) => r['rating']).reduce((a, b) => a + b) /
-                widget.reviews.length;
+    double averageRating = widget.reviews.isEmpty
+        ? 0
+        : widget.reviews
+                .map((r) => r['rating'] as int)
+                .reduce((a, b) => a + b) /
+            widget.reviews.length;
     int totalReviews = widget.reviews.length;
-    String satisfactionText =
-        averageRating >= 4
-            ? 'Rất tốt'
-            : (averageRating >= 3 ? 'Tốt' : 'Trung bình');
+    int goodCount =
+        widget.reviews.fold(0, (sum, r) => sum + (r['goodCount'] as int));
+    int badCount =
+        widget.reviews.fold(0, (sum, r) => sum + (r['badCount'] as int));
+    String satisfactionText = averageRating >= 4
+        ? 'Rất tốt'
+        : (averageRating >= 3 ? 'Tốt' : 'Trung bình');
     Map<int, double> ratingPercentages = {
       5: 0.7,
       4: 0.2,
@@ -1008,9 +1008,9 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Đánh giá sản phẩm',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 20),
           Row(
@@ -1039,11 +1039,25 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                     style: TextStyle(color: Colors.grey[600]),
                     textAlign: TextAlign.center,
                   ),
-
                   Text(
                     '( $totalReviews đánh giá )',
                     style: TextStyle(color: Colors.grey[600]),
                     textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Tốt: $goodCount',
+                        style: const TextStyle(color: Colors.green, fontSize: 14),
+                      ),
+                      const SizedBox(width: 20),
+                      Text(
+                        'Không tốt: $badCount',
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1076,9 +1090,8 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                               child: LinearProgressIndicator(
                                 value: percentage,
                                 backgroundColor: Colors.grey[300],
-                                valueColor: const AlwaysStoppedAnimation(
-                                  Colors.blue,
-                                ),
+                                valueColor:
+                                    const AlwaysStoppedAnimation(Colors.blue),
                                 minHeight: 10,
                                 borderRadius: BorderRadius.circular(5),
                               ),
@@ -1100,114 +1113,376 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
               ),
             ],
           ),
-          Divider(color: Colors.grey, thickness: 1),
-
+          const Divider(color: Colors.grey, thickness: 1),
           const SizedBox(height: 10),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 'Lọc theo',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   _buildFilterButton('Tất cả'),
-                  SizedBox(width: 7),
+                  const SizedBox(width: 7),
                   _buildFilterButton('Có hình ảnh'),
                 ],
               ),
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   _buildStarRating(5),
-                  SizedBox(width: 7),
-
+                  const SizedBox(width: 7),
                   _buildStarRating(4),
-                  SizedBox(width: 7),
-
+                  const SizedBox(width: 7),
                   _buildStarRating(3),
-                  SizedBox(width: 7),
-
+                  const SizedBox(width: 7),
                   _buildStarRating(2),
-                  SizedBox(width: 7),
-
+                  const SizedBox(width: 7),
                   _buildStarRating(1),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 20),
-
-          Column(
-            children:
-                displayedReviews.map((review) {
+          Stack(
+            children: [
+              Column(
+                children: displayedReviews.map((review) {
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Text(
-                              review['name'],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    review['name'] as String,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  if (review['verified'] as bool)
+                                    const Icon(
+                                      Icons.verified,
+                                      color: Colors.green,
+                                      size: 16,
+                                    ),
+                                ],
                               ),
-                            ),
-                            if (review['verified'])
-                              const Icon(
-                                Icons.verified,
-                                color: Colors.green,
-                                size: 16,
+                              Row(
+                                children: List.generate(
+                                  5,
+                                  (i) => Icon(
+                                    i < (review['rating'] as int)
+                                        ? Icons.star
+                                        : Icons.star_border,
+                                    color: Colors.amber,
+                                    size: 20,
+                                  ),
+                                ),
                               ),
-                          ],
-                        ),
-                        Row(
-                          children: List.generate(
-                            5,
-                            (i) => Icon(
-                              i < review['rating']
-                                  ? Icons.star
-                                  : Icons.star_border,
-                              color: Colors.amber,
-                              size: 20,
-                            ),
+                              Text(review['content'] as String),
+                            ],
                           ),
                         ),
-                        Text(review['content']),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.thumb_up,
+                                color:
+                                    review['liked'] ? Colors.green : Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  if (!review['liked']) {
+                                    if (review['disliked']) {
+                                      review['disliked'] = false;
+                                      review['badCount'] =
+                                          (review['badCount'] as int) - 1;
+                                    }
+                                    review['liked'] = true;
+                                    review['goodCount'] =
+                                        (review['goodCount'] as int) + 1;
+                                  }
+                                });
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: Icon(
+                                Icons.thumb_down,
+                                color:
+                                    review['disliked'] ? Colors.red : Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  if (!review['disliked']) {
+                                    if (review['liked']) {
+                                      review['liked'] = false;
+                                      review['goodCount'] =
+                                          (review['goodCount'] as int) - 1;
+                                    }
+                                    review['disliked'] = true;
+                                    review['badCount'] =
+                                        (review['badCount'] as int) + 1;
+                                  }
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   );
                 }).toList(),
-          ),
-          if (widget.reviews.length > 3)
-            Center(
-              child: TextButton(
-                onPressed: widget.onViewMoreReviews,
-                child: const Text(
-                  'Xem thêm',
-                  style: TextStyle(fontSize: 16, color: Colors.blue),
-                ),
               ),
-            ),
-
+              if (widget.reviews.length > 3 && !showAllReviews)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 60,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withOpacity(0),
+                          Colors.white.withOpacity(0.7),
+                          Colors.white,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          // if (widget.reviews.length > 3 && !showAllReviews)
+          //   Center(
+          //     child: TextButton(
+          //       onPressed: () {
+          //         setState(() {
+          //           showAllReviews = true;
+          //         });
+          //         widget.onViewMoreReviews?.call();
+          //       },
+          //       child: const Text(
+          //         'Xem thêm',
+          //         style: TextStyle(fontSize: 16, color: Colors.blue),
+          //       ),
+          //     ),
+          //   ),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
-                onPressed: widget.onViewMoreReviews,
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      insetPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 20,
+                      ),
+                      backgroundColor: Colors.white,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.95,
+                          maxHeight: MediaQuery.of(context).size.height * 0.9,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Tất cả đánh giá",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: widget.reviews.map((review) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8.0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      review['name'] as String,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    if (review['verified'] as bool)
+                                                      const Icon(
+                                                        Icons.verified,
+                                                        color: Colors.green,
+                                                        size: 16,
+                                                      ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  children: List.generate(
+                                                    5,
+                                                    (i) => Icon(
+                                                      i <
+                                                              (review['rating']
+                                                                  as int)
+                                                          ? Icons.star
+                                                          : Icons.star_border,
+                                                      color: Colors.amber,
+                                                      size: 20,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Text(review['content'] as String),
+                                              ],
+                                            ),
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.thumb_up,
+                                                  color: review['liked']
+                                                      ? Colors.green
+                                                      : Colors.grey,
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    if (!review['liked']) {
+                                                      if (review['disliked']) {
+                                                        review['disliked'] =
+                                                            false;
+                                                        review['badCount'] =
+                                                            (review['badCount']
+                                                                    as int) -
+                                                                1;
+                                                      }
+                                                      review['liked'] = true;
+                                                      review['goodCount'] =
+                                                          (review['goodCount']
+                                                                  as int) +
+                                                              1;
+                                                    }
+                                                  });
+                                                },
+                                              ),
+                                              const SizedBox(width: 8),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.thumb_down,
+                                                  color: review['disliked']
+                                                      ? Colors.red
+                                                      : Colors.grey,
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    if (!review['disliked']) {
+                                                      if (review['liked']) {
+                                                        review['liked'] = false;
+                                                        review['goodCount'] =
+                                                            (review['goodCount']
+                                                                    as int) -
+                                                                1;
+                                                      }
+                                                      review['disliked'] = true;
+                                                      review['badCount'] =
+                                                          (review['badCount']
+                                                                  as int) +
+                                                              1;
+                                                    }
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.grey[200],
                 ),
-                child: const Text('Xem 10 đánh giá'),
+                child: const Text('Xem đánh giá'),
               ),
               ElevatedButton(
-                onPressed: widget.onWriteReview,
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ReviewDialog(
+                      productName: widget.productName,
+                      images: widget.images,
+                      onSubmit: (rating, comment) {
+                        setState(() {
+                          widget.reviews.add({
+                            'name': 'Người dùng mới',
+                            'rating': rating,
+                            'content': comment,
+                            'likes': 0,
+                            'days': 0,
+                            'verified': false,
+                            'goodCount': 0,
+                            'badCount': 0,
+                            'liked': false,
+                            'disliked': false,
+                          });
+                        });
+                        print('Đánh giá: $rating sao - $comment');
+                      },
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
@@ -1217,6 +1492,118 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class ReviewDialog extends StatefulWidget {
+  final String productName;
+  final List<String> images;
+  final Function(int rating, String comment) onSubmit;
+
+  const ReviewDialog({
+    super.key,
+    required this.productName,
+    required this.images,
+    required this.onSubmit,
+  });
+
+  @override
+  _ReviewDialogState createState() => _ReviewDialogState();
+}
+
+class _ReviewDialogState extends State<ReviewDialog> {
+  int selectedRating = 0;
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.network(
+              widget.images.isNotEmpty
+                  ? widget.images[0]
+                  : 'https://via.placeholder.com/150',
+              height: 100,
+              width: 100,
+              fit: BoxFit.cover,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              widget.productName,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  icon: Icon(
+                    index < selectedRating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 30,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      selectedRating = index + 1;
+                    });
+                  },
+                );
+              }),
+            ),
+            const SizedBox(height: 10),
+            if (selectedRating > 0)
+              TextField(
+                controller: _commentController,
+                decoration: InputDecoration(
+                  hintText: 'Nhập đánh giá của bạn...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                maxLines: 3,
+              ),
+            // const SizedBox(height: 10),
+            // if (selectedRating > 0)
+            //   GestureDetector(
+            //     onTap: () {
+            //       print('Tải ảnh thực tế');
+            //     },
+            //     child: Container(
+            //       height: 50,
+            //       width: double.infinity,
+            //       decoration: BoxDecoration(
+            //         border: Border.all(color: Colors.grey),
+            //         borderRadius: BorderRadius.circular(10),
+            //       ),
+            //       child: const Center(child: Text('Thêm ảnh thực tế')),
+            //     ),
+            //   ),
+            const SizedBox(height: 10),
+            if (selectedRating > 0)
+              ElevatedButton(
+                onPressed: () {
+                  if (_commentController.text.isNotEmpty) {
+                    widget.onSubmit(selectedRating, _commentController.text);
+                    Navigator.pop(context);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                child: const Text('Gửi đánh giá'),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1238,10 +1625,11 @@ Widget _buildStarRating(int stars) {
       border: Border.all(width: 1, color: Colors.grey),
       borderRadius: BorderRadius.circular(20),
     ),
-    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
     child: Row(
       children: [
-        Text('$stars', style: TextStyle(fontSize: 14, color: Colors.grey[700])),
+        Text('$stars',
+            style: const TextStyle(fontSize: 14, color: Colors.grey)),
         Icon(Icons.star, color: Colors.yellow[700], size: 15),
       ],
     ),
@@ -1254,25 +1642,11 @@ late CartRepository cartRepository;
 late CartService cartService;
 String token = "";
 
-// final List<Map<String, dynamic>> products = List.generate(
-//   10,
-//   (index) => {
-//     "image": "assets/images/laptop.webp",
-//     "discountLabel": "TIẾT KIỆM\n700.000 đ",
-//     "name": "ADATA",
-//     "description":
-//         "Ram Desktop ADATA XPG D50 DDR4 16GB (1x16GB) 3200 RGB Grey...",
-//     "price": "990.000 đ",
-//     "oldPrice": "1.690.000 đ",
-//     "discountPercent": "-41,42%",
-//   },
-// );
-
 Widget _buildListView(List<ProductInfo> products) {
   return Container(
     height: 400,
     child: ListView.builder(
-      padding: EdgeInsets.fromLTRB(8, 0, 8, 8),
+      padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
       scrollDirection: Axis.horizontal,
       itemCount: products.length,
       itemBuilder: (context, index) {
@@ -1281,7 +1655,7 @@ Widget _buildListView(List<ProductInfo> products) {
 
         return Container(
           width: 180,
-          margin: EdgeInsets.only(right: 8),
+          margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: Colors.white,
@@ -1297,11 +1671,11 @@ Widget _buildListView(List<ProductInfo> products) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.vertical(
+                      borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(10),
                       ),
                       child: Image.network(
@@ -1315,20 +1689,20 @@ Widget _buildListView(List<ProductInfo> products) {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       product.name,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       product.description,
                       style: TextStyle(
@@ -1338,10 +1712,10 @@ Widget _buildListView(List<ProductInfo> products) {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       product.price,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
@@ -1351,20 +1725,20 @@ Widget _buildListView(List<ProductInfo> products) {
                       children: [
                         Text(
                           product.oldPrice,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
                             decoration: TextDecoration.lineThrough,
                           ),
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Text(
                           product.discountPercent,
-                          style: TextStyle(fontSize: 12, color: Colors.red),
+                          style: const TextStyle(fontSize: 12, color: Colors.red),
                         ),
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Row(
                       children: List.generate(5, (index) {
                         return Icon(
@@ -1377,9 +1751,9 @@ Widget _buildListView(List<ProductInfo> products) {
                   ],
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               Padding(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 child: SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(
@@ -1393,14 +1767,14 @@ Widget _buildListView(List<ProductInfo> products) {
                       );
                     },
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.blue, width: 1),
+                      side: const BorderSide(color: Colors.blue, width: 1),
                       foregroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(vertical: 9),
+                      padding: const EdgeInsets.symmetric(vertical: 9),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: Text(
+                    child: const Text(
                       "Thêm giỏ hàng",
                       style: TextStyle(fontSize: 14),
                     ),
@@ -1419,10 +1793,11 @@ Widget _buildTitle(String title, VoidCallback onViewMore) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      Text(title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       GestureDetector(
         onTap: onViewMore,
-        child: Text(
+        child: const Text(
           "Xem thêm",
           style: TextStyle(
             fontSize: 14,

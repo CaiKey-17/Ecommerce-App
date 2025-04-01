@@ -1,4 +1,3 @@
-// product_screen.dart
 import 'package:app/ui/admin/screens/product_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,6 +17,10 @@ class _ProductScreenState extends State<ProductScreen> {
   String sortOption = "Mặc định";
   List<String> sortOptions = ["Mặc định", "A - Z", "Z - A", "Giá tăng", "Giá giảm"];
   bool _showSortBar = true;
+  bool _showSearchOptions = false; 
+  bool _showSearchField = false; 
+  String _searchType = "";
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -71,6 +74,23 @@ class _ProductScreenState extends State<ProductScreen> {
     });
   }
 
+  void _filterProducts(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _initializeProducts(); // Reset danh sách nếu không có query
+      } else {
+        products = products.where((product) {
+          if (_searchType == "category") {
+            return product["category"].toLowerCase().contains(query.toLowerCase());
+          } else if (_searchType == "brand") {
+            return product["name"].toLowerCase().contains(query.toLowerCase());
+          }
+          return true;
+        }).toList();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,7 +102,6 @@ class _ProductScreenState extends State<ProductScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        
         backgroundColor: Colors.blue.shade700,
       ),
       body: Padding(
@@ -127,7 +146,7 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget _buildProductList() {
     return Column(
       children: [
-        if (_showSortBar)
+        if (_showSortBar && !_showSearchField)
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Row(
@@ -153,10 +172,89 @@ class _ProductScreenState extends State<ProductScreen> {
                 IconButton(
                   icon: Icon(Icons.search, color: Colors.blue.shade700),
                   onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Chức năng tìm kiếm đang phát triển")),
-                    );
+                    setState(() {
+                      _showSearchOptions = !_showSearchOptions; 
+                    });
                   },
+                ),
+              ],
+            ),
+          ),
+        if (_showSearchOptions && !_showSearchField)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _showSearchField = true;
+                      _showSortBar = false;
+                      _showSearchOptions = false;
+                      _searchType = "category";
+                      _searchController.clear();
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF1976D2),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 28, vertical: 13),
+                  ),
+                  child: Text("Tìm kiếm theo loại"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _showSearchField = true;
+                      _showSortBar = false;
+                      _showSearchOptions = false;
+                      _searchType = "brand";
+                      _searchController.clear();
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF1976D2),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 28, vertical: 13),
+                  ),
+                  child: Text("Tìm kiếm theo hãng"),
+                ),
+              ],
+            ),
+          ),
+        if (_showSearchField)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 7),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: _searchType == "category"
+                          ? "Nhập loại sản phẩm..."
+                          : "Nhập hãng sản phẩm...",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.close, color: Colors.red,),
+                        onPressed: () {
+                          setState(() {
+                            _showSearchField = false;
+                            _showSortBar = true;
+                            _searchController.clear();
+                            _initializeProducts(); 
+                          });
+                        },
+                      ),
+                    ),
+                    onChanged: (value) {
+                      _filterProducts(value);
+                    },
+                  ),
                 ),
               ],
             ),
@@ -164,7 +262,7 @@ class _ProductScreenState extends State<ProductScreen> {
         Expanded(
           child: NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification scrollInfo) {
-              if (scrollInfo is ScrollUpdateNotification) {
+              if (!_showSearchField && scrollInfo is ScrollUpdateNotification) {
                 if (scrollInfo.scrollDelta! > 0 && _showSortBar) {
                   setState(() {
                     _showSortBar = false;
@@ -223,12 +321,12 @@ class _ProductScreenState extends State<ProductScreen> {
                             Row(
                               children: [
                                 Text(
-                              "Giá sau giảm: ",
-                                style: TextStyle(fontWeight: FontWeight.bold,),
-                              ),
-                              Text(
-                                " ${formatCurrency(finalPrice)} VNĐ",
-                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                                  "Giá sau giảm: ",
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  "${formatCurrency(finalPrice)} VNĐ",
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
                                 ),
                               ],
                             ),
@@ -296,17 +394,10 @@ class _ProductScreenState extends State<ProductScreen> {
                 fit: BoxFit.cover,
               )
             : DecorationImage(
-                image: AssetImage('assets/placeholder.png'),
+                image: AssetImage('https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg'),
                 fit: BoxFit.cover,
               ),
       ),
     );
   }
 }
-
-// void main() {
-//   runApp(MaterialApp(
-//     home: ProductScreen(),
-//     debugShowCheckedModeBanner: false,
-//   ));
-// }
