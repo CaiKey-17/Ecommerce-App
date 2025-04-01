@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => SplashScreen(),
-          '/main': (context) => DashboardScreen(),
+          '/main': (context) => MainPage(),
           '/login': (context) => LoginPage(),
           '/otp': (context) => VerifyOtpScreen(),
           '/payment': (context) => PaymentConfirmationScreen(),

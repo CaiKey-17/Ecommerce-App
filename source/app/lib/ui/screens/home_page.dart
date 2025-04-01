@@ -373,7 +373,7 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           ),
                                           child: Text(
-                                            '🪙 0',
+                                            '🪙 ${formattedPoints}',
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,

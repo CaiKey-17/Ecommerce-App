@@ -114,6 +114,13 @@ public class CartController {
         return ResponseEntity.ok(Map.of("message", "Đã trừ trong giỏ hàng"));
     }
 
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteToCart(
+            @RequestParam int orderDetailId) {
+
+        cartService.deleteToCart(orderDetailId);
+        return ResponseEntity.ok(Map.of("message", "Đã xoá sản phẩm trong giỏ hàng"));
+    }
 
     @GetMapping("/list")
     public ResponseEntity<List<OrderDetailProjection>> listItemCarts(
