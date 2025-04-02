@@ -1,41 +1,42 @@
 import 'package:flutter/material.dart';
 import '../widgets/sidebar.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'dart:io'; 
+import 'package:image_picker/image_picker.dart'; 
 
-class CategoryScreen extends StatefulWidget {
+class BrandScreen extends StatefulWidget {
   @override
-  _CategoryScreenState createState() => _CategoryScreenState();
+  _BrandScreenState createState() => _BrandScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> {
+class _BrandScreenState extends State<BrandScreen> {
   List<Map<String, String>> users = List.generate(
     10,
     (index) => {
       "id": "#U00$index",
       "name": "Loại $index",
-      "image":
-          "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg",
+      "image": "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg", 
     },
   );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Quản lý loại sản phẩm")),
+      appBar: AppBar(title: Text("Quản lý lthương hiệu")),
       drawer: SideBar(),
       body: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Expanded(child: _buildUserList(context))],
+          children: [
+            Expanded(child: _buildUserList(context)),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.blue,
         icon: Icon(Icons.add, color: Colors.white),
         label: Text(
-          "Thêm loại",
+          "Thêm thương hiệu",
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
@@ -105,19 +106,22 @@ class _CategoryScreenState extends State<CategoryScreen> {
     return PopupMenuButton<String>(
       onSelected: (value) {
         if (value == 'edit') {
-          _showUserDialog(context, isEdit: true, userIndex: userIndex);
+          _showUserDialog(
+            context,
+            isEdit: true,
+            userIndex: userIndex,
+          );
         } else if (value == 'delete') {
           _confirmDeleteUser(context, userIndex);
         }
       },
-      itemBuilder:
-          (context) => [
-            PopupMenuItem(value: 'edit', child: Text('Chỉnh sửa')),
-            PopupMenuItem(
-              value: 'delete',
-              child: Text('Xóa', style: TextStyle(color: Colors.red)),
-            ),
-          ],
+      itemBuilder: (context) => [
+        PopupMenuItem(value: 'edit', child: Text('Chỉnh sửa')),
+        PopupMenuItem(
+          value: 'delete',
+          child: Text('Xóa', style: TextStyle(color: Colors.red)),
+        ),
+      ],
       icon: Icon(Icons.more_vert, color: Colors.grey[700]),
     );
   }
@@ -132,10 +136,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
       text: isEdit ? users[userIndex!]["name"] : "",
     );
     String imageUrl =
-        isEdit
-            ? users[userIndex!]["image"]!
-            : "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg";
-    File? selectedImage;
+        isEdit ? users[userIndex!]["image"]! : "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg";
+    File? selectedImage; // Biến để lưu ảnh được chọn từ thiết bị
 
     showDialog(
       context: context,
@@ -147,8 +149,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 borderRadius: BorderRadius.circular(15),
               ),
               title: Text(
-                isEdit ? "Chỉnh sửa loại" : "Thêm loại",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                isEdit ? "Chỉnh sửa thương hiệu" : "Thêm thương hiệu",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               content: SingleChildScrollView(
@@ -159,7 +164,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       onTap: () async {
                         final picker = ImagePicker();
                         final pickedFile = await picker.pickImage(
-                          source: ImageSource.gallery,
+                          source: ImageSource.gallery, 
                         );
                         if (pickedFile != null) {
                           setDialogState(() {
@@ -174,16 +179,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child:
-                            selectedImage != null
-                                ? Image.file(selectedImage!, fit: BoxFit.cover)
-                                : Image.network(imageUrl, fit: BoxFit.cover),
+                        child: selectedImage != null
+                            ? Image.file(
+                                selectedImage!,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                     ),
                     SizedBox(height: 10),
                     TextField(
                       decoration: InputDecoration(
-                        labelText: "ID loại",
+                        labelText: "ID thương hiệu",
                         labelStyle: TextStyle(
                           fontSize: 14,
                           color: Colors.black54,
@@ -191,21 +201,24 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         border: OutlineInputBorder(),
                       ),
                       controller: TextEditingController(text: id),
-                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
                       enabled: false,
                     ),
                     SizedBox(height: 10),
                     TextField(
                       controller: nameController,
                       decoration: InputDecoration(
-                        labelText: "Tên tloại",
-                        labelStyle: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black54,
-                        ),
+                        labelText: "Tên thương hiệu",
+                        labelStyle: TextStyle(fontSize: 14, color: Colors.black54),
                         border: OutlineInputBorder(),
                       ),
-                      style: TextStyle(fontSize: 16, color: Colors.black),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
                     ),
                   ],
                 ),
@@ -215,7 +228,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     "Đóng",
-                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.blue,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -225,16 +241,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         if (isEdit) {
                           users[userIndex!]["name"] = nameController.text;
                           if (selectedImage != null) {
-                            users[userIndex]["image"] = selectedImage!.path;
+
+                            users[userIndex]["image"] =
+                                selectedImage!.path; 
                           }
                         } else {
                           users.add({
                             "id": id,
                             "name": nameController.text,
-                            "image":
-                                selectedImage != null
-                                    ? selectedImage!.path
-                                    : "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg",
+                            "image": selectedImage != null
+                                ? selectedImage!.path 
+                                : "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg",
                           });
                         }
                       });
@@ -243,7 +260,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   },
                   child: Text(
                     "Xong",
-                    style: TextStyle(fontSize: 16, color: Colors.green),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.green,
+                    ),
                   ),
                 ),
               ],

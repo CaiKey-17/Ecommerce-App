@@ -1,3 +1,4 @@
+import 'package:app/ui/admin/screens/brand_screen.dart';
 import 'package:app/ui/admin/screens/category_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -29,10 +30,17 @@ class SideBar extends StatelessWidget {
               MaterialPageRoute(builder: (context) => DashboardScreen()),
             );
           }),
-          _buildDrawerItem(Icons.shopping_cart, 'Quản lý thương hiệu', () {
+          _buildDrawerItem(Icons.shopping_cart, 'Quản lý loại sản phẩm', () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => CategoryScreen()),
+            );
+          }),
+
+          _buildDrawerItem(Icons.shopping_cart, 'Quản lý thương hiệu', () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => BrandScreen()),
             );
           }),
           _buildDrawerItem(Icons.shopping_cart, 'Quản lý sản phẩm', () {
