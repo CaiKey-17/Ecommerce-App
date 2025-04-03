@@ -9,6 +9,8 @@ public interface OrderDetailProjection {
     Integer getFkColorId();
     Integer getFkProductId();
     BigDecimal getPrice();
+    BigDecimal getOriginalPrice();
+
     Integer getQuantity();
     BigDecimal getTotal();
     String getImage();

@@ -9,9 +9,9 @@ public class ProductDTO {
     private String discountLabel;
     private String name;
     private String description;
-    private String price;
-    private String oldPrice;
-    private String discountPercent;
+    private double price;
+    private double oldPrice;
+    private int discountPercent;
     private int idVariant;
     private int idColor;
 

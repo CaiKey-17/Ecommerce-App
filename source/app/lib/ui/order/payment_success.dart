@@ -11,11 +11,7 @@ class PaymentSuccessScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 100,
-              ),
+              Icon(Icons.check_circle, color: Colors.green, size: 100),
               SizedBox(height: 20),
               Text(
                 "Thanh toán thành công!",
@@ -50,7 +46,7 @@ class PaymentSuccessScreen extends StatelessWidget {
               SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushReplacementNamed(context, "/main");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
@@ -81,10 +77,7 @@ class PaymentSuccessScreen extends StatelessWidget {
             title,
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
-          Text(
-            value,
-            style: TextStyle(fontSize: 16, color: Colors.black54),
-          ),
+          Text(value, style: TextStyle(fontSize: 16, color: Colors.black54)),
         ],
       ),
     );
