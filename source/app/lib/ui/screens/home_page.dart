@@ -488,14 +488,14 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         child: Stack(
-          alignment: Alignment.center, // Căn giữa phần tìm kiếm
+          alignment: Alignment.center,
           children: [
             Row(
               children: [
                 Expanded(
                   child: Container(
                     height: 37,
-                    padding: EdgeInsets.only(left: 8), // Để cách lề trái
+                    padding: EdgeInsets.only(left: 8),
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: BorderRadius.only(
@@ -505,7 +505,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                // Phần chứa icon camera
                 Container(
                   width: 50,
                   height: 37,
@@ -533,6 +532,7 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisSize:
                   MainAxisSize.min, // Để không chiếm toàn bộ chiều rộng
+
               children: [
                 Icon(Icons.search, color: Colors.grey, size: 19),
                 SizedBox(width: 8),

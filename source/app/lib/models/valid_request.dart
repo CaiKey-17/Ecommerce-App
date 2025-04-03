@@ -5,6 +5,7 @@ part 'valid_request.g.dart';
 @JsonSerializable()
 class ValidRequest {
   final String address;
+  final String codes;
   final String email;
   final String password;
   final String otp;
@@ -14,6 +15,7 @@ class ValidRequest {
     required this.email,
     required this.password,
     required this.address,
+    required this.codes,
     required this.otp,
     required this.fullname,
   });

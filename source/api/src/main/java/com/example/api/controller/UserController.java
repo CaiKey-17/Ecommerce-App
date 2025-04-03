@@ -49,7 +49,9 @@ public class UserController {
             List<String> addressList = addresses.stream()
                     .map(Address::getAddress)
                     .collect(Collectors.toList());
-
+            List<String> addressCode = addresses.stream()
+                    .map(Address::getCodes)
+                    .collect(Collectors.toList());
             Map<String, Object> userInfo = new HashMap<>();
             userInfo.put("id", user.getId());
             userInfo.put("tempId", user.getTempId());
@@ -59,6 +61,7 @@ public class UserController {
             userInfo.put("createdAt", user.getCreatedAt());
             userInfo.put("role", userService.getUserRole(user.getEmail()));
             userInfo.put("addresses", addressList);
+            userInfo.put("codes", addressCode);
             userInfo.put("points", customer.getPoints());
 
             return ResponseEntity.ok(userInfo);

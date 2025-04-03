@@ -1,6 +1,7 @@
 import 'package:app/models/cart_info.dart';
 import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/cart_service.dart';
+import 'package:app/ui/login/Payment.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
@@ -25,6 +26,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
   bool isLoading = true;
   String token = "";
   int? userId;
+  int orderId = -1;
 
   @override
   void didPopNext() {
@@ -66,6 +68,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
       }
       setState(() {
         cartItems = response;
+        orderId = cartItems.isNotEmpty ? cartItems[0].orderId : -1;
         isLoading = false;
       });
     } catch (error) {
@@ -513,7 +516,18 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/payment');
+                if (orderId == -1) {
+                  print("orderId chưa hợp lệ");
+                  return;
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) =>
+                            PaymentConfirmationScreen(orderId: orderId),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF8192ae),
