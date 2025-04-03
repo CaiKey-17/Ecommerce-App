@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:app/globals/convert_money.dart';
 import 'package:app/keys/shipping.dart';
+import 'package:app/models/cart_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/login/UpdateAddressScreen.dart';
@@ -15,8 +17,13 @@ import '../../models/productTest.dart';
 
 class PaymentConfirmationScreen extends StatefulWidget {
   final int orderId;
+  final List<CartInfo> cartItems;
 
-  const PaymentConfirmationScreen({super.key, required this.orderId});
+  const PaymentConfirmationScreen({
+    super.key,
+    required this.orderId,
+    required this.cartItems,
+  });
 
   @override
   _PaymentConfirmationScreenState createState() =>
@@ -44,54 +51,52 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   double get tax => totalProductPrice * 0.02;
 
   double get totalProductPrice {
-    return products.fold(
+    return widget.cartItems.fold(
       0,
       (sum, product) => sum + (product.price * product.quantity),
     );
   }
 
-  List<Product> products = [
-    Product(
-      name: "Apple TV 4K (3rd Gen) Wifi + Ethernet",
-      imageUrl:
-          "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/apple-tv-4k-hero-select-202210_FMT_WHH?wid=640&hei=640&fmt=jpeg&qlt=95&.v=1664896361380",
-      price: 3890000,
-      originalPrice: 5123000,
-      quantity: 1,
-    ),
-    Product(
-      name: "MacBook Air M2 2023",
-      imageUrl:
-          "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
-      price: 28900000,
-      originalPrice: 31900000,
-      quantity: 1,
-    ),
-    Product(
-      name: "iPhone 15 Pro Max 256GB",
-      imageUrl:
-          "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
-      price: 31990000,
-      originalPrice: 34990000,
-      quantity: 2,
-    ),
-    Product(
-      name: "iPhone 15 Pro Max 256GB",
-      imageUrl:
-          "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
-      price: 31990000,
-      originalPrice: 34990000,
-      quantity: 30,
-    ),
-  ];
+  // List<Product> products = [
+  //   Product(
+  //     name: "Apple TV 4K (3rd Gen) Wifi + Ethernet",
+  //     imageUrl:
+  //         "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/apple-tv-4k-hero-select-202210_FMT_WHH?wid=640&hei=640&fmt=jpeg&qlt=95&.v=1664896361380",
+  //     price: 3890000,
+  //     originalPrice: 5123000,
+  //     quantity: 1,
+  //   ),
+  //   Product(
+  //     name: "MacBook Air M2 2023",
+  //     imageUrl:
+  //         "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
+  //     price: 28900000,
+  //     originalPrice: 31900000,
+  //     quantity: 1,
+  //   ),
+  //   Product(
+  //     name: "iPhone 15 Pro Max 256GB",
+  //     imageUrl:
+  //         "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
+  //     price: 31990000,
+  //     originalPrice: 34990000,
+  //     quantity: 2,
+  //   ),
+  //   Product(
+  //     name: "iPhone 15 Pro Max 256GB",
+  //     imageUrl:
+  //         "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
+  //     price: 31990000,
+  //     originalPrice: 34990000,
+  //     quantity: 3,
+  //   ),
+  // ];
 
   double get totalAmount {
     double subtotal = totalProductPrice + tax;
     double total = subtotal - totalDiscount + shippingFee;
     return total < 0 ? 0 : total;
   }
-
-  final currencyFormatter = NumberFormat("#,###", "vi_VN");
 
   Future<void> getShippingFee() async {
     setState(() {
@@ -100,7 +105,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       selectedWard = int.parse(temp[0]);
     });
 
-    int totalWeight = products.fold(
+    int totalWeight = widget.cartItems.fold(
       0,
       (sum, item) => sum + (400 * item.quantity),
     );
@@ -121,9 +126,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       "insurance_value": 0,
       "coupon": null,
       "items":
-          products.map((item) {
+          widget.cartItems.map((item) {
             return {
-              "name": item.name,
+              "name": item.nameVariant,
               "quantity": item.quantity,
               "weight": 400,
               "length": 30,
@@ -351,7 +356,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
-                _buildProductList(products),
+                _buildProductList(widget.cartItems),
 
                 Divider(height: 30, thickness: 1),
 
@@ -495,7 +500,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _buildProductList(List<Product> products) {
+  Widget _buildProductList(List<CartInfo> products) {
     return SingleChildScrollView(
       child: Column(
         children:
@@ -504,7 +509,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _buildProductItem(Product product) {
+  Widget _buildProductItem(CartInfo product) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8),
       padding: EdgeInsets.all(8),
@@ -518,7 +523,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              product.imageUrl,
+              product.image,
               width: 60,
               height: 60,
               fit: BoxFit.cover,
@@ -530,14 +535,14 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.name,
+                  product.nameVariant,
                   style: TextStyle(fontSize: 16),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 5),
                 Text(
-                  "${currencyFormatter.format(product.price)} đ",
+                  "${ConvertMoney.currencyFormatter.format(product.price)} đ",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -546,7 +551,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 ),
                 SizedBox(height: 3),
                 Text(
-                  "${currencyFormatter.format(product.originalPrice)} đ",
+                  "${ConvertMoney.currencyFormatter.format(product.originalPrice)} đ",
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey,
@@ -633,8 +638,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   Widget _buildMemberPointsSwitch() {
-    final NumberFormat currencyFormatter = NumberFormat("#,###", "vi_VN");
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
@@ -644,7 +647,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           Row(
             children: [
               Text(
-                "🪙 " + currencyFormatter.format(points),
+                "🪙 " + ConvertMoney.currencyFormatter.format(points),
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               SizedBox(width: 8),
@@ -668,7 +671,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     return Align(
       alignment: Alignment.centerRight,
       child: Text(
-        "${currencyFormatter.format(amount)} đ",
+        "${ConvertMoney.currencyFormatter.format(amount)} đ",
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
@@ -693,7 +696,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
             ),
           ),
           Text(
-            "${currencyFormatter.format(amount)} đ",
+            "${ConvertMoney.currencyFormatter.format(amount)} đ",
             style: TextStyle(
               fontSize: isTotal ? 18 : 16,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
@@ -710,12 +713,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
   Widget _buildPayButton() {
     return ElevatedButton(
-      onPressed:
-          totalAmount > 0
-              ? () {
-                print("Thanh toán thành công!");
-              }
-              : null,
+      onPressed: () {
+        Navigator.pushReplacementNamed(context, "/success");
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue,
         foregroundColor: Colors.black,

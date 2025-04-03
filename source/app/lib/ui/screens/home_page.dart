@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:app/data/banner.dart';
+import 'package:app/globals/convert_money.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/services/cart_service.dart';
 import 'package:app/ui/main_category.dart';
@@ -240,59 +241,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  // List<String> categoryName = [
-  //   'Màn hình',
-  //   'Linh kiện PC',
-  //   'Điện thoại',
-  //   'Gaming gear',
-  //   'Phụ kiện',
-  //   'PC - Máy tính bàn',
-  //   'Laptop',
-  //   'Laptop',
-  //   'Laptop',
-  // ];
-
-  // List<Image> imgCategory = [
-  //   Image.asset('assets/images/manhinh.webp'),
-  //   Image.asset('assets/images/linhkien.webp'),
-  //   Image.asset('assets/images/dienthoai.webp'),
-  //   Image.asset('assets/images/gaming.webp'),
-  //   Image.asset('assets/images/phukien.webp'),
-  //   Image.asset('assets/images/pc.webp'),
-  //   Image.asset('assets/images/laptop.webp'),
-  //   Image.asset('assets/images/laptop.webp'),
-  //   Image.asset('assets/images/laptop.webp'),
-  // ];
-
-  // sản phẩm mới và bán chạy
   bool isNewProductSelected = true;
-
-  // final List<Map<String, dynamic>> newProducts = List.generate(
-  //   20,
-  //   (index) => {
-  //     "image": "assets/images/laptop.webp",
-  //     "discountLabel": "TIẾT KIỆM\n700.000 đ",
-  //     "name": "ADATA",
-  //     "description":
-  //         "Ram Desktop ADATA XPG D50 DDR4 16GB (1x16GB) 3200 RGB Grey...",
-  //     "price": "990.000 đ",
-  //     "oldPrice": "1.690.000 đ",
-  //     "discountPercent": "-41,42%",
-  //   },
-  // );
-
-  // final List<Map<String, dynamic>> bestSellingProducts = List.generate(
-  //   10,
-  //   (index) => {
-  //     "image": "assets/images/laptop.webp",
-  //     "discountLabel": "HOT DEAL",
-  //     "name": "Kingston",
-  //     "description": "SSD Kingston NV2 1TB NVMe PCIe 4.0 Gen 4x4 M.2 2280",
-  //     "price": "1.890.000 đ",
-  //     "oldPrice": "2.490.000 đ",
-  //     "discountPercent": "-24,50%",
-  //   },
-  // );
 
   @override
   Widget build(BuildContext context) {
@@ -528,10 +477,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            // Phần chứa icon search và text, đặt ở giữa nhờ Stack
+
             Row(
-              mainAxisSize:
-                  MainAxisSize.min, // Để không chiếm toàn bộ chiều rộng
+              mainAxisSize: MainAxisSize.min,
 
               children: [
                 Icon(Icons.search, color: Colors.grey, size: 19),
@@ -704,13 +652,13 @@ class _HomePageState extends State<HomePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: SizedBox(
-        height: 140, // Tương ứng với chiều cao của Horizontal List thực tế
+        height: 140,
         child: Shimmer.fromColors(
           baseColor: Colors.grey[300]!,
           highlightColor: Colors.grey[100]!,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: 6, // Số lượng placeholder (đủ để hiển thị 2 dòng)
+            itemCount: 6,
             itemBuilder: (context, index) {
               return Padding(
                 padding: const EdgeInsets.only(right: 10),
@@ -889,20 +837,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // final List<Map<String, dynamic>> products = List.generate(
-  //   10,
-  //   (index) => {
-  //     "image": "assets/images/laptop.webp",
-  //     "discountLabel": "TIẾT KIỆM\n700.000 đ",
-  //     "name": "ADATAfdsfadfdnmafdam,fnasdm,f fdmas,fndasm,fnasdmfdnassfmadnf",
-  //     "description":
-  //         "Ram Desktop ADATA XPG D50 DDR4 16GB (1x16GB) 3200 RGB Grey...",
-  //     "price": "990.000 đ",
-  //     "oldPrice": "1.690.000 đ",
-  //     "discountPercent": "-41,42%",
-  //   },
-  // );
-
   Widget _buildListView(PagingController<int, ProductInfo> controller) {
     return Stack(
       children: [
@@ -1050,7 +984,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      product.price,
+                                      "${ConvertMoney.currencyFormatter.format(product.price)} đ",
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -1059,31 +993,34 @@ class _HomePageState extends State<HomePage> {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          product.oldPrice,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
-                                            decoration:
-                                                TextDecoration.lineThrough,
+                                    if (product.discountPercent > 0)
+                                      Row(
+                                        children: [
+                                          Text(
+                                            "${ConvertMoney.currencyFormatter.format(product.oldPrice)} đ",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey,
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          product.discountPercent,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.red,
+                                          SizedBox(width: 4),
+
+                                          Text(
+                                            "- ${product.discountPercent}%" ??
+                                                "",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.red,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
+                                        ],
+                                      ),
                                     SizedBox(height: 4),
                                     Row(
                                       children: List.generate(5, (index) {
@@ -1227,7 +1164,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            product.price,
+                            "${ConvertMoney.currencyFormatter.format(product.price)} đ",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -1289,8 +1226,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // sản phẩm mới hoặc sản phẩm bán chạy
-
   String backgroundImage =
       "https://file.hstatic.net/200000722513/file/thang_02_layout_web_-12.png";
 
@@ -1299,8 +1234,8 @@ class _HomePageState extends State<HomePage> {
       height: 420,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: NetworkImage(backgroundImage), // Ảnh nền
-          fit: BoxFit.cover, // Trải đều ảnh
+          image: NetworkImage(backgroundImage),
+          fit: BoxFit.cover,
         ),
       ),
       child: ListView.builder(
@@ -1369,7 +1304,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        products[index].price,
+                        "${ConvertMoney.currencyFormatter.format(products[index].price)} đ",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -1378,25 +1313,26 @@ class _HomePageState extends State<HomePage> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      Row(
-                        children: [
-                          Text(
-                            products[index].oldPrice,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              decoration: TextDecoration.lineThrough,
+                      if (product.discountPercent > 0)
+                        Row(
+                          children: [
+                            Text(
+                              "${ConvertMoney.currencyFormatter.format(products[index].oldPrice)} đ",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            products[index].discountPercent,
-                            style: TextStyle(fontSize: 12, color: Colors.red),
-                          ),
-                        ],
-                      ),
+                            SizedBox(width: 4),
+                            Text(
+                              "- ${product.discountPercent}%" ?? "",
+                              style: TextStyle(fontSize: 12, color: Colors.red),
+                            ),
+                          ],
+                        ),
                       SizedBox(height: 4),
                       Row(
                         children: List.generate(5, (index) {
@@ -1572,7 +1508,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  product.price ?? '',
+                  "${ConvertMoney.currencyFormatter.format(product.price)} đ",
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -1580,23 +1516,25 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      product.oldPrice ?? '',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        decoration: TextDecoration.lineThrough,
+                if (product.discountPercent > 0)
+                  Row(
+                    children: [
+                      Text(
+                        "${ConvertMoney.currencyFormatter.format(product.oldPrice)} đ",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          decoration: TextDecoration.lineThrough,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      product.discountPercent ?? "",
-                      style: const TextStyle(fontSize: 12, color: Colors.red),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 4),
+
+                      Text(
+                        "- ${product.discountPercent}%" ?? "",
+                        style: const TextStyle(fontSize: 12, color: Colors.red),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -1702,11 +1640,7 @@ Widget _buildGreetingShimmer() {
   return Shimmer.fromColors(
     baseColor: Colors.grey[300]!,
     highlightColor: Colors.grey[100]!,
-    child: Container(
-      width: 150, // Ước lượng chiều rộng của text chào hỏi
-      height: 20, // Chiều cao tương ứng với fontSize 16
-      color: Colors.white,
-    ),
+    child: Container(width: 150, height: 20, color: Colors.white),
   );
 }
 
@@ -1715,8 +1649,8 @@ Widget _buildPointsShimmer() {
     baseColor: Colors.grey[300]!,
     highlightColor: Colors.grey[100]!,
     child: Container(
-      width: 60, // Ước lượng chiều rộng của '🪙 100'
-      height: 28, // Chiều cao của Container thực tế (padding + text)
+      width: 60,
+      height: 28,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(40),
@@ -1756,7 +1690,7 @@ Widget _buildListViewShimmer() {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.all(8),
-              itemCount: 5, // Số lượng placeholder shimmer
+              itemCount: 5,
               itemBuilder: (context, index) {
                 return Container(
                   width: 180,
@@ -1936,7 +1870,6 @@ Widget _buildProductListShimmer() {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Phần ảnh
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: Container(
@@ -1950,49 +1883,29 @@ Widget _buildProductListShimmer() {
                     ),
                   ),
                 ),
-                // Phần nội dung
+
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 120,
-                        height: 14,
-                        color: Colors.white,
-                      ), // Tên
+                      Container(width: 120, height: 14, color: Colors.white),
                       const SizedBox(height: 4),
                       Container(
                         width: double.infinity,
                         height: 12,
                         color: Colors.white,
-                      ), // Mô tả dòng 1
+                      ),
                       const SizedBox(height: 2),
-                      Container(
-                        width: 80,
-                        height: 12,
-                        color: Colors.white,
-                      ), // Mô tả dòng 2
+                      Container(width: 80, height: 12, color: Colors.white),
                       const SizedBox(height: 8),
-                      Container(
-                        width: 60,
-                        height: 16,
-                        color: Colors.white,
-                      ), // Giá
+                      Container(width: 60, height: 16, color: Colors.white),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Container(
-                            width: 40,
-                            height: 12,
-                            color: Colors.white,
-                          ), // Giá cũ
+                          Container(width: 40, height: 12, color: Colors.white),
                           const SizedBox(width: 4),
-                          Container(
-                            width: 30,
-                            height: 12,
-                            color: Colors.white,
-                          ), // Giảm giá
+                          Container(width: 30, height: 12, color: Colors.white),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -2005,12 +1918,12 @@ Widget _buildProductListShimmer() {
                             color: Colors.white,
                           );
                         }),
-                      ), // Sao đánh giá
+                      ),
                     ],
                   ),
                 ),
                 const Spacer(),
-                // Nút "Thêm giỏ hàng"
+
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: Container(
@@ -2040,25 +1953,16 @@ Widget _buildTitleShimmer() {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Ô bên trái (giả lập tiêu đề)
             Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
               highlightColor: Colors.grey[100]!,
-              child: Container(
-                width: 100, // Ước lượng chiều rộng tiêu đề
-                height: 20, // Ước lượng chiều cao tiêu đề
-                color: Colors.white,
-              ),
+              child: Container(width: 100, height: 20, color: Colors.white),
             ),
-            // Ô bên phải (giả lập "Xem thêm")
+
             Shimmer.fromColors(
               baseColor: Colors.grey[300]!,
               highlightColor: Colors.grey[100]!,
-              child: Container(
-                width: 60, // Ước lượng chiều rộng "Xem thêm"
-                height: 14, // Ước lượng chiều cao text
-                color: Colors.white,
-              ),
+              child: Container(width: 60, height: 14, color: Colors.white),
             ),
           ],
         ),
@@ -2082,7 +1986,7 @@ Widget _buildGridViewShimmer() {
           crossAxisSpacing: 8,
           childAspectRatio: 0.53,
         ),
-        itemCount: 4, // Số lượng item giả lập (có thể thay đổi)
+        itemCount: 4,
         itemBuilder: (context, index) => _buildProductItemShimmer(),
       ),
     ],
@@ -2104,7 +2008,6 @@ Widget _buildProductItemShimmer() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Phần ảnh
           Container(
             width: double.infinity,
             height: 150,
@@ -2113,17 +2016,13 @@ Widget _buildProductItemShimmer() {
               color: Colors.white,
             ),
           ),
-          // Phần nội dung
+
           Padding(
             padding: const EdgeInsets.all(10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 120, // Giả lập tên sản phẩm
-                  height: 14,
-                  color: Colors.white,
-                ),
+                Container(width: 120, height: 14, color: Colors.white),
                 const SizedBox(height: 4),
                 Container(
                   width: double.infinity,
@@ -2133,37 +2032,25 @@ Widget _buildProductItemShimmer() {
                 const SizedBox(height: 2),
                 Container(width: 80, height: 12, color: Colors.white),
                 const SizedBox(height: 8),
-                Container(
-                  width: 60, // Giả lập giá
-                  height: 16,
-                  color: Colors.white,
-                ),
+                Container(width: 60, height: 16, color: Colors.white),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Container(
-                      width: 40, // Giả lập giá cũ
-                      height: 12,
-                      color: Colors.white,
-                    ),
+                    Container(width: 40, height: 12, color: Colors.white),
                     const SizedBox(width: 4),
-                    Container(
-                      width: 30, // Giả lập giảm giá
-                      height: 12,
-                      color: Colors.white,
-                    ),
+                    Container(width: 30, height: 12, color: Colors.white),
                   ],
                 ),
               ],
             ),
           ),
           const Spacer(),
-          // Nút "Thêm giỏ hàng"
+
           Padding(
             padding: const EdgeInsets.all(8),
             child: Container(
               width: double.infinity,
-              height: 36, // Ước lượng chiều cao nút
+              height: 36,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.grey[300]!, width: 1),

@@ -1,7 +1,8 @@
+import 'package:app/globals/convert_money.dart';
 import 'package:app/models/cart_info.dart';
 import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/cart_service.dart';
-import 'package:app/ui/login/Payment.dart';
+import 'package:app/ui/order/payment_process.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
@@ -344,8 +345,8 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                                     (value) => _toggleSelection(index, value),
                               ),
                               Container(
-                                width: 70,
-                                height: 70,
+                                width: 80,
+                                height: 80,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(5),
                                   border: Border.all(
@@ -374,32 +375,57 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                                     children: [
                                       Text(
                                         item.nameVariant,
-                                        style: const TextStyle(fontSize: 12),
+                                        style: const TextStyle(fontSize: 15),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       Text(
-                                        item.colorName,
+                                        (item.colorName?.trim().isEmpty ?? true)
+                                            ? 'Mặc định'
+                                            : item.colorName!,
                                         style: TextStyle(
-                                          fontSize: 9,
+                                          fontSize: 11,
+
                                           color: Colors.grey.shade600,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
+                                      SizedBox(height: 4),
+
                                       Row(
                                         children: [
                                           Expanded(
-                                            child: Text(
-                                              "${item.price.toStringAsFixed(0)}đ",
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "${ConvertMoney.currencyFormatter.format(item.price)} đ",
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  "${ConvertMoney.currencyFormatter.format(item.originalPrice)} đ",
+                                                  style: const TextStyle(
+                                                    color: Colors.grey,
+                                                    decoration:
+                                                        TextDecoration
+                                                            .lineThrough,
+                                                  ),
+
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ],
                                             ),
                                           ),
+
                                           Container(
                                             height: 30,
                                             padding: const EdgeInsets.symmetric(
@@ -507,7 +533,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "${totalPrice.toStringAsFixed(0)} VND",
+              "${ConvertMoney.currencyFormatter.format(totalPrice)} VNĐ",
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
@@ -524,8 +550,10 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                   context,
                   MaterialPageRoute(
                     builder:
-                        (context) =>
-                            PaymentConfirmationScreen(orderId: orderId),
+                        (context) => PaymentConfirmationScreen(
+                          orderId: orderId,
+                          cartItems: cartItems,
+                        ),
                   ),
                 );
               },

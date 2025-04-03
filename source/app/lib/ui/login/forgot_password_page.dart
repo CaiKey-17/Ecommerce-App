@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'VerificationCodeScreen.dart';
+import 'verify_otp_register.dart';
 import 'package:dio/dio.dart';
 import '../../services/api_service.dart';
 

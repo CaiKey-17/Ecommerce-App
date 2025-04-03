@@ -7,17 +7,17 @@ part of 'product_info.dart';
 // **************************************************************************
 
 ProductInfo _$ProductInfoFromJson(Map<String, dynamic> json) => ProductInfo(
-      id: (json['id'] as num).toInt(),
-      image: json['image'] as String,
-      discountLabel: json['discountLabel'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String,
-      price: json['price'] as String,
-      oldPrice: json['oldPrice'] as String,
-      discountPercent: json['discountPercent'] as String,
-      idVariant: (json['idVariant'] as num).toInt(),
-      idColor: (json['idColor'] as num).toInt(),
-    );
+  id: (json['id'] as num).toInt(),
+  image: json['image'] as String,
+  discountLabel: json['discountLabel'] as String,
+  name: json['name'] as String,
+  description: json['description'] as String,
+  price: json['price'] as double,
+  oldPrice: json['oldPrice'] as double,
+  discountPercent: json['discountPercent'] as int,
+  idVariant: (json['idVariant'] as num).toInt(),
+  idColor: (json['idColor'] as num).toInt(),
+);
 
 Map<String, dynamic> _$ProductInfoToJson(ProductInfo instance) =>
     <String, dynamic>{

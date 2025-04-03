@@ -645,7 +645,7 @@ class _BrandPageState extends State<BrandPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  product.price ?? "",
+                  product.price.toString() ?? "",
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -653,23 +653,24 @@ class _BrandPageState extends State<BrandPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      product.oldPrice ?? "",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        decoration: TextDecoration.lineThrough,
+                if (product.discountPercent > 0)
+                  Row(
+                    children: [
+                      Text(
+                        product.oldPrice.toString() ?? "",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          decoration: TextDecoration.lineThrough,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      product.discountPercent ?? "",
-                      style: const TextStyle(fontSize: 12, color: Colors.red),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "- ${product.discountPercent}%" ?? "",
+                        style: const TextStyle(fontSize: 12, color: Colors.red),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
