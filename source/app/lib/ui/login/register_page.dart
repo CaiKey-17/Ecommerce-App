@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app/keys/shipping.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
@@ -30,24 +31,79 @@ class _RegisterPageState extends State<RegisterPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  List<dynamic> _provinces = [];
-  List<dynamic> _districts = [];
-  List<dynamic> _wards = [];
+  List<dynamic> provinces = [];
+  List<dynamic> districts = [];
+  List<dynamic> wards = [];
 
-  String? _selectedProvince;
-  String? _selectedDistrict;
-  String? _selectedWard;
+  String? selectedProvince;
+  String? selectedDistrict;
+  String? selectedWard;
+  String? fullAddress;
+  String codes = "";
 
   @override
   void initState() {
     super.initState();
-    _fetchProvinces();
+    fetchProvinces();
+  }
+
+  void getNameFromIds(String idString) {
+    List<String> ids = idString.split(',');
+
+    if (ids.length != 3) {
+      print("Invalid ID string");
+      return;
+    }
+
+    String wardId = ids[0].trim();
+    String districtId = ids[1].trim();
+    String provinceId = ids[2].trim();
+
+    // Tìm tỉnh theo ID
+    String provinceName = getProvinceName(provinceId);
+    // Tìm huyện theo ID
+    String districtName = getDistrictName(districtId);
+
+    // Tìm xã/phường theo ID
+    String wardName = getWardName(wardId);
+
+    setState(() {
+      fullAddress =
+          " ${_specificAddressController.text}, $wardName,$districtName, $provinceName";
+    });
+  }
+
+  String getProvinceName(String provinceId) {
+    // Giả sử provinces là danh sách các tỉnh đã tải về
+    var province = provinces.firstWhere(
+      (element) => element['ProvinceID'].toString() == provinceId,
+      orElse: () => null,
+    );
+    return province != null ? province['ProvinceName'] : "Không tìm thấy tỉnh";
+  }
+
+  String getDistrictName(String districtId) {
+    // Giả sử districts là danh sách các huyện đã tải về
+    var district = districts.firstWhere(
+      (element) => element['DistrictID'].toString() == districtId,
+      orElse: () => null,
+    );
+    return district != null ? district['DistrictName'] : "Không tìm thấy huyện";
+  }
+
+  String getWardName(String wardId) {
+    // Giả sử wards là danh sách các xã/phường đã tải về
+    var ward = wards.firstWhere(
+      (element) => element['WardCode'].toString() == wardId,
+      orElse: () => null,
+    );
+    return ward != null ? ward['WardName'] : "Không tìm thấy xã";
   }
 
   Future<void> _register() async {
-    if (_selectedProvince == null ||
-        _selectedDistrict == null ||
-        _selectedWard == null) {
+    if (selectedDistrict == null ||
+        selectedDistrict == null ||
+        selectedWard == null) {
       Fluttertoast.showToast(msg: "Vui lòng chọn đầy đủ địa chỉ");
       return;
     }
@@ -60,16 +116,13 @@ class _RegisterPageState extends State<RegisterPage> {
     String password = _passwordController.text.trim();
     String fullName = _fullNameController.text.trim();
 
-    String fullAddress =
-        "$_selectedProvince, $_selectedDistrict, $_selectedWard, ${_specificAddressController.text}";
-
-    // if (email.isEmpty || !RegExp(r"^[A-Za-z0-9+_.-]+@(.+)$").hasMatch(email)) {
-    //   Fluttertoast.showToast(msg: "Email không hợp lệ");
-    //   setState(() {
-    //     _isLoading = false;
-    //   });
-    //   return;
-    // }
+    if (email.isEmpty) {
+      Fluttertoast.showToast(msg: "Email không hợp lệ");
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
 
     if (password.isEmpty) {
       Fluttertoast.showToast(msg: "Vui lòng nhập mật khẩu");
@@ -79,15 +132,25 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    setState(() {
+      codes = "$selectedWard,$selectedDistrict,$selectedProvince";
+      if (codes != null) {
+        getNameFromIds(codes);
+      }
+    });
+
     final dio = Dio();
     final apiService = ApiService(dio);
 
     try {
+      print("Codesss: ${codes}");
+
       final request = RegisterRequest(
         email: email,
         password: password,
-        address: fullAddress,
+        address: fullAddress!,
         fullname: fullName,
+        codes: codes,
       );
 
       final response = await apiService.register(request);
@@ -96,8 +159,9 @@ class _RegisterPageState extends State<RegisterPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('email', email);
         await prefs.setString('password', password);
-        await prefs.setString('address', fullAddress);
+        await prefs.setString('address', fullAddress!);
         await prefs.setString('fullName', fullName);
+        await prefs.setString('codes', codes);
 
         Navigator.pushReplacementNamed(context, "/otp");
         Fluttertoast.showToast(msg: response.message);
@@ -119,60 +183,71 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  Future<void> _fetchProvinces() async {
-    final url = 'https://vn-public-apis.fpo.vn/provinces/getAll?limit=-1';
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _provinces = data['data']['data'];
-        });
-      } else {
-        throw Exception('Không thể tải danh sách tỉnh/thành phố');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Lỗi khi lấy tỉnh: $e');
+  Future<void> fetchProvinces() async {
+    Shipping shipping = new Shipping();
+    final url = Uri.parse(
+      "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/province",
+    );
+    final response = await http.get(url, headers: {"Token": shipping.apiKey});
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      setState(() {
+        provinces = data['data'];
+      });
     }
   }
 
-  Future<void> _fetchDistricts(String provinceCode) async {
-    final url =
-        'https://vn-public-apis.fpo.vn/districts/getByProvince?provinceCode=$provinceCode&limit=-1';
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _districts = data['data']['data'];
-          _wards.clear();
-          _selectedDistrict = null;
-          _selectedWard = null;
-        });
-      } else {
-        throw Exception('Không thể tải danh sách quận/huyện');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Lỗi khi lấy quận/huyện: $e');
+  Future<void> fetchDistricts(int provinceId) async {
+    Shipping shipping = new Shipping();
+    final url = Uri.parse(
+      "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/district",
+    );
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json", "Token": shipping.apiKey},
+      body: jsonEncode({"province_id": provinceId}),
+    );
+
+    print(
+      "Response Districts: ${utf8.decode(response.bodyBytes)}",
+    ); // Debug API UTF-8
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      setState(() {
+        districts = data['data'] ?? [];
+        selectedDistrict = null;
+        wards = [];
+      });
+    } else {
+      print("Lỗi khi tải danh sách quận/huyện");
     }
   }
 
-  Future<void> _fetchWards(String districtCode) async {
-    final url =
-        'https://vn-public-apis.fpo.vn/wards/getByDistrict?districtCode=$districtCode&limit=-1';
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _wards = data['data']['data'];
-          _selectedWard = null;
-        });
-      } else {
-        throw Exception('Không thể tải danh sách xã/phường');
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: 'Lỗi khi lấy xã/phường: $e');
+  Future<void> fetchWards(int districtId) async {
+    Shipping shipping = new Shipping();
+
+    final url = Uri.parse(
+      "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data/ward",
+    );
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json", "Token": shipping.apiKey},
+      body: jsonEncode({"district_id": districtId}),
+    );
+
+    print(
+      "Response Wards: ${utf8.decode(response.bodyBytes)}",
+    ); // Debug API UTF-8
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      setState(() {
+        wards = data['data'] ?? [];
+        selectedWard = null;
+      });
+    } else {
+      print("Lỗi khi tải danh sách phường/xã");
     }
   }
 
@@ -327,92 +402,69 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       SizedBox(height: 16),
 
-                      DropdownButtonFormField<String>(
-                        value: _selectedProvince,
+                      DropdownButtonFormField(
+                        hint: Text("Chọn tỉnh/thành"),
+                        value: selectedProvince,
                         items:
-                            _provinces.map((province) {
-                              return DropdownMenuItem<String>(
-                                value: province['name'],
-                                child: Text(province['name']),
+                            provinces.map((province) {
+                              return DropdownMenuItem(
+                                value: province['ProvinceID'].toString(),
+                                child: Text(
+                                  province['ProvinceName'],
+                                  style: TextStyle(fontFamily: 'Roboto'),
+                                ),
                               );
                             }).toList(),
                         onChanged: (value) {
                           setState(() {
-                            _selectedProvince = value;
-                            _districts.clear();
-                            _wards.clear();
+                            selectedProvince = value.toString();
+                            fetchDistricts(int.parse(value.toString()));
                           });
-                          if (value != null) {
-                            String? provinceCode =
-                                _provinces.firstWhere(
-                                  (p) => p['name'] == value,
-                                  orElse: () => null,
-                                )?['code'];
-                            if (provinceCode != null)
-                              _fetchDistricts(provinceCode);
-                          }
                         },
-                        decoration: InputDecoration(
-                          labelText: 'Tỉnh/Thành phố',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
+                      ),
+                      DropdownButtonFormField(
+                        hint: Text("Chọn quận/huyện"),
+                        value: selectedDistrict,
+                        items:
+                            districts.map((district) {
+                              return DropdownMenuItem(
+                                value:
+                                    district['DistrictID']
+                                        .toString(), // Chuyển thành String
+                                child: Text(
+                                  district['DistrictName'],
+                                  style: TextStyle(fontFamily: 'Roboto'),
+                                ),
+                              );
+                            }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedDistrict = value.toString();
+                            fetchWards(
+                              int.parse(value.toString()),
+                            ); // Gọi API phường/xã
+                          });
+                        },
                       ),
 
-                      SizedBox(height: 16),
-
-                      DropdownButtonFormField<String>(
-                        value: _selectedDistrict,
+                      DropdownButtonFormField(
+                        hint: Text("Chọn phường/xã"),
+                        value: selectedWard,
                         items:
-                            _districts.map((district) {
-                              return DropdownMenuItem<String>(
-                                value: district['name'],
-                                child: Text(district['name']),
+                            wards.map((ward) {
+                              return DropdownMenuItem(
+                                value:
+                                    ward['WardCode']
+                                        .toString(), // Chuyển thành String
+                                child: Text(ward['WardName']),
                               );
                             }).toList(),
                         onChanged: (value) {
                           setState(() {
-                            _selectedDistrict = value;
-                            _wards.clear();
-                          });
-                          final selectedDistrict = _districts.firstWhere(
-                            (d) => d['name'] == value,
-                            orElse: () => null,
-                          );
-                          if (selectedDistrict != null)
-                            _fetchWards(selectedDistrict['code']);
-                        },
-                        decoration: InputDecoration(
-                          labelText: 'Quận/Huyện',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(height: 16),
-
-                      DropdownButtonFormField<String>(
-                        value: _selectedWard,
-                        items:
-                            _wards.map((ward) {
-                              return DropdownMenuItem<String>(
-                                value: ward['name'],
-                                child: Text(ward['name']),
-                              );
-                            }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedWard = value;
+                            selectedWard =
+                                value.toString(); // Đảm bảo luôn là String
                           });
                         },
-                        decoration: InputDecoration(
-                          labelText: 'Xã/Phường',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
                       ),
 
                       SizedBox(height: 16),

@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
       final response = await _apiService.login(request);
 
       if (response.code == 200) {
-        onLoginSuccess(response.token.toString());
+        onLoginSuccess(response.token.toString(), response.role.toString());
       } else {
         setState(() {
           _isLoading = false;
@@ -74,17 +74,25 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void onLoginSuccess(String token) async {
+  void onLoginSuccess(String token, String role) async {
     final authRepo = AuthRepository();
     bool success = await authRepo.fetchUserInfo(token);
 
     if (success) {
       print("Lấy thông tin người dùng thành công!");
-
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
-
-      Navigator.pushNamedAndRemoveUntil(context, "/main", (route) => false);
+      await prefs.setString('role', role);
+      if (role == 'ROLE_CUSTOMER') {
+        Navigator.pushNamedAndRemoveUntil(context, "/main", (route) => false);
+      }
+      if (role == 'ROLE_ADMIN') {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          "/manager",
+          (route) => false,
+        );
+      }
     } else {
       print("Không thể lấy thông tin người dùng.");
     }
@@ -119,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (response.code == 200) {
-        onLoginSuccess(response.token.toString());
+        onLoginSuccess(response.token.toString(), response.role.toString());
       } else if (response.code == 401) {
         ScaffoldMessenger.of(
           context,

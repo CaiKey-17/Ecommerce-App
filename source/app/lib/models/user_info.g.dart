@@ -17,6 +17,7 @@ UserInfo _$UserInfoFromJson(Map<String, dynamic> json) => UserInfo(
       tempId: json['tempId'] as String?,
       createdAt: json['createdAt'] as String,
       points: (json['points'] as num).toInt(),
+      codes: (json['codes'] as List<dynamic>).map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
@@ -29,4 +30,5 @@ Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
       'tempId': instance.tempId,
       'createdAt': instance.createdAt,
       'points': instance.points,
+      'codes': instance.codes,
     };

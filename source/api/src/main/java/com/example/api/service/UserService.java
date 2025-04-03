@@ -63,6 +63,8 @@ public class UserService {
             userRepository.save(user);
             return true;
 
+
+
         }
         return false;
     }
@@ -96,7 +98,7 @@ public class UserService {
 
 
     @Transactional
-    public void registerUser(String email, String password, String address, String fullname) {
+    public void registerUser(String email, String password, String address, String fullname,String codes) {
         Users newUser = new Users();
         newUser.setEmail(email);
         newUser.setPassword(passwordEncoder.encode(password));
@@ -107,7 +109,7 @@ public class UserService {
         newUser.setRoles(Collections.singleton(customerRole));
         newUser = userRepository.save(newUser);
         int userId = newUser.getId();
-        Address addresses = new Address(address, userId);
+        Address addresses = new Address(address, userId,codes);
         addressService.save(addresses);
 
 

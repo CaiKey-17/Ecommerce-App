@@ -22,6 +22,7 @@ class AuthRepository {
       await prefs.setString('fullName', userInfo.fullName);
       await prefs.setString('role', userInfo.role);
       await prefs.setStringList('addresses', userInfo.addresses);
+      await prefs.setStringList('codes', userInfo.codes);
       await prefs.setBool('active', userInfo.active == 1);
       await prefs.setString('createdAt', userInfo.createdAt);
       await prefs.setInt('points', userInfo.points);

@@ -50,14 +50,36 @@ public class RegisterController {
                     "message", "OTP không hợp lệ hoặc đã hết hạn"
             ));
         }
-
-        userService.registerUser(validRequest.getEmail(),validRequest.getPassword(),validRequest.getAddress(),validRequest.getFullname());
+        System.out.println(validRequest.getAddress());
+        System.out.println(validRequest.getCodes());
+        userService.registerUser(validRequest.getEmail(),validRequest.getPassword(),validRequest.getAddress(),validRequest.getFullname(),validRequest.getCodes());
 
         return ResponseEntity.ok(Map.of(
                 "code", 200,
-                "message", "Xác thực thành công, tài khoản đã được tạo"
+                "message", "Xác thực tài khoản thành công"
         ));
     }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        if (userService.existsByEmail(email)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "code", 400,
+                    "message", "Email đã được sử dụng"
+            ));
+        }
+
+        String newOtp = generateOTP();
+        userService.saveOtp(email, newOtp);
+        emailService.sendOtpEmail(email, newOtp);
+
+        return ResponseEntity.ok(Map.of(
+                "code", 200,
+                "message", "OTP mới đã được gửi lại vào email của bạn"
+        ));
+    }
+
 
     private String generateOTP() {
         return String.valueOf(100000 + new Random().nextInt(900000));

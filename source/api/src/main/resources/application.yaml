@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/flutter
     username: root
-    password: MinhLuan.1004
+    password: root
 
   jpa:
     properties:
