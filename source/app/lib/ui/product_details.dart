@@ -31,12 +31,14 @@ class _ProductPageState extends State<ProductPage> {
   String name = "";
   double? price;
 
+  double basePrice = 1990000;
   int _currentIndex = 0;
 
   List<String> images = [];
 
   List<ColorOption> colors = [];
   List<Variant> versions = [];
+  final List<double> priceModifiers = [0, 200000, 500000];
 
   final List<Map<String, dynamic>> reviews = [
     {
@@ -89,10 +91,11 @@ class _ProductPageState extends State<ProductPage> {
       'replies': [
         {
           'username': 'Quản Trị Viên',
-          'content': 'CellphonesS Xin Chào Anh !\nĐa con MAN HINH GAMING VIEWSONIC VX2758A-2K-PRO-2 27(2K/IPS/185HZ/1MS) giá tốt điện hiện tại 5.190.000đ\nNếu phù hợp nam học quản trị nên tìm shop có ghi hàng trong 24 giờ để mình đặt',
+          'content':
+              'CellphonesS Xin Chào Anh !\nĐa con MAN HINH GAMING VIEWSONIC VX2758A-2K-PRO-2 27(2K/IPS/185HZ/1MS) giá tốt điện hiện tại 5.190.000đ\nNếu phù hợp nam học quản trị nên tìm shop có ghi hàng trong 24 giờ để mình đặt',
           'daysAgo': 2,
-        }
-      ]
+        },
+      ],
     },
     {
       'username': 'User1',
@@ -101,69 +104,70 @@ class _ProductPageState extends State<ProductPage> {
       'replies': [
         {
           'username': 'Quản Trị Viên',
-          'content': 'Chào bạn! Sản phẩm rất bền, được bảo hành chính hãng 24 tháng.',
+          'content':
+              'Chào bạn! Sản phẩm rất bền, được bảo hành chính hãng 24 tháng.',
           'daysAgo': 3,
-        }
-      ]
+        },
+      ],
     },
-    // Add more comments to test the "View More" functionality
+
     {
       'username': 'User2',
       'content': 'Có giao hàng nhanh không?',
       'daysAgo': 4,
-      'replies': []
+      'replies': [],
     },
     {
       'username': 'User3',
       'content': 'Màu sắc sản phẩm có đúng như hình không?',
       'daysAgo': 5,
-      'replies': []
+      'replies': [],
     },
     {
       'username': 'User4',
       'content': 'Sản phẩm này có bảo hành không?',
       'daysAgo': 6,
-      'replies': []
+      'replies': [],
     },
     {
       'username': 'User5',
       'content': 'Giá có giảm thêm được không?',
       'daysAgo': 7,
-      'replies': []
+      'replies': [],
     },
     {
       'username': 'User6',
       'content': 'Có hỗ trợ trả góp không?',
       'daysAgo': 8,
-      'replies': []
+      'replies': [],
     },
     {
       'username': 'User7',
       'content': 'Sản phẩm này có hàng sẵn không?',
       'daysAgo': 9,
-      'replies': []
+      'replies': [],
     },
     {
       'username': 'User8',
       'content': 'Chất lượng sản phẩm thế nào?',
       'daysAgo': 10,
-      'replies': []
+      'replies': [],
     },
     {
       'username': 'User9',
       'content': 'Có giao hàng tận nơi không?',
       'daysAgo': 11,
-      'replies': []
+      'replies': [],
     },
     {
       'username': 'User10',
       'content': 'Sản phẩm này có dễ sử dụng không?',
       'daysAgo': 12,
-      'replies': []
+      'replies': [],
     },
   ];
 
-  int displayedCommentCount = 5; 
+  int displayedCommentCount = 5;
   final TextEditingController _newCommentController = TextEditingController();
 
   bool isLoading = true;
@@ -544,6 +548,7 @@ class _ProductPageState extends State<ProductPage> {
                                   color: Colors.grey[200],
                                   child: Text(
                                     "${ConvertMoney.currencyFormatter.format(price)} đ",
+
                                     style: const TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
@@ -562,69 +567,77 @@ class _ProductPageState extends State<ProductPage> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-
-                                  ),
-                                  const SizedBox(height: 10),
-                                  const DescriptionWidget(),
-                                  const SizedBox(height: 10),
-                                  ProductRatingWidget(
-                                    productName: "Sản phẩm A",
-                                    reviews: reviews,
-                                    images: images,
-                                    onViewMoreReviews: () {
-                                      setState(() {
-                                        // Hiển thị tất cả đánh giá
-                                      });
-                                    },
-                                    onWriteReview: () => print('Viết đánh giá'),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Hỏi và đáp',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                                    const SizedBox(height: 10),
+                                    const SpecificationWidget(),
+                                    const SizedBox(height: 10),
+                                    const Text(
+                                      'Mô tả sản phẩm',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    const DescriptionWidget(),
+                                    const SizedBox(height: 10),
+                                    ProductRatingWidget(
+                                      productName: "Sản phẩm A",
+                                      reviews: reviews,
+                                      images: images,
+                                      onViewMoreReviews: () {
+                                        setState(() {
+                                          // Hiển thị tất cả đánh giá
+                                        });
+                                      },
+                                      onWriteReview:
+                                          () => print('Viết đánh giá'),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(height: 10),
-                              CommentSectionWidget(
-                                comments: comments,
-                                initialCommentCount: 5, 
-                                controller: _newCommentController,
-                                onSend: () {
-                                  if (_newCommentController.text.isNotEmpty) {
-                                    setState(() {
-                                      comments.insert(0, {
-                                        'username': 'Người dùng mới',
-                                        'content': _newCommentController.text,
-                                        'daysAgo': 0,
-                                        'replies': [],
+                                const SizedBox(height: 10),
+                                const Text(
+                                  'Hỏi và đáp',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                CommentSectionWidget(
+                                  comments: comments,
+                                  initialCommentCount: 5,
+                                  controller: _newCommentController,
+                                  onSend: () {
+                                    if (_newCommentController.text.isNotEmpty) {
+                                      setState(() {
+                                        comments.insert(0, {
+                                          'username': 'Người dùng mới',
+                                          'content': _newCommentController.text,
+                                          'daysAgo': 0,
+                                          'replies': [],
+                                        });
+                                        _newCommentController.clear();
                                       });
-                                      _newCommentController.clear();
-                                    });
-                                  }
-                                },
-                              ),
-                              
+                                    }
+                                  },
+                                ),
 
-                              _buildTitle("Sản phẩm cùng hãng", () {
-                                print("Xem thêm được bấm!");
-                              }),
-                              const Divider(color: Colors.grey, thickness: 1),
-                              const SizedBox(height: 10),
-                              _buildListView(products_brand),
-                              const SizedBox(height: 10),
-                              _buildTitle("Sản phẩm liên quan ", () {
-                                print("Xem thêm được bấm!");
-                              }),
-                              const Divider(color: Colors.grey, thickness: 1),
-                              const SizedBox(height: 10),
-                              _buildListView(products_category),
-                              const SizedBox(height: 10),
-                            ],
-
+                                _buildTitle("Sản phẩm cùng hãng", () {
+                                  print("Xem thêm được bấm!");
+                                }),
+                                const Divider(color: Colors.grey, thickness: 1),
+                                const SizedBox(height: 10),
+                                _buildListView(products_brand),
+                                const SizedBox(height: 10),
+                                _buildTitle("Sản phẩm liên quan ", () {
+                                  print("Xem thêm được bấm!");
+                                }),
+                                const Divider(color: Colors.grey, thickness: 1),
+                                const SizedBox(height: 10),
+                                _buildListView(products_category),
+                                const SizedBox(height: 10),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -1419,12 +1432,11 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                 onPressed: () {
                   showDialog(
                     context: context,
-
-                    builder: (context) => AllReviewsDialog(
-                      reviews: widget.reviews,
-                      onUpdateReview: updateReview, 
-                    ),
-
+                    builder:
+                        (context) => AllReviewsDialog(
+                          reviews: widget.reviews,
+                          onUpdateReview: updateReview,
+                        ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -1476,7 +1488,7 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
 
 class AllReviewsDialog extends StatefulWidget {
   final List<Map<String, dynamic>> reviews;
-  final Function(int, Map<String, dynamic>) onUpdateReview; 
+  final Function(int, Map<String, dynamic>) onUpdateReview;
 
   const AllReviewsDialog({
     super.key,
@@ -1492,13 +1504,8 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      insetPadding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 20,
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
       backgroundColor: Colors.white,
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -1514,10 +1521,7 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
               children: [
                 const Text(
                   "Tất cả đánh giá",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -1529,104 +1533,112 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  children: widget.reviews.asMap().entries.map((entry) {
-                    int index = entry.key;
-                    Map<String, dynamic> review = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                  children:
+                      widget.reviews.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        Map<String, dynamic> review = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      review['name'] as String,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
+                                    Row(
+                                      children: [
+                                        Text(
+                                          review['name'] as String,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        if (review['verified'] as bool)
+                                          const Icon(
+                                            Icons.verified,
+                                            color: Colors.green,
+                                            size: 16,
+                                          ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: List.generate(
+                                        5,
+                                        (i) => Icon(
+                                          i < (review['rating'] as int)
+                                              ? Icons.star
+                                              : Icons.star_border,
+                                          color: Colors.amber,
+                                          size: 20,
+                                        ),
                                       ),
                                     ),
-                                    if (review['verified'] as bool)
-                                      const Icon(
-                                        Icons.verified,
-                                        color: Colors.green,
-                                        size: 16,
-                                      ),
+                                    Text(review['content'] as String),
                                   ],
                                 ),
-                                Row(
-                                  children: List.generate(
-                                    5,
-                                    (i) => Icon(
-                                      i < (review['rating'] as int)
-                                          ? Icons.star
-                                          : Icons.star_border,
-                                      color: Colors.amber,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                                Text(review['content'] as String),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  Icons.thumb_up,
-                                  color: review['liked'] ? Colors.green : Colors.grey,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    if (!review['liked']) {
-                                      if (review['disliked']) {
-                                        review['disliked'] = false;
-                                        review['badCount'] =
-                                            (review['badCount'] as int) - 1;
-                                      }
-                                      review['liked'] = true;
-                                      review['goodCount'] =
-                                          (review['goodCount'] as int) + 1;
-                                      // Update the parent widget
-                                      widget.onUpdateReview(index, review);
-                                    }
-                                  });
-                                },
                               ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.thumb_down,
-                                  color: review['disliked'] ? Colors.red : Colors.grey,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    if (!review['disliked']) {
-                                      if (review['liked']) {
-                                        review['liked'] = false;
-                                        review['goodCount'] =
-                                            (review['goodCount'] as int) - 1;
-                                      }
-                                      review['disliked'] = true;
-                                      review['badCount'] =
-                                          (review['badCount'] as int) + 1;
-                                      // Update the parent widget
-                                      widget.onUpdateReview(index, review);
-                                    }
-                                  });
-                                },
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.thumb_up,
+                                      color:
+                                          review['liked']
+                                              ? Colors.green
+                                              : Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (!review['liked']) {
+                                          if (review['disliked']) {
+                                            review['disliked'] = false;
+                                            review['badCount'] =
+                                                (review['badCount'] as int) - 1;
+                                          }
+                                          review['liked'] = true;
+                                          review['goodCount'] =
+                                              (review['goodCount'] as int) + 1;
+                                          // Update the parent widget
+                                          widget.onUpdateReview(index, review);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.thumb_down,
+                                      color:
+                                          review['disliked']
+                                              ? Colors.red
+                                              : Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (!review['disliked']) {
+                                          if (review['liked']) {
+                                            review['liked'] = false;
+                                            review['goodCount'] =
+                                                (review['goodCount'] as int) -
+                                                1;
+                                          }
+                                          review['disliked'] = true;
+                                          review['badCount'] =
+                                              (review['badCount'] as int) + 1;
+                                          // Update the parent widget
+                                          widget.onUpdateReview(index, review);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                        );
+                      }).toList(),
                 ),
               ),
             ),
@@ -1863,27 +1875,26 @@ Widget _buildListView(List<ProductInfo> products) {
                         color: Colors.blue,
                       ),
                     ),
-                    if (product.discountPercent > 0)
-                      Row(
-                        children: [
-                          Text(
-                            "${ConvertMoney.currencyFormatter.format(product.oldPrice)} đ",
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                              decoration: TextDecoration.lineThrough,
-                            ),
+                    Row(
+                      children: [
+                        Text(
+                          "${ConvertMoney.currencyFormatter.format(product.oldPrice)} đ",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "- ${product.discountPercent}%" ?? "",
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.red,
-                            ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "-" + product.discountPercent.toString() + "%",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.red,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 4),
                     Row(
                       children: List.generate(5, (index) {
@@ -1958,7 +1969,6 @@ Widget _buildTitle(String title, VoidCallback onViewMore) {
   );
 }
 
-
 class CommentSectionWidget extends StatefulWidget {
   final List<Map<String, dynamic>> comments;
   final int initialCommentCount;
@@ -1979,7 +1989,7 @@ class CommentSectionWidget extends StatefulWidget {
 
 class _CommentSectionWidgetState extends State<CommentSectionWidget> {
   late int displayedCommentCount;
-  int? replyingToIndex; 
+  int? replyingToIndex;
   final TextEditingController _replyController = TextEditingController();
 
   @override
@@ -1991,7 +2001,10 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
   void toggleComments() {
     setState(() {
       if (displayedCommentCount < widget.comments.length) {
-        displayedCommentCount = (displayedCommentCount + 5).clamp(0, widget.comments.length);
+        displayedCommentCount = (displayedCommentCount + 5).clamp(
+          0,
+          widget.comments.length,
+        );
       } else {
         displayedCommentCount = widget.initialCommentCount;
       }
@@ -2001,7 +2014,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
   void onReply(int index) {
     setState(() {
       if (replyingToIndex == index) {
-        replyingToIndex = null; 
+        replyingToIndex = null;
       } else {
         replyingToIndex = index;
       }
@@ -2024,7 +2037,8 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final displayedComments = widget.comments.take(displayedCommentCount).toList();
+    final displayedComments =
+        widget.comments.take(displayedCommentCount).toList();
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -2075,16 +2089,9 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                 ),
                 child: const Row(
                   children: [
-                    Text(
-                      'Gửi',
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    Text('Gửi', style: TextStyle(color: Colors.white)),
                     SizedBox(width: 4),
-                    Icon(
-                      Icons.send,
-                      color: Colors.white,
-                      size: 16,
-                    ),
+                    Icon(Icons.send, color: Colors.white, size: 16),
                   ],
                 ),
               ),
@@ -2092,194 +2099,220 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
           ),
           const SizedBox(height: 16),
           Column(
-            children: displayedComments.asMap().entries.map((entry) {
-              int index = entry.key;
-              Map<String, dynamic> comment = entry.value;
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+            children:
+                displayedComments.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  Map<String, dynamic> comment = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.grey[300],
-                          child: Text(
-                            comment['username'][0].toString().toUpperCase(),
-                            style: const TextStyle(color: Colors.black),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                comment['username'],
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                comment['content'],
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          '${comment['daysAgo']} ngày trước',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => onReply(index),
-                          child: Text(
-                            'Trả lời',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Replies (if any)
-                    if (comment['replies'] != null && comment['replies'].isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 40.0, top: 8.0),
-                        child: Column(
-                          children: (comment['replies'] as List).map((reply) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundColor: Colors.red[100],
-                                    child: Text(
-                                      reply['username'][0].toString().toUpperCase(),
-                                      style: const TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              reply['username'],
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 6,
-                                                vertical: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.red[50],
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: const Text(
-                                                'qtv',
-                                                style: TextStyle(
-                                                  color: Colors.red,
-                                                  fontSize: 10,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Text(
-                                          reply['content'],
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(
-                                    '${reply['daysAgo']} ngày trước',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    if (replyingToIndex == index)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 40.0, top: 8.0),
-                        child: Row(
+                        Row(
                           children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _replyController,
-                                decoration: InputDecoration(
-                                  hintText: 'Nhập câu trả lời của bạn...',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 8,
-                                  ),
-                                ),
+                            CircleAvatar(
+                              backgroundColor: Colors.grey[300],
+                              child: Text(
+                                comment['username'][0].toString().toUpperCase(),
+                                style: const TextStyle(color: Colors.black),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            ElevatedButton(
-                              onPressed: () => onSendReply(index),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                              ),
-                              child: const Row(
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Gửi',
-                                    style: TextStyle(color: Colors.white),
+                                    comment['username'],
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                  SizedBox(width: 4),
-                                  Icon(
-                                    Icons.send,
-                                    color: Colors.white,
-                                    size: 16,
+                                  Text(
+                                    comment['content'],
+                                    style: const TextStyle(fontSize: 14),
                                   ),
                                 ],
+                              ),
+                            ),
+                            Text(
+                              '${comment['daysAgo']} ngày trước',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => onReply(index),
+                              child: Text(
+                                'Trả lời',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                  ],
-                ),
-              );
-            }).toList(),
+                        // Replies (if any)
+                        if (comment['replies'] != null &&
+                            comment['replies'].isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 40.0,
+                              top: 8.0,
+                            ),
+                            child: Column(
+                              children:
+                                  (comment['replies'] as List).map((reply) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4.0,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Colors.red[100],
+                                            child: Text(
+                                              reply['username'][0]
+                                                  .toString()
+                                                  .toUpperCase(),
+                                              style: const TextStyle(
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      reply['username'],
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 6,
+                                                            vertical: 2,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red[50],
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              10,
+                                                            ),
+                                                      ),
+                                                      child: const Text(
+                                                        'qtv',
+                                                        style: TextStyle(
+                                                          color: Colors.red,
+                                                          fontSize: 10,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Text(
+                                                  reply['content'],
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Text(
+                                            '${reply['daysAgo']} ngày trước',
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                            ),
+                          ),
+                        if (replyingToIndex == index)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 40.0,
+                              top: 8.0,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _replyController,
+                                    decoration: InputDecoration(
+                                      hintText: 'Nhập câu trả lời của bạn...',
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 8,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: () => onSendReply(index),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      Text(
+                                        'Gửi',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      SizedBox(width: 4),
+                                      Icon(
+                                        Icons.send,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
           ),
           if (widget.comments.length > widget.initialCommentCount)
             Center(
               child: TextButton(
                 onPressed: toggleComments,
                 child: Text(
-                  displayedCommentCount < widget.comments.length ? 'Xem thêm' : 'Thu gọn',
+                  displayedCommentCount < widget.comments.length
+                      ? 'Xem thêm'
+                      : 'Thu gọn',
                   style: const TextStyle(
                     color: Colors.blue,
                     fontSize: 14,
@@ -2293,4 +2326,3 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
     );
   }
 }
-
