@@ -12,8 +12,11 @@ import com.example.api.repository.ProductVariantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,12 +48,16 @@ public class ProductService {
                 ProductDTO dto = new ProductDTO();
                 dto.setId(product.getId());
                 dto.setImage(product.getMainImage());
-                dto.setDiscountLabel("TIẾT KIỆM\n" + (variant.getOriginalPrice() - variant.getPrice()) + " đ");
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
                 dto.setName(product.getName());
                 dto.setDescription(product.getShortDescription());
-                dto.setPrice(variant.getPrice() + " đ");
-                dto.setOldPrice(variant.getOriginalPrice() + " đ");
-                dto.setDiscountPercent("-" + variant.getDiscountPercent() + "%");
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
                 dto.setIdVariant(variant.getId());
 
                 if (!colors.isEmpty()) {
@@ -79,12 +86,17 @@ public class ProductService {
                 ProductDTO dto = new ProductDTO();
                 dto.setId(product.getId());
                 dto.setImage(product.getMainImage());
-                dto.setDiscountLabel("TIẾT KIỆM\n" + (variant.getOriginalPrice() - variant.getPrice()) + " đ");
+
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
                 dto.setName(product.getName());
                 dto.setDescription(product.getShortDescription());
-                dto.setPrice(variant.getPrice() + " đ");
-                dto.setOldPrice(variant.getOriginalPrice() + " đ");
-                dto.setDiscountPercent("-" + variant.getDiscountPercent() + "%");
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
                 dto.setIdVariant(variant.getId());
                 if (!colors.isEmpty()) {
                     dto.setIdColor(colors.get(0).getId());
@@ -112,12 +124,18 @@ public class ProductService {
                 ProductDTO dto = new ProductDTO();
                 dto.setId(product.getId());
                 dto.setImage(product.getMainImage());
-                dto.setDiscountLabel("TIẾT KIỆM\n" + (variant.getOriginalPrice() - variant.getPrice()) + " đ");
+
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
                 dto.setName(product.getName());
                 dto.setDescription(product.getShortDescription());
-                dto.setPrice(variant.getPrice() + " đ");
-                dto.setOldPrice(variant.getOriginalPrice() + " đ");
-                dto.setDiscountPercent("-" + variant.getDiscountPercent() + "%");
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
                 dto.setIdVariant(variant.getId());
                 if (!colors.isEmpty()) {
                     dto.setIdColor(colors.get(0).getId());

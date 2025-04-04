@@ -8,6 +8,7 @@ public class ValidRequest {
     private String password;
 
     private String address;
+    private String codes;
     private String otp;
 
     private String fullname;

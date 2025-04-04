@@ -10,7 +10,7 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://172.16.10.26:8080/api';
+    baseUrl ??= 'http://192.168.70.182:8080/api';
   }
 
   final Dio _dio;
@@ -83,6 +83,29 @@ class _ApiService implements ApiService {
       ),
     );
     final value = ValidResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<ResendOtpResponse> resendOtp(request) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(request.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ResendOtpResponse>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/auth/resend-otp',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ResendOtpResponse.fromJson(_result.data!);
     return value;
   }
 
@@ -308,6 +331,28 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<Coupon> findCoupon(name) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'name': name};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Coupon>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/coupon/find',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = Coupon.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<Map<String, dynamic>> addToCart(
     token,
     productId,
@@ -338,7 +383,6 @@ class _ApiService implements ApiService {
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
       ),
     );
-
     var value = Map<String, dynamic>.from(_result.data!);
     return value;
   }
@@ -358,6 +402,28 @@ class _ApiService implements ApiService {
             .compose(
               _dio.options,
               '/cart/minus',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value = Map<String, dynamic>.from(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<Map<String, dynamic>> deleteToCart(orderDetailId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'orderDetailId': orderDetailId};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Map<String, dynamic>>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/cart/delete',
               queryParameters: queryParameters,
               data: _data,
             )

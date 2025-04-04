@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:app/globals/convert_money.dart';
 import 'package:app/models/color_model.dart';
 import 'package:app/models/image_model.dart';
 import 'package:app/models/product_info.dart';
@@ -30,14 +31,12 @@ class _ProductPageState extends State<ProductPage> {
   String name = "";
   double? price;
 
-  double basePrice = 1990000;
   int _currentIndex = 0;
 
   List<String> images = [];
 
   List<ColorOption> colors = [];
   List<Variant> versions = [];
-  final List<double> priceModifiers = [0, 200000, 500000];
 
   final List<Map<String, dynamic>> reviews = [
     {
@@ -292,121 +291,122 @@ class _ProductPageState extends State<ProductPage> {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Container(
-              color: Colors.white,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: Stack(
-                        children: [
-                          CarouselSlider.builder(
-                            itemCount: images.length,
-                            itemBuilder: (context, index, realIndex) {
-                              return Container(
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: NetworkImage(images[index]),
-                                    fit: BoxFit.fitHeight,
-                                  ),
-                                ),
-                              );
-                            },
-                            options: CarouselOptions(
-                              height: 250,
-                              enlargeCenterPage: false,
-                              autoPlay: true,
-                              autoPlayInterval: const Duration(seconds: 3),
-                              viewportFraction: 1.0,
-                              onPageChanged: (index, reason) {
-                                setState(() {
-                                  _currentIndex = index;
-                                });
-                              },
-                            ),
-                          ),
-                          Positioned(
-                            top: 10,
-                            right: 15,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Text(
-                                '${_currentIndex + 1}/${images.length}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Thương hiệu: ${product?.brand}',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Row(
-                                    children: List.generate(5, (index) {
-                                      return Icon(
-                                        index < 4
-                                            ? Icons.star
-                                            : Icons.star_half,
-                                        color: Colors.amber,
-                                        size: 18,
-                                      );
-                                    }),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '4.8 (200 Đánh giá)',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Container(
+                color: Colors.white,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 200,
+                        child: Stack(
+                          children: [
+                            CarouselSlider.builder(
+                              itemCount: images.length,
+                              itemBuilder: (context, index, realIndex) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: NetworkImage(images[index]),
+                                      fit: BoxFit.fitHeight,
                                     ),
                                   ),
-                                ],
+                                );
+                              },
+                              options: CarouselOptions(
+                                height: 250,
+                                enlargeCenterPage: false,
+                                autoPlay: true,
+                                autoPlayInterval: const Duration(seconds: 3),
+                                viewportFraction: 1.0,
+                                onPageChanged: (index, reason) {
+                                  setState(() {
+                                    _currentIndex = index;
+                                  });
+                                },
                               ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: List.generate(
-                                  versions.length,
-                                  (index) {
+                            ),
+                            Positioned(
+                              top: 10,
+                              right: 15,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Text(
+                                  '${_currentIndex + 1}/${images.length}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Thương hiệu: ${product?.brand}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Row(
+                                      children: List.generate(5, (index) {
+                                        return Icon(
+                                          index < 4
+                                              ? Icons.star
+                                              : Icons.star_half,
+                                          color: Colors.amber,
+                                          size: 18,
+                                        );
+                                      }),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '4.8 (200 Đánh giá)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: List.generate(versions.length, (
+                                    index,
+                                  ) {
                                     return Expanded(
                                       child: GestureDetector(
                                         onTap: () {
@@ -435,17 +435,18 @@ class _ProductPageState extends State<ProductPage> {
                                           ),
                                           decoration: BoxDecoration(
                                             border: Border.all(
-                                              color: selectedVersionIndex ==
-                                                      index
-                                                  ? Colors.blue
-                                                  : Colors.grey,
-                                              width: selectedVersionIndex ==
-                                                      index
-                                                  ? 2
-                                                  : 1,
+                                              color:
+                                                  selectedVersionIndex == index
+                                                      ? Colors.blue
+                                                      : Colors.grey,
+                                              width:
+                                                  selectedVersionIndex == index
+                                                      ? 2
+                                                      : 1,
                                             ),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
                                           child: Column(
                                             children: [
@@ -461,23 +462,22 @@ class _ProductPageState extends State<ProductPage> {
                                         ),
                                       ),
                                     );
-                                  },
+                                  }),
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'Chọn màu:',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Chọn màu:',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: List.generate(
-                                  colors.length,
-                                  (index) {
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: List.generate(colors.length, (
+                                    index,
+                                  ) {
                                     return Expanded(
                                       child: GestureDetector(
                                         onTap: () {
@@ -499,17 +499,18 @@ class _ProductPageState extends State<ProductPage> {
                                           ),
                                           decoration: BoxDecoration(
                                             border: Border.all(
-                                              color: selectedColorIndex ==
-                                                      index
-                                                  ? Colors.blue
-                                                  : Colors.grey,
-                                              width: selectedColorIndex ==
-                                                      index
-                                                  ? 2
-                                                  : 1,
+                                              color:
+                                                  selectedColorIndex == index
+                                                      ? Colors.blue
+                                                      : Colors.grey,
+                                              width:
+                                                  selectedColorIndex == index
+                                                      ? 2
+                                                      : 1,
                                             ),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
                                           child: Column(
                                             children: [
@@ -521,7 +522,7 @@ class _ProductPageState extends State<ProductPage> {
                                                 ),
                                               ),
                                               Text(
-                                                '${colors[index].price.toStringAsFixed(0)}đ',
+                                                "${ConvertMoney.currencyFormatter.format(colors[index].price)} đ",
                                                 style: const TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.black,
@@ -533,44 +534,35 @@ class _ProductPageState extends State<ProductPage> {
                                         ),
                                       ),
                                     );
-                                  },
+                                  }),
                                 ),
-                              ),
-                              const SizedBox(height: 16),
-                              Container(
-                                height: 60,
-                                width: double.infinity,
-                                alignment: Alignment.center,
-                                color: Colors.grey[200],
-                                child: Text(
-                                  price.toString(),
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 16, 118, 201),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Thông tin chi tiết',
-                                    style: TextStyle(
-                                      fontSize: 18,
+                                const SizedBox(height: 16),
+                                Container(
+                                  height: 60,
+                                  width: double.infinity,
+                                  alignment: Alignment.center,
+                                  color: Colors.grey[200],
+                                  child: Text(
+                                    "${ConvertMoney.currencyFormatter.format(price)} đ",
+                                    style: const TextStyle(
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
+                                      color: Color.fromARGB(255, 16, 118, 201),
                                     ),
                                   ),
-                                  const SizedBox(height: 10),
-                                  const SpecificationWidget(),
-                                  const SizedBox(height: 10),
-                                  const Text(
-                                    'Mô tả sản phẩm',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                ),
+                                const SizedBox(height: 16),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Thông tin chi tiết',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
+
                                   ),
                                   const SizedBox(height: 10),
                                   const DescriptionWidget(),
@@ -632,15 +624,15 @@ class _ProductPageState extends State<ProductPage> {
                               _buildListView(products_category),
                               const SizedBox(height: 10),
                             ],
+
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
                 ),
               ),
-            ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(color: Colors.white),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
@@ -703,9 +695,10 @@ class SpecificationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> filteredSpecs = specifications
-        .where((spec) => !spec.keys.first.toLowerCase().contains("title"))
-        .toList();
+    List<Map<String, String>> filteredSpecs =
+        specifications
+            .where((spec) => !spec.keys.first.toLowerCase().contains("title"))
+            .toList();
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -748,7 +741,10 @@ class SpecificationWidget extends StatelessWidget {
                       ),
                       Expanded(
                         flex: 5,
-                        child: Text(value, style: const TextStyle(fontSize: 14)),
+                        child: Text(
+                          value,
+                          style: const TextStyle(fontSize: 14),
+                        ),
                       ),
                     ],
                   ),
@@ -773,7 +769,8 @@ class SpecificationWidget extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width * 0.95,
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.95,
                               maxHeight:
                                   MediaQuery.of(context).size.height * 0.95,
                             ),
@@ -806,60 +803,69 @@ class SpecificationWidget extends StatelessWidget {
                                           specifications[index];
                                       String key = spec.keys.first;
                                       String value = spec.values.first;
-                                      bool isTitle =
-                                          key.toLowerCase().contains("title");
+                                      bool isTitle = key.toLowerCase().contains(
+                                        "title",
+                                      );
 
                                       return Padding(
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 4,
                                         ),
-                                        child: isTitle
-                                            ? Padding(
-                                                padding: const EdgeInsets.only(
-                                                  top: 10,
-                                                  bottom: 5,
-                                                ),
-                                                child: Text(
-                                                  value,
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
+                                        child:
+                                            isTitle
+                                                ? Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        top: 10,
+                                                        bottom: 5,
+                                                      ),
+                                                  child: Text(
+                                                    value,
+                                                    style: const TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                )
+                                                : Container(
+                                                  color:
+                                                      index % 2 == 0
+                                                          ? Colors.grey[100]
+                                                          : Colors.white,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        vertical: 6,
+                                                        horizontal: 8,
+                                                      ),
+                                                  child: Row(
+                                                    children: [
+                                                      Expanded(
+                                                        flex: 3,
+                                                        child: Text(
+                                                          key,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 14,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      Expanded(
+                                                        flex: 5,
+                                                        child: Text(
+                                                          value,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 14,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ),
-                                              )
-                                            : Container(
-                                                color: index % 2 == 0
-                                                    ? Colors.grey[100]
-                                                    : Colors.white,
-                                                padding: const EdgeInsets.symmetric(
-                                                  vertical: 6,
-                                                  horizontal: 8,
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      flex: 3,
-                                                      child: Text(
-                                                        key,
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      flex: 5,
-                                                      child: Text(
-                                                        value,
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
                                       );
                                     },
                                   ),
@@ -924,9 +930,10 @@ class DescriptionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isLongText = productDescription.length > 200;
-    String shortDescription = isLongText
-        ? "${productDescription.substring(0, 400)}..."
-        : productDescription;
+    String shortDescription =
+        isLongText
+            ? "${productDescription.substring(0, 400)}..."
+            : productDescription;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -966,7 +973,8 @@ class DescriptionWidget extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width * 0.95,
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.95,
                               maxHeight:
                                   MediaQuery.of(context).size.height * 0.9,
                             ),
@@ -1089,20 +1097,26 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> displayedReviews =
         showAllReviews ? widget.reviews : widget.reviews.take(3).toList();
-    double averageRating = widget.reviews.isEmpty
-        ? 0
-        : widget.reviews
-                .map((r) => r['rating'] as int)
-                .reduce((a, b) => a + b) /
-            widget.reviews.length;
+    double averageRating =
+        widget.reviews.isEmpty
+            ? 0
+            : widget.reviews
+                    .map((r) => r['rating'] as int)
+                    .reduce((a, b) => a + b) /
+                widget.reviews.length;
     int totalReviews = widget.reviews.length;
-    int goodCount =
-        widget.reviews.fold(0, (sum, r) => sum + (r['goodCount'] as int));
-    int badCount =
-        widget.reviews.fold(0, (sum, r) => sum + (r['badCount'] as int));
-    String satisfactionText = averageRating >= 4
-        ? 'Rất tốt'
-        : (averageRating >= 3 ? 'Tốt' : 'Trung bình');
+    int goodCount = widget.reviews.fold(
+      0,
+      (sum, r) => sum + (r['goodCount'] as int),
+    );
+    int badCount = widget.reviews.fold(
+      0,
+      (sum, r) => sum + (r['badCount'] as int),
+    );
+    String satisfactionText =
+        averageRating >= 4
+            ? 'Rất tốt'
+            : (averageRating >= 3 ? 'Tốt' : 'Trung bình');
     Map<int, double> ratingPercentages = {
       5: 0.7,
       4: 0.2,
@@ -1169,7 +1183,10 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                     children: [
                       Text(
                         'Tốt: $goodCount',
-                        style: const TextStyle(color: Colors.green, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(width: 20),
                       Text(
@@ -1209,8 +1226,9 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                               child: LinearProgressIndicator(
                                 value: percentage,
                                 backgroundColor: Colors.grey[300],
-                                valueColor:
-                                    const AlwaysStoppedAnimation(Colors.blue),
+                                valueColor: const AlwaysStoppedAnimation(
+                                  Colors.blue,
+                                ),
                                 minHeight: 10,
                                 borderRadius: BorderRadius.circular(5),
                               ),
@@ -1271,100 +1289,105 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
           Stack(
             children: [
               Column(
-                children: displayedReviews.map((review) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                children:
+                    displayedReviews.map((review) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    review['name'] as String,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                  Row(
+                                    children: [
+                                      Text(
+                                        review['name'] as String,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      if (review['verified'] as bool)
+                                        const Icon(
+                                          Icons.verified,
+                                          color: Colors.green,
+                                          size: 16,
+                                        ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: List.generate(
+                                      5,
+                                      (i) => Icon(
+                                        i < (review['rating'] as int)
+                                            ? Icons.star
+                                            : Icons.star_border,
+                                        color: Colors.amber,
+                                        size: 20,
+                                      ),
                                     ),
                                   ),
-                                  if (review['verified'] as bool)
-                                    const Icon(
-                                      Icons.verified,
-                                      color: Colors.green,
-                                      size: 16,
-                                    ),
+                                  Text(review['content'] as String),
                                 ],
                               ),
-                              Row(
-                                children: List.generate(
-                                  5,
-                                  (i) => Icon(
-                                    i < (review['rating'] as int)
-                                        ? Icons.star
-                                        : Icons.star_border,
-                                    color: Colors.amber,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                              Text(review['content'] as String),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.thumb_up,
-                                color:
-                                    review['liked'] ? Colors.green : Colors.grey,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  if (!review['liked']) {
-                                    if (review['disliked']) {
-                                      review['disliked'] = false;
-                                      review['badCount'] =
-                                          (review['badCount'] as int) - 1;
-                                    }
-                                    review['liked'] = true;
-                                    review['goodCount'] =
-                                        (review['goodCount'] as int) + 1;
-                                  }
-                                });
-                              },
                             ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: Icon(
-                                Icons.thumb_down,
-                                color:
-                                    review['disliked'] ? Colors.red : Colors.grey,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  if (!review['disliked']) {
-                                    if (review['liked']) {
-                                      review['liked'] = false;
-                                      review['goodCount'] =
-                                          (review['goodCount'] as int) - 1;
-                                    }
-                                    review['disliked'] = true;
-                                    review['badCount'] =
-                                        (review['badCount'] as int) + 1;
-                                  }
-                                });
-                              },
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.thumb_up,
+                                    color:
+                                        review['liked']
+                                            ? Colors.green
+                                            : Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      if (!review['liked']) {
+                                        if (review['disliked']) {
+                                          review['disliked'] = false;
+                                          review['badCount'] =
+                                              (review['badCount'] as int) - 1;
+                                        }
+                                        review['liked'] = true;
+                                        review['goodCount'] =
+                                            (review['goodCount'] as int) + 1;
+                                      }
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.thumb_down,
+                                    color:
+                                        review['disliked']
+                                            ? Colors.red
+                                            : Colors.grey,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      if (!review['disliked']) {
+                                        if (review['liked']) {
+                                          review['liked'] = false;
+                                          review['goodCount'] =
+                                              (review['goodCount'] as int) - 1;
+                                        }
+                                        review['disliked'] = true;
+                                        review['badCount'] =
+                                            (review['badCount'] as int) + 1;
+                                      }
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
               ),
               if (widget.reviews.length > 3 && !showAllReviews)
                 Positioned(
@@ -1396,10 +1419,12 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                 onPressed: () {
                   showDialog(
                     context: context,
+
                     builder: (context) => AllReviewsDialog(
                       reviews: widget.reviews,
                       onUpdateReview: updateReview, 
                     ),
+
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -1411,27 +1436,28 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => ReviewDialog(
-                      productName: widget.productName,
-                      images: widget.images,
-                      onSubmit: (rating, comment) {
-                        setState(() {
-                          widget.reviews.add({
-                            'name': 'Người dùng mới',
-                            'rating': rating,
-                            'content': comment,
-                            'likes': 0,
-                            'days': 0,
-                            'verified': false,
-                            'goodCount': 0,
-                            'badCount': 0,
-                            'liked': false,
-                            'disliked': false,
-                          });
-                        });
-                        print('Đánh giá: $rating sao - $comment');
-                      },
-                    ),
+                    builder:
+                        (context) => ReviewDialog(
+                          productName: widget.productName,
+                          images: widget.images,
+                          onSubmit: (rating, comment) {
+                            setState(() {
+                              widget.reviews.add({
+                                'name': 'Người dùng mới',
+                                'rating': rating,
+                                'content': comment,
+                                'likes': 0,
+                                'days': 0,
+                                'verified': false,
+                                'goodCount': 0,
+                                'badCount': 0,
+                                'liked': false,
+                                'disliked': false,
+                              });
+                            });
+                            print('Đánh giá: $rating sao - $comment');
+                          },
+                        ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -1742,8 +1768,10 @@ Widget _buildStarRating(int stars) {
     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
     child: Row(
       children: [
-        Text('$stars',
-            style: const TextStyle(fontSize: 14, color: Colors.grey)),
+        Text(
+          '$stars',
+          style: const TextStyle(fontSize: 14, color: Colors.grey),
+        ),
         Icon(Icons.star, color: Colors.yellow[700], size: 15),
       ],
     ),
@@ -1828,30 +1856,34 @@ Widget _buildListView(List<ProductInfo> products) {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      product.price,
+                      "${ConvertMoney.currencyFormatter.format(product.price)} đ",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          product.oldPrice,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                            decoration: TextDecoration.lineThrough,
+                    if (product.discountPercent > 0)
+                      Row(
+                        children: [
+                          Text(
+                            "${ConvertMoney.currencyFormatter.format(product.oldPrice)} đ",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              decoration: TextDecoration.lineThrough,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          product.discountPercent,
-                          style: const TextStyle(fontSize: 12, color: Colors.red),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 4),
+                          Text(
+                            "- ${product.discountPercent}%" ?? "",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 4),
                     Row(
                       children: List.generate(5, (index) {
@@ -1907,8 +1939,10 @@ Widget _buildTitle(String title, VoidCallback onViewMore) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      Text(title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      Text(
+        title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
       GestureDetector(
         onTap: onViewMore,
         child: const Text(
@@ -1923,6 +1957,7 @@ Widget _buildTitle(String title, VoidCallback onViewMore) {
     ],
   );
 }
+
 
 class CommentSectionWidget extends StatefulWidget {
   final List<Map<String, dynamic>> comments;
@@ -2258,3 +2293,4 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
     );
   }
 }
+

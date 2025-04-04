@@ -33,6 +33,7 @@ public interface OrderDetailRepository extends JpaRepository<Order_detail, Integ
             "    WHEN pc.color_price IS NOT NULL THEN pc.color_price " +
             "    ELSE v.price " +
             "  END AS price, " +
+            "  v.original_price, " +
             "  o.quantity, " +
             "  o.total, " +
             "  p.id as productId, " +

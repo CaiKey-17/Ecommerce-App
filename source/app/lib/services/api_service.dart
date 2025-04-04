@@ -1,6 +1,9 @@
 import 'package:app/models/category_info.dart';
+import 'package:app/models/coupon_info.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/models/product_info_detail.dart';
+import 'package:app/models/resend_otp_request.dart';
+import 'package:app/models/resend_otp_response.dart';
 import 'package:app/models/valid_response.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -16,7 +19,15 @@ import '../models/cart_info.dart';
 
 part 'api_service.g.dart';
 
-@RestApi(baseUrl: "http://172.16.10.26:8080/api")
+class ApiResponse<T> {
+  final int code;
+  final String message;
+  final T? data;
+
+  ApiResponse({required this.code, required this.message, this.data});
+}
+
+@RestApi(baseUrl: "http://192.168.70.182:8080/api")
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -28,6 +39,9 @@ abstract class ApiService {
 
   @POST("/auth/verify-otp")
   Future<ValidResponse> verifyOtp(@Body() ValidRequest request);
+
+  @POST("/auth/resend-otp")
+  Future<ResendOtpResponse> resendOtp(@Body() ResendOtpRequest request);
 
   @GET("/auth/user-info")
   Future<UserInfo> getUserInfo(@Header("Authorization") String token);
@@ -63,6 +77,9 @@ abstract class ApiService {
   @POST("/auth/forgot-password")
   Future<void> sendResetPassword(@Query("email") String email);
 
+  @GET("/coupon/find")
+  Future<Coupon> findCoupon(@Query("name") String name);
+
   @POST("/cart/add")
   Future<Map<String, dynamic>> addToCart(
     @Header("Authorization") String? token,
@@ -76,5 +93,10 @@ abstract class ApiService {
   Future<Map<String, dynamic>> minusToCart(
     @Query("productId") int productId,
     @Query("orderId") int orderId,
+  );
+
+  @POST("/cart/delete")
+  Future<Map<String, dynamic>> deleteToCart(
+    @Query("orderDetailId") int orderDetailId,
   );
 }

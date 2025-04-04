@@ -13,6 +13,7 @@ class UserInfo {
   final String? tempId;
   final String createdAt;
   final int points;
+  final List<String> codes;
 
   UserInfo({
     required this.id,
@@ -24,6 +25,7 @@ class UserInfo {
     this.tempId,
     required this.createdAt,
     required this.points,
+    required this.codes,
   });
 
   factory UserInfo.fromJson(Map<String, dynamic> json) =>

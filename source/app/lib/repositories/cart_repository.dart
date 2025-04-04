@@ -67,4 +67,26 @@ class CartRepository {
       return {"error": "Lỗi hệ thống! Vui lòng thử lại.", "statusCode": 500};
     }
   }
+
+  Future<Map<String, dynamic>> deleteToCart({
+    required int orderDetailId,
+  }) async {
+    try {
+      final response = await apiService.deleteToCart(orderDetailId);
+      print("✅ Phản hồi API: $response");
+
+      return response;
+    } on DioException catch (e) {
+      print("❌ Lỗi API: ${e.response?.data ?? e.message}");
+
+      return {
+        "error": e.response?.data["error"] ?? "Không thể xoá khỏi vào giỏ hàng",
+        "statusCode": e.response?.statusCode ?? 500,
+      };
+    } catch (e) {
+      print("⚠️ Lỗi không xác định: $e");
+
+      return {"error": "Lỗi hệ thống! Vui lòng thử lại.", "statusCode": 500};
+    }
+  }
 }

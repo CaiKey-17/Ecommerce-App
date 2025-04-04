@@ -18,11 +18,13 @@ public class Address {
     private Integer id;
 
     private String address;
+    private String codes;
 
     private Integer userId;
 
-    public Address(String address, int id_fk) {
+    public Address(String address, int id_fk,String codes) {
         this.address = address;
         this.userId = id_fk;
+        this.codes = codes;
     }
 }

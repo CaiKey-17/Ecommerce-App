@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'product_info.g.dart';
@@ -9,9 +11,9 @@ class ProductInfo {
   final String discountLabel;
   final String name;
   final String description;
-  final String price;
-  final String oldPrice;
-  final String discountPercent;
+  final double price;
+  final double oldPrice;
+  final int discountPercent;
   final int idVariant;
   final int idColor;
 

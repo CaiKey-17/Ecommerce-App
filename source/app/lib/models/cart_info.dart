@@ -10,6 +10,7 @@ class CartInfo {
   final int fkProductId;
   final int productId;
   double price;
+  double originalPrice;
   int quantity;
   double total;
   final String image;
@@ -25,6 +26,7 @@ class CartInfo {
     required this.fkColorId,
     required this.fkProductId,
     required this.price,
+    required this.originalPrice,
     required this.quantity,
     required this.total,
     required this.image,
