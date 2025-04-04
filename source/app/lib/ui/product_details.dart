@@ -81,6 +81,91 @@ class _ProductPageState extends State<ProductPage> {
     },
   ];
 
+  final List<Map<String, dynamic>> comments = [
+    {
+      'username': 'Undefined',
+      'content': 'Mẫu này hiện tại đang có bao nhiêu tài nguyên năm ?',
+      'daysAgo': 2,
+      'replies': [
+        {
+          'username': 'Quản Trị Viên',
+          'content': 'CellphonesS Xin Chào Anh !\nĐa con MAN HINH GAMING VIEWSONIC VX2758A-2K-PRO-2 27(2K/IPS/185HZ/1MS) giá tốt điện hiện tại 5.190.000đ\nNếu phù hợp nam học quản trị nên tìm shop có ghi hàng trong 24 giờ để mình đặt',
+          'daysAgo': 2,
+        }
+      ]
+    },
+    {
+      'username': 'User1',
+      'content': 'Sản phẩm này có bền không?',
+      'daysAgo': 3,
+      'replies': [
+        {
+          'username': 'Quản Trị Viên',
+          'content': 'Chào bạn! Sản phẩm rất bền, được bảo hành chính hãng 24 tháng.',
+          'daysAgo': 3,
+        }
+      ]
+    },
+    // Add more comments to test the "View More" functionality
+    {
+      'username': 'User2',
+      'content': 'Có giao hàng nhanh không?',
+      'daysAgo': 4,
+      'replies': []
+    },
+    {
+      'username': 'User3',
+      'content': 'Màu sắc sản phẩm có đúng như hình không?',
+      'daysAgo': 5,
+      'replies': []
+    },
+    {
+      'username': 'User4',
+      'content': 'Sản phẩm này có bảo hành không?',
+      'daysAgo': 6,
+      'replies': []
+    },
+    {
+      'username': 'User5',
+      'content': 'Giá có giảm thêm được không?',
+      'daysAgo': 7,
+      'replies': []
+    },
+    {
+      'username': 'User6',
+      'content': 'Có hỗ trợ trả góp không?',
+      'daysAgo': 8,
+      'replies': []
+    },
+    {
+      'username': 'User7',
+      'content': 'Sản phẩm này có hàng sẵn không?',
+      'daysAgo': 9,
+      'replies': []
+    },
+    {
+      'username': 'User8',
+      'content': 'Chất lượng sản phẩm thế nào?',
+      'daysAgo': 10,
+      'replies': []
+    },
+    {
+      'username': 'User9',
+      'content': 'Có giao hàng tận nơi không?',
+      'daysAgo': 11,
+      'replies': []
+    },
+    {
+      'username': 'User10',
+      'content': 'Sản phẩm này có dễ sử dụng không?',
+      'daysAgo': 12,
+      'replies': []
+    },
+  ];
+
+  int displayedCommentCount = 5; 
+  final TextEditingController _newCommentController = TextEditingController();
+
   bool isLoading = true;
   Product? product;
 
@@ -477,50 +562,69 @@ class _ProductPageState extends State<ProductPage> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    const SizedBox(height: 10),
-                                    const SpecificationWidget(),
-                                    const SizedBox(height: 10),
-                                    const Text(
-                                      'Mô tả sản phẩm',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    const DescriptionWidget(),
-                                    const SizedBox(height: 10),
-                                    ProductRatingWidget(
-                                      productName: "Sản phẩm A",
-                                      reviews: reviews,
-                                      images: images,
-                                      onViewMoreReviews: () {
-                                        setState(() {
-                                          // Hiển thị tất cả đánh giá
-                                        });
-                                      },
-                                      onWriteReview:
-                                          () => print('Viết đánh giá'),
-                                    ),
-                                  ],
+
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const DescriptionWidget(),
+                                  const SizedBox(height: 10),
+                                  ProductRatingWidget(
+                                    productName: "Sản phẩm A",
+                                    reviews: reviews,
+                                    images: images,
+                                    onViewMoreReviews: () {
+                                      setState(() {
+                                        // Hiển thị tất cả đánh giá
+                                      });
+                                    },
+                                    onWriteReview: () => print('Viết đánh giá'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Hỏi và đáp',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                const SizedBox(height: 10),
-                                _buildTitle("Sản phẩm cùng hãng", () {
-                                  print("Xem thêm được bấm!");
-                                }),
-                                const Divider(color: Colors.grey, thickness: 1),
-                                const SizedBox(height: 10),
-                                _buildListView(products_brand),
-                                const SizedBox(height: 10),
-                                _buildTitle("Sản phẩm liên quan ", () {
-                                  print("Xem thêm được bấm!");
-                                }),
-                                const Divider(color: Colors.grey, thickness: 1),
-                                const SizedBox(height: 10),
-                                _buildListView(products_category),
-                                const SizedBox(height: 10),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 10),
+                              CommentSectionWidget(
+                                comments: comments,
+                                initialCommentCount: 5, 
+                                controller: _newCommentController,
+                                onSend: () {
+                                  if (_newCommentController.text.isNotEmpty) {
+                                    setState(() {
+                                      comments.insert(0, {
+                                        'username': 'Người dùng mới',
+                                        'content': _newCommentController.text,
+                                        'daysAgo': 0,
+                                        'replies': [],
+                                      });
+                                      _newCommentController.clear();
+                                    });
+                                  }
+                                },
+                              ),
+                              
+
+                              _buildTitle("Sản phẩm cùng hãng", () {
+                                print("Xem thêm được bấm!");
+                              }),
+                              const Divider(color: Colors.grey, thickness: 1),
+                              const SizedBox(height: 10),
+                              _buildListView(products_brand),
+                              const SizedBox(height: 10),
+                              _buildTitle("Sản phẩm liên quan ", () {
+                                print("Xem thêm được bấm!");
+                              }),
+                              const Divider(color: Colors.grey, thickness: 1),
+                              const SizedBox(height: 10),
+                              _buildListView(products_category),
+                              const SizedBox(height: 10),
+                            ],
+
                           ),
                         ],
                       ),
@@ -983,6 +1087,12 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
     }
   }
 
+  void updateReview(int index, Map<String, dynamic> updatedReview) {
+    setState(() {
+      widget.reviews[index] = updatedReview;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Map<String, dynamic>> displayedReviews =
@@ -1301,21 +1411,6 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                 ),
             ],
           ),
-          // if (widget.reviews.length > 3 && !showAllReviews)
-          //   Center(
-          //     child: TextButton(
-          //       onPressed: () {
-          //         setState(() {
-          //           showAllReviews = true;
-          //         });
-          //         widget.onViewMoreReviews?.call();
-          //       },
-          //       child: const Text(
-          //         'Xem thêm',
-          //         style: TextStyle(fontSize: 16, color: Colors.blue),
-          //       ),
-          //     ),
-          //   ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1324,187 +1419,12 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder:
-                        (context) => Dialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          insetPadding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 20,
-                          ),
-                          backgroundColor: Colors.white,
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width * 0.95,
-                              maxHeight:
-                                  MediaQuery.of(context).size.height * 0.9,
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      "Tất cả đánh giá",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.close),
-                                      onPressed: () => Navigator.pop(context),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      children:
-                                          widget.reviews.map((review) {
-                                            return Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 8.0,
-                                                  ),
-                                              child: Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                children: [
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Row(
-                                                          children: [
-                                                            Text(
-                                                              review['name']
-                                                                  as String,
-                                                              style: const TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                              ),
-                                                            ),
-                                                            if (review['verified']
-                                                                as bool)
-                                                              const Icon(
-                                                                Icons.verified,
-                                                                color:
-                                                                    Colors
-                                                                        .green,
-                                                                size: 16,
-                                                              ),
-                                                          ],
-                                                        ),
-                                                        Row(
-                                                          children: List.generate(
-                                                            5,
-                                                            (i) => Icon(
-                                                              i <
-                                                                      (review['rating']
-                                                                          as int)
-                                                                  ? Icons.star
-                                                                  : Icons
-                                                                      .star_border,
-                                                              color:
-                                                                  Colors.amber,
-                                                              size: 20,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          review['content']
-                                                              as String,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      IconButton(
-                                                        icon: Icon(
-                                                          Icons.thumb_up,
-                                                          color:
-                                                              review['liked']
-                                                                  ? Colors.green
-                                                                  : Colors.grey,
-                                                        ),
-                                                        onPressed: () {
-                                                          setState(() {
-                                                            if (!review['liked']) {
-                                                              if (review['disliked']) {
-                                                                review['disliked'] =
-                                                                    false;
-                                                                review['badCount'] =
-                                                                    (review['badCount']
-                                                                        as int) -
-                                                                    1;
-                                                              }
-                                                              review['liked'] =
-                                                                  true;
-                                                              review['goodCount'] =
-                                                                  (review['goodCount']
-                                                                      as int) +
-                                                                  1;
-                                                            }
-                                                          });
-                                                        },
-                                                      ),
-                                                      const SizedBox(width: 8),
-                                                      IconButton(
-                                                        icon: Icon(
-                                                          Icons.thumb_down,
-                                                          color:
-                                                              review['disliked']
-                                                                  ? Colors.red
-                                                                  : Colors.grey,
-                                                        ),
-                                                        onPressed: () {
-                                                          setState(() {
-                                                            if (!review['disliked']) {
-                                                              if (review['liked']) {
-                                                                review['liked'] =
-                                                                    false;
-                                                                review['goodCount'] =
-                                                                    (review['goodCount']
-                                                                        as int) -
-                                                                    1;
-                                                              }
-                                                              review['disliked'] =
-                                                                  true;
-                                                              review['badCount'] =
-                                                                  (review['badCount']
-                                                                      as int) +
-                                                                  1;
-                                                            }
-                                                          });
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          }).toList(),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+
+                    builder: (context) => AllReviewsDialog(
+                      reviews: widget.reviews,
+                      onUpdateReview: updateReview, 
+                    ),
+
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -1549,6 +1469,169 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class AllReviewsDialog extends StatefulWidget {
+  final List<Map<String, dynamic>> reviews;
+  final Function(int, Map<String, dynamic>) onUpdateReview; 
+
+  const AllReviewsDialog({
+    super.key,
+    required this.reviews,
+    required this.onUpdateReview,
+  });
+
+  @override
+  _AllReviewsDialogState createState() => _AllReviewsDialogState();
+}
+
+class _AllReviewsDialogState extends State<AllReviewsDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 20,
+      ),
+      backgroundColor: Colors.white,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.95,
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Tất cả đánh giá",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: widget.reviews.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    Map<String, dynamic> review = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      review['name'] as String,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (review['verified'] as bool)
+                                      const Icon(
+                                        Icons.verified,
+                                        color: Colors.green,
+                                        size: 16,
+                                      ),
+                                  ],
+                                ),
+                                Row(
+                                  children: List.generate(
+                                    5,
+                                    (i) => Icon(
+                                      i < (review['rating'] as int)
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: Colors.amber,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
+                                Text(review['content'] as String),
+                              ],
+                            ),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.thumb_up,
+                                  color: review['liked'] ? Colors.green : Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    if (!review['liked']) {
+                                      if (review['disliked']) {
+                                        review['disliked'] = false;
+                                        review['badCount'] =
+                                            (review['badCount'] as int) - 1;
+                                      }
+                                      review['liked'] = true;
+                                      review['goodCount'] =
+                                          (review['goodCount'] as int) + 1;
+                                      // Update the parent widget
+                                      widget.onUpdateReview(index, review);
+                                    }
+                                  });
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.thumb_down,
+                                  color: review['disliked'] ? Colors.red : Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    if (!review['disliked']) {
+                                      if (review['liked']) {
+                                        review['liked'] = false;
+                                        review['goodCount'] =
+                                            (review['goodCount'] as int) - 1;
+                                      }
+                                      review['disliked'] = true;
+                                      review['badCount'] =
+                                          (review['badCount'] as int) + 1;
+                                      // Update the parent widget
+                                      widget.onUpdateReview(index, review);
+                                    }
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1874,3 +1957,340 @@ Widget _buildTitle(String title, VoidCallback onViewMore) {
     ],
   );
 }
+
+
+class CommentSectionWidget extends StatefulWidget {
+  final List<Map<String, dynamic>> comments;
+  final int initialCommentCount;
+  final TextEditingController controller;
+  final VoidCallback onSend;
+
+  const CommentSectionWidget({
+    super.key,
+    required this.comments,
+    required this.initialCommentCount,
+    required this.controller,
+    required this.onSend,
+  });
+
+  @override
+  _CommentSectionWidgetState createState() => _CommentSectionWidgetState();
+}
+
+class _CommentSectionWidgetState extends State<CommentSectionWidget> {
+  late int displayedCommentCount;
+  int? replyingToIndex; 
+  final TextEditingController _replyController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    displayedCommentCount = widget.initialCommentCount;
+  }
+
+  void toggleComments() {
+    setState(() {
+      if (displayedCommentCount < widget.comments.length) {
+        displayedCommentCount = (displayedCommentCount + 5).clamp(0, widget.comments.length);
+      } else {
+        displayedCommentCount = widget.initialCommentCount;
+      }
+    });
+  }
+
+  void onReply(int index) {
+    setState(() {
+      if (replyingToIndex == index) {
+        replyingToIndex = null; 
+      } else {
+        replyingToIndex = index;
+      }
+    });
+  }
+
+  void onSendReply(int index) {
+    if (_replyController.text.isNotEmpty) {
+      setState(() {
+        widget.comments[index]['replies'].add({
+          'username': 'Người dùng mới',
+          'content': _replyController.text,
+          'daysAgo': 0,
+        });
+        _replyController.clear();
+        replyingToIndex = null;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final displayedComments = widget.comments.take(displayedCommentCount).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.symmetric(vertical: 10.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 5,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập bình luận của bạn...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: widget.onSend,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Row(
+                  children: [
+                    Text(
+                      'Gửi',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    SizedBox(width: 4),
+                    Icon(
+                      Icons.send,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Column(
+            children: displayedComments.asMap().entries.map((entry) {
+              int index = entry.key;
+              Map<String, dynamic> comment = entry.value;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.grey[300],
+                          child: Text(
+                            comment['username'][0].toString().toUpperCase(),
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                comment['username'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                comment['content'],
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '${comment['daysAgo']} ngày trước',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => onReply(index),
+                          child: Text(
+                            'Trả lời',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Replies (if any)
+                    if (comment['replies'] != null && comment['replies'].isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40.0, top: 8.0),
+                        child: Column(
+                          children: (comment['replies'] as List).map((reply) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: Colors.red[100],
+                                    child: Text(
+                                      reply['username'][0].toString().toUpperCase(),
+                                      style: const TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              reply['username'],
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red[50],
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: const Text(
+                                                'qtv',
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 10,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          reply['content'],
+                                          style: const TextStyle(fontSize: 14),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    '${reply['daysAgo']} ngày trước',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    if (replyingToIndex == index)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40.0, top: 8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _replyController,
+                                decoration: InputDecoration(
+                                  hintText: 'Nhập câu trả lời của bạn...',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 8,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () => onSendReply(index),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Text(
+                                    'Gửi',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(
+                                    Icons.send,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          if (widget.comments.length > widget.initialCommentCount)
+            Center(
+              child: TextButton(
+                onPressed: toggleComments,
+                child: Text(
+                  displayedCommentCount < widget.comments.length ? 'Xem thêm' : 'Thu gọn',
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
