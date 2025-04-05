@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:app/globals/convert_money.dart';
+import 'package:app/models/cart_info.dart';
 import 'package:app/models/color_model.dart';
 import 'package:app/models/image_model.dart';
 import 'package:app/models/product_info.dart';
@@ -10,6 +11,8 @@ import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
 import 'package:app/ui/main_page.dart';
+import 'package:app/ui/order/payment_process.dart';
+import 'package:app/ui/screens/shopping_page.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -28,7 +31,11 @@ class _ProductPageState extends State<ProductPage> {
   late ApiService apiService;
   int selectedColorIndex = 0;
   int selectedVersionIndex = 0;
+
+  int id_Color = -1;
+  int id_Variant = -1;
   String name = "";
+
   double? price;
 
   double basePrice = 1990000;
@@ -172,6 +179,9 @@ class _ProductPageState extends State<ProductPage> {
 
   bool isLoading = true;
   Product? product;
+  List<CartInfo> cartItems = [];
+  int? userId;
+  int orderId = -1;
 
   @override
   void initState() {
@@ -179,13 +189,79 @@ class _ProductPageState extends State<ProductPage> {
     apiService = ApiService(Dio());
     cartRepository = CartRepository(apiService);
     cartService = CartService(cartRepository: cartRepository);
+    _loadUserData();
     fetchProductDetail();
+  }
+
+  Future<void> handleAddToCart() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final success = await cartService.addToCart(
+      productID: id_Variant,
+      colorId: id_Color,
+      id: widget.productId,
+      token: token,
+      context: context,
+    );
+
+    if (success == true) {
+      await Future.delayed(Duration(milliseconds: 500));
+      await fetchCartItems();
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      print("Thêm vào giỏ hàng thất bại");
+    }
+  }
+
+  Future<void> fetchCartItems() async {
+    try {
+      List<CartInfo> response;
+      if (token.isNotEmpty && userId == -1) {
+        response = await apiService.getItemInCart(token: token);
+        print("Sử dụng token");
+      } else if (token == "" && userId != -1) {
+        response = await apiService.getItemInCart(id: userId);
+        print("Sử dụng userID");
+      } else {
+        response = await apiService.getItemInCart(token: token, id: userId);
+        print("Sử dụng cả 2");
+      }
+      setState(() {
+        cartItems = response;
+        orderId = cartItems.isNotEmpty ? cartItems[0].orderId : -1;
+        isLoading = false;
+      });
+      if (orderId == -1) {
+        print("orderId chưa hợp lệ");
+        return;
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => PaymentConfirmationScreen(
+                orderId: orderId,
+                cartItems: cartItems,
+              ),
+        ),
+      );
+    } catch (error) {
+      print("Lỗi khi gọi API: $error");
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token') ?? "";
+      userId = prefs.getInt('userId') ?? -1;
     });
   }
 
@@ -202,10 +278,11 @@ class _ProductPageState extends State<ProductPage> {
           selectedVersionIndex = 0;
           name = versions[0].name;
           colors = versions[0].colors;
-
+          id_Variant = versions[0].id;
           if (colors.isNotEmpty) {
             selectedColorIndex = 0;
             price = colors[0].price;
+            id_Color = colors[0].id;
             for (ColorOption i in colors) {
               images.add(i.image);
             }
@@ -285,10 +362,10 @@ class _ProductPageState extends State<ProductPage> {
           IconButton(
             icon: const Icon(Icons.shopping_cart, color: Colors.white),
             onPressed: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const MainPage(initialIndex: 2),
+                  builder: (context) => ShoppingCartPage(isFromTab: false),
                 ),
               );
             },
@@ -418,10 +495,11 @@ class _ProductPageState extends State<ProductPage> {
                                             selectedVersionIndex = index;
                                             name = versions[index].name;
                                             colors = versions[index].colors;
-
+                                            id_Variant = versions[index].id;
                                             if (colors.isNotEmpty) {
                                               selectedColorIndex = 0;
                                               price = colors[0].price;
+                                              id_Color = colors[0].id;
                                             } else {
                                               selectedColorIndex = -1;
                                               price = versions[index].price;
@@ -489,6 +567,7 @@ class _ProductPageState extends State<ProductPage> {
                                             setState(() {
                                               selectedColorIndex = index;
                                               price = colors[index].price;
+                                              id_Color = colors[index].id;
                                             });
                                           }
                                         },
@@ -653,7 +732,15 @@ class _ProductPageState extends State<ProductPage> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: () {
+                  cartService.addToCart(
+                    productID: id_Variant,
+                    colorId: id_Color,
+                    id: widget.productId,
+                    token: token,
+                    context: context,
+                  );
+                },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.blue, width: 1.5),
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -670,7 +757,9 @@ class _ProductPageState extends State<ProductPage> {
             const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  handleAddToCart();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1995,6 +2084,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
   @override
   void initState() {
     super.initState();
+
     displayedCommentCount = widget.initialCommentCount;
   }
 

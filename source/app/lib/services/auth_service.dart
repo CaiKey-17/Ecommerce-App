@@ -17,7 +17,7 @@ class AuthRepository {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      await prefs.setInt('user_id', userInfo.id);
+      await prefs.setInt('userId', userInfo.id);
       await prefs.setString('email', userInfo.email);
       await prefs.setString('fullName', userInfo.fullName);
       await prefs.setString('role', userInfo.role);
