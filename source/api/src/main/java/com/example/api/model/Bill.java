@@ -31,4 +31,52 @@ public class Bill {
 
     @Column(nullable = true)
     private Integer fk_orderId;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Timestamp getCreatedReceive() {
+        return createdReceive;
+    }
+
+    public void setCreatedReceive(Timestamp createdReceive) {
+        this.createdReceive = createdReceive;
+    }
+
+    public String getStatusOrder() {
+        return statusOrder;
+    }
+
+    public void setStatusOrder(String statusOrder) {
+        this.statusOrder = statusOrder;
+    }
+
+    public String getMethodPayment() {
+        return methodPayment;
+    }
+
+    public void setMethodPayment(String methodPayment) {
+        this.methodPayment = methodPayment;
+    }
+
+    public Integer getFk_orderId() {
+        return fk_orderId;
+    }
+
+    public void setFk_orderId(Integer fk_orderId) {
+        this.fk_orderId = fk_orderId;
+    }
 }

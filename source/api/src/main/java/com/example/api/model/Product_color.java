@@ -25,4 +25,52 @@ public class Product_color {
     private String image;
 
     private Integer fkVariantProduct;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getColorName() {
+        return colorName;
+    }
+
+    public void setColorName(String colorName) {
+        this.colorName = colorName;
+    }
+
+    public Double getColorPrice() {
+        return colorPrice;
+    }
+
+    public void setColorPrice(Double colorPrice) {
+        this.colorPrice = colorPrice;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Integer getFkVariantProduct() {
+        return fkVariantProduct;
+    }
+
+    public void setFkVariantProduct(Integer fkVariantProduct) {
+        this.fkVariantProduct = fkVariantProduct;
+    }
 }

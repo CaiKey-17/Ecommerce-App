@@ -781,26 +781,36 @@ class _ProductPageState extends State<ProductPage> {
 }
 
 class SpecificationWidget extends StatelessWidget {
+  final String sampleSpecString = "Title: Thông số kỹ thuật; CPU: Snapdragon 8 Gen 2; RAM: 16GB; Title: Màn hình; Kích thước: 6.8 inch; Độ phân giải: 1440 x 3200 pixels; Title: Camera; Camera chính: 50MP; Camera trước: 32MP, ; Siêu đẹp: 32MP";
+
   const SpecificationWidget({super.key});
 
-  final List<Map<String, String>> specifications = const [
-    {"title": "Thông số kỹ thuật"},
-    {"CPU": "Snapdragon 8 Gen 2"},
-    {"RAM": "12GB"},
-    {"title": "Màn hình"},
-    {"Kích thước": "6.8 inch"},
-    {"Độ phân giải": "1440 x 3200 pixels"},
-    {"title": "Camera"},
-    {"Camera chính": "50MP"},
-    {"Camera trước": "32MP"},
-  ];
+  List<Map<String, String>> _parseSpecifications(String specString) {
+    if (specString.isEmpty) return [];
+    
+    List<Map<String, String>> specs = [];
+    List<String> items = specString.split("; ");
+    
+    for (String item in items) {
+      if (item.startsWith("Title: ")) {
+        specs.add({"title": item.substring(7)}); 
+      } else {
+        List<String> keyValue = item.split(": ");
+        if (keyValue.length == 2) {
+          specs.add({keyValue[0]: keyValue[1]});
+        }
+      }
+    }
+    return specs;
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> filteredSpecs =
-        specifications
-            .where((spec) => !spec.keys.first.toLowerCase().contains("title"))
-            .toList();
+    List<Map<String, String>> specifications = _parseSpecifications(sampleSpecString);
+
+    List<Map<String, String>> filteredSpecs = specifications
+        .where((spec) => !spec.keys.first.toLowerCase().contains("title"))
+        .toList();
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -871,17 +881,14 @@ class SpecificationWidget extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.of(context).size.width * 0.95,
-                              maxHeight:
-                                  MediaQuery.of(context).size.height * 0.95,
+                              maxWidth: MediaQuery.of(context).size.width * 0.95,
+                              maxHeight: MediaQuery.of(context).size.height * 0.95,
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     const Text(
                                       "Thông số chi tiết",
@@ -901,73 +908,52 @@ class SpecificationWidget extends StatelessWidget {
                                   child: ListView.builder(
                                     itemCount: specifications.length,
                                     itemBuilder: (context, index) {
-                                      Map<String, String> spec =
-                                          specifications[index];
+                                      Map<String, String> spec = specifications[index];
                                       String key = spec.keys.first;
                                       String value = spec.values.first;
-                                      bool isTitle = key.toLowerCase().contains(
-                                        "title",
-                                      );
+                                      bool isTitle = key.toLowerCase().contains("title");
 
                                       return Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 4,
-                                        ),
-                                        child:
-                                            isTitle
-                                                ? Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        top: 10,
-                                                        bottom: 5,
-                                                      ),
-                                                  child: Text(
-                                                    value,
-                                                    style: const TextStyle(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                )
-                                                : Container(
-                                                  color:
-                                                      index % 2 == 0
-                                                          ? Colors.grey[100]
-                                                          : Colors.white,
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        vertical: 6,
-                                                        horizontal: 8,
-                                                      ),
-                                                  child: Row(
-                                                    children: [
-                                                      Expanded(
-                                                        flex: 3,
-                                                        child: Text(
-                                                          key,
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 14,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        flex: 5,
-                                                        child: Text(
-                                                          value,
-                                                          style:
-                                                              const TextStyle(
-                                                                fontSize: 14,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                    ],
+                                        padding: const EdgeInsets.symmetric(vertical: 4),
+                                        child: isTitle
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(top: 10, bottom: 5),
+                                                child: Text(
+                                                  value,
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
+                                              )
+                                            : Container(
+                                                color: index % 2 == 0 ? Colors.grey[100] : Colors.white,
+                                                padding: const EdgeInsets.symmetric(
+                                                  vertical: 6,
+                                                  horizontal: 8,
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Expanded(
+                                                      flex: 3,
+                                                      child: Text(
+                                                        key,
+                                                        style: const TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      flex: 5,
+                                                      child: Text(
+                                                        value,
+                                                        style: const TextStyle(fontSize: 14),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                       );
                                     },
                                   ),

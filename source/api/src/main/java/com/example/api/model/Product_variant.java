@@ -35,6 +35,67 @@ public class Product_variant {
     @Column(name = "fk_variant_product", nullable = true)
     private Integer fkVariantProduct;
 
+    public Integer getId() {
+        return id;
+    }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
+    public String getNameVariant() {
+        return nameVariant;
+    }
+
+    public void setNameVariant(String nameVariant) {
+        this.nameVariant = nameVariant;
+    }
+
+    public Double getImportPrice() {
+        return importPrice;
+    }
+
+    public void setImportPrice(Double importPrice) {
+        this.importPrice = importPrice;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public Double getOriginalPrice() {
+        return originalPrice;
+    }
+
+    public void setOriginalPrice(Double originalPrice) {
+        this.originalPrice = originalPrice;
+    }
+
+    public Integer getDiscountPercent() {
+        return discountPercent;
+    }
+
+    public void setDiscountPercent(Integer discountPercent) {
+        this.discountPercent = discountPercent;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
+    public Integer getFkVariantProduct() {
+        return fkVariantProduct;
+    }
+
+    public void setFkVariantProduct(Integer fkVariantProduct) {
+        this.fkVariantProduct = fkVariantProduct;
+    }
 }
