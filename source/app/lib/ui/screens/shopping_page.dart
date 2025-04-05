@@ -48,8 +48,6 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     setState(() {
       token = prefs.getString('token') ?? "";
       userId = prefs.getInt('userId') ?? -1;
-      print(token);
-      print(userId);
     });
     fetchCartItems();
   }
@@ -65,7 +63,6 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         print("Sử dụng userID");
       } else {
         response = await apiService.getItemInCart(token: token, id: userId);
-        print("Cả token và userID được cung cấp");
       }
       setState(() {
         cartItems = response;
@@ -275,7 +272,10 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
             widget.isFromTab
                 ? null
                 : IconButton(
-                  icon: const Icon(Icons.chevron_left, color: Colors.grey),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_rounded,
+                    color: Colors.white,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
 
@@ -519,12 +519,10 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                 ),
               ),
       bottomNavigationBar: Container(
-        padding: EdgeInsets.only(
-          left: 16,
-          top: 10,
-          right: 16,
-          bottom: bottomPadding,
-        ),
+        padding:
+            widget.isFromTab
+                ? EdgeInsets.only(left: 16, top: 10, right: 16, bottom: 80)
+                : EdgeInsets.all(16),
         decoration: const BoxDecoration(
           color: Colors.white,
           boxShadow: [BoxShadow(color: Colors.grey, blurRadius: 5)],

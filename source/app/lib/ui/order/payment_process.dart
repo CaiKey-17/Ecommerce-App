@@ -305,7 +305,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -325,7 +325,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         color: Colors.white,
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.only(right: 16, left: 16, bottom: 16),
             child: Column(
               children: [
                 _buildInfoEmailRow("Email: ", email, isBold: true),
@@ -341,7 +341,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 ),
                 _buildPriceRow(shippingFee),
 
-                SizedBox(height: 20),
+                SizedBox(height: 16),
 
                 _buildInfoRow(
                   "Hình thức thanh toán:",
@@ -351,18 +351,24 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
                 Divider(height: 30, thickness: 1),
 
-                Text(
-                  "Sản phẩm",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Sản phẩm",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 SizedBox(height: 10),
                 _buildProductList(widget.cartItems),
 
                 Divider(height: 30, thickness: 1),
 
-                Text(
-                  "Khuyến mãi đơn hàng",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Khuyến mãi đơn hàng",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
                 SizedBox(height: 10),
                 _buildCouponInput(),
@@ -421,17 +427,27 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    Expanded(
-                      child: Text(
-                        address,
-                        style: TextStyle(fontSize: 16, color: Colors.black),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+                    (address.toString() == "Chưa có địa chỉ")
+                        ? Expanded(
+                          child: Text(
+                            address,
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )
+                        : Expanded(
+                          child: Text(
+                            address,
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                     SizedBox(width: 8),
                     Text(
-                      "Mặc định",
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      (address.toString() == "Chưa có địa chỉ")
+                          ? "Vui lòng chọn địa chỉ"
+                          : "Mặc định",
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -446,7 +462,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
   Widget _buildInfoRow(String label, String value, {bool isBold = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -470,7 +486,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   Widget _buildInfoEmailRow(String label, String value, {bool isBold = false}) {
     bool isValueEmpty = value == null || value.isEmpty;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.only(right: 0, left: 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -487,12 +503,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               textAlign: TextAlign.right,
               enabled: isValueEmpty,
               decoration: InputDecoration(
-                border: InputBorder.none, // Không hiển thị viền
-                hintText: isValueEmpty ? 'Vui lòng điền email' : '${value}',
+                border: InputBorder.none,
+                hintText: isValueEmpty ? 'Điền email tại đây' : '${value}',
+                hintStyle: isValueEmpty ? TextStyle(color: Colors.grey) : null,
               ),
-              onChanged: (newValue) {
-                // Xử lý khi giá trị thay đổi ở đây
-              },
+              onChanged: (newValue) {},
             ),
           ),
         ],
@@ -563,7 +578,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           ),
           SizedBox(width: 10),
           Text(
-            "x${product.quantity}",
+            "× ${product.quantity}",
             style: TextStyle(fontSize: 16, color: Colors.black),
           ),
         ],
@@ -670,10 +685,17 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   Widget _buildPriceRow(double amount) {
     return Align(
       alignment: Alignment.centerRight,
-      child: Text(
-        "${ConvertMoney.currencyFormatter.format(amount)} đ",
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-      ),
+      child:
+          (address.toString() == "Chưa có địa chỉ")
+              ? Text(
+                "${ConvertMoney.currencyFormatter.format(amount)} đ",
+
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              )
+              : Text(
+                "${ConvertMoney.currencyFormatter.format(amount)} đ",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
     );
   }
 

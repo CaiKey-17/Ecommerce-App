@@ -32,11 +32,11 @@ class _MainPageState extends State<MainPage> {
   ];
 
   final List<String> labels = [
-    "Home",
-    "Category",
-    "Cart",
-    "Activity",
-    "Profile",
+    "Trang chủ",
+    "Danh mục",
+    "Giỏ hàng",
+    "Hoạt động",
+    "Cá nhân",
   ];
   final List<IconData> icons = [
     Icons.home_rounded,
@@ -77,21 +77,25 @@ class _MainPageState extends State<MainPage> {
               left: 0,
               right: 0,
               child: Container(
-                padding: EdgeInsets.only(bottom: 5),
+                padding: EdgeInsets.symmetric(vertical: 5),
                 color: Colors.blue,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: List.generate(
                     labels.length,
-                    (index) => Text(
-                      labels[index],
-                      style: TextStyle(
-                        fontSize: 12,
-                        color:
-                            _selectedIndex == index
-                                ? const Color.fromARGB(255, 245, 231, 231)
-                                : Colors.white,
-                        fontWeight: FontWeight.w500,
+                    (index) => SizedBox(
+                      width: 60,
+                      child: Text(
+                        labels[index],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color:
+                              _selectedIndex == index
+                                  ? Colors.white
+                                  : const Color.fromARGB(255, 245, 231, 231),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
@@ -99,7 +103,7 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
             Positioned(
-              bottom: 22,
+              bottom: 27,
               left: 0,
               right: 0,
               child: CurvedNavigationBar(
@@ -116,7 +120,15 @@ class _MainPageState extends State<MainPage> {
                             badgeContent: Text(
                               cartProvider.cartItemCount.toString(),
                               style: TextStyle(
-                                color: Colors.blue,
+                                color:
+                                    _selectedIndex == index
+                                        ? Colors.white
+                                        : const Color.fromARGB(
+                                          255,
+                                          245,
+                                          231,
+                                          231,
+                                        ),
                                 fontSize: 12,
                               ),
                             ),
@@ -128,8 +140,13 @@ class _MainPageState extends State<MainPage> {
                               size: 25,
                               color:
                                   _selectedIndex == index
-                                      ? const Color.fromARGB(255, 245, 231, 231)
-                                      : Colors.white,
+                                      ? Colors.white
+                                      : const Color.fromARGB(
+                                        255,
+                                        245,
+                                        231,
+                                        231,
+                                      ),
                             ),
                           )
                           : Icon(
@@ -137,11 +154,10 @@ class _MainPageState extends State<MainPage> {
                             size: 25,
                             color:
                                 _selectedIndex == index
-                                    ? const Color.fromARGB(255, 245, 231, 231)
-                                    : Colors.white,
+                                    ? Colors.white
+                                    : const Color.fromARGB(255, 245, 231, 231),
                           ),
                 ),
-
                 onTap: (index) {
                   setState(() {
                     _selectedIndex = index;

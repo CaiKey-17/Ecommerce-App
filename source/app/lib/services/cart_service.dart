@@ -10,7 +10,7 @@ class CartService {
 
   CartService({required this.cartRepository});
 
-  Future<void> addToCart({
+  Future<bool> addToCart({
     required int productID,
     required int colorId,
     required int id,
@@ -58,6 +58,7 @@ class CartService {
           gravity: ToastGravity.BOTTOM,
         );
         Provider.of<CartProvider>(context, listen: false).addItem(id);
+        return true;
       }
     } catch (error) {
       print("Lỗi khi gọi API: $error");
@@ -67,6 +68,7 @@ class CartService {
         gravity: ToastGravity.BOTTOM,
       );
     }
+    return false;
   }
 
   Future<bool> addMoreToCart({
