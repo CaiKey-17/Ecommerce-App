@@ -9,28 +9,18 @@ class AddAddressScreen extends StatefulWidget {
 }
 
 class _AddAddressScreenState extends State<AddAddressScreen> {
-  // Controller cho các trường nhập liệu
-  final _nameController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
 
-  // Biến trạng thái cho switch
   bool _isDefaultAddress = false;
 
-  // Loại địa chỉ (Văn Phòng hoặc Nhà Riêng)
-  String _addressType = 'Văn Phòng';
-
-  // Danh sách Tỉnh, Huyện, Xã
   List<dynamic> _provinces = [];
   List<dynamic> _districts = [];
   List<dynamic> _wards = [];
 
-  // Giá trị được chọn
   String? _selectedProvince;
   String? _selectedDistrict;
   String? _selectedWard;
 
-  // Code của Tỉnh và Huyện để gọi API
   String? _selectedProvinceCode;
   String? _selectedDistrictCode;
 
@@ -42,13 +32,10 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
     _addressController.dispose();
     super.dispose();
   }
 
-  /// Lấy danh sách tỉnh/thành phố
   Future<void> _fetchProvinces() async {
     final url = 'https://vn-public-apis.fpo.vn/provinces/getAll?limit=-1';
     try {
@@ -66,7 +53,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     }
   }
 
-  /// Lấy danh sách quận/huyện theo tỉnh
   Future<void> _fetchDistricts(String provinceCode) async {
     final url =
         'https://vn-public-apis.fpo.vn/districts/getByProvince?provinceCode=$provinceCode&limit=-1';
@@ -88,7 +74,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     }
   }
 
-  /// Lấy danh sách xã/phường theo quận/huyện
   Future<void> _fetchWards(String districtCode) async {
     final url =
         'https://vn-public-apis.fpo.vn/wards/getByDistrict?districtCode=$districtCode&limit=-1';
@@ -108,11 +93,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     }
   }
 
-  // Hàm lưu địa chỉ
   void _saveAddress() {
-    if (_nameController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _addressController.text.isEmpty ||
+    if (_addressController.text.isEmpty ||
         _selectedProvince == null ||
         _selectedDistrict == null ||
         _selectedWard == null) {
@@ -120,24 +102,10 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       return;
     }
 
-    // Định dạng số điện thoại thành (+84)
-    String formattedPhone = _phoneController.text;
-    if (!formattedPhone.startsWith('(+84)')) {
-      formattedPhone = formattedPhone.replaceAll(RegExp(r'[^0-9]'), '');
-      if (formattedPhone.startsWith('0')) {
-        formattedPhone = formattedPhone.substring(1);
-      }
-      formattedPhone = '(+84) $formattedPhone';
-    }
-
-    // Định dạng location thành "Xã ..., Huyện ..., Tỉnh ..."
     final formattedLocation =
         'Xã $_selectedWard, Huyện $_selectedDistrict, Tỉnh $_selectedProvince';
 
-    // Tạo đối tượng địa chỉ mới
     final newAddress = {
-      'name': _nameController.text,
-      'phone': formattedPhone,
       'specificAddress': _addressController.text,
       'location': formattedLocation,
       'isDefault': _isDefaultAddress.toString(),
@@ -160,8 +128,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
           'Địa chỉ mới',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true, // Căn giữa tiêu đề
-        backgroundColor: Colors.blue, // Màu xanh biển
+        centerTitle: true,
+        backgroundColor: Colors.blue,
         elevation: 1,
       ),
       body: SingleChildScrollView(
@@ -179,23 +147,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 ),
               ),
               SizedBox(height: 16),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Họ và tên',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16),
-              TextField(
-                controller: _phoneController,
-                decoration: InputDecoration(
-                  labelText: 'Số điện thoại',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              SizedBox(height: 16),
+
               DropdownButtonFormField<String>(
                 decoration: InputDecoration(
                   labelText: 'Tỉnh/Thành phố',

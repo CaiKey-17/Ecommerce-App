@@ -9,24 +9,18 @@ class AddressListScreen extends StatefulWidget {
 class _AddressListScreenState extends State<AddressListScreen> {
   List<Map<String, dynamic>> addresses = [
     {
-      'name': 'Nguyễn Cao Kỳ',
-      'phone': '(+84) 948523010',
       'specificAddress': 'Số 87, Đường Số 1',
       'location': 'Xã Phường Bình Thuận, Huyện Quận 7, Tỉnh TP. Hồ Chí Minh',
       'isDefault': 'false',
       'isCurrentDefault': false,
     },
     {
-      'name': 'Cao Kỳ',
-      'phone': '(+84) 948523010',
       'specificAddress': 'Giấy đẹp Cao Minh - Đối diện chợ Sơn Hà',
       'location': 'Xã Sơn Hà, Huyện Sơn Hà, Tỉnh Quảng Ngãi',
       'isDefault': 'false',
       'isCurrentDefault': false,
     },
     {
-      'name': 'Nguyễn Cao Kỳ',
-      'phone': '(+84) 948523010',
       'specificAddress': 'Đại Học Tôn Đức Thắng, 19 Đ.Nguyễn Hữu Thọ',
       'location': 'Xã Phường Tân Phong, Huyện Quận 7, Tỉnh TP. Hồ Chí Minh',
       'isDefault': 'false',
@@ -114,19 +108,6 @@ class _AddressListScreenState extends State<AddressListScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              address['name'] ?? 'Không có tên',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              address['phone'] ?? 'Không có số điện thoại',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                            SizedBox(height: 4),
                             Text(
                               address['specificAddress'] ??
                                   'Không có địa chỉ chi tiết',
