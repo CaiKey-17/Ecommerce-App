@@ -2,6 +2,7 @@ import 'package:app/models/category_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/models/product_info_detail.dart';
+import 'package:app/models/rating_info.dart';
 import 'package:app/models/resend_otp_request.dart';
 import 'package:app/models/resend_otp_response.dart';
 import 'package:app/models/valid_response.dart';
@@ -27,7 +28,7 @@ class ApiResponse<T> {
   ApiResponse({required this.code, required this.message, this.data});
 }
 
-@RestApi(baseUrl: "http://192.168.70.182:8080/api")
+@RestApi(baseUrl: "http://192.168.1.137:8080/api")
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -66,6 +67,17 @@ abstract class ApiService {
   @GET("/products/brand")
   Future<List<ProductInfo>> getProductsByBrand(
     @Query("fk_brand") String fk_brand,
+  );
+
+  @GET("/rating/product")
+  Future<List<RatingInfo>> getRatingsByProduct(
+    @Query("productId") int productId,
+  );
+
+  @POST("/rating/product/{productId}")
+  Future<RatingInfo> createRating(
+    @Path("productId") int productId,
+    @Body() RatingInfo rating,
   );
 
   @GET("/cart/list")

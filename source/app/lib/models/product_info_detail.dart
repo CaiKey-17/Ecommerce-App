@@ -3,6 +3,7 @@ import 'variant_model.dart';
 
 class Product {
   final int id;
+  final String name;
   final String brand;
   final String category;
   final String description;
@@ -11,6 +12,7 @@ class Product {
 
   Product({
     required this.id,
+    required this.name,
     required this.brand,
     required this.category,
     required this.description,
@@ -21,6 +23,7 @@ class Product {
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
+      name: json['name'],
       brand: json['brand'],
       category: json['category'],
       description: json['description'],
