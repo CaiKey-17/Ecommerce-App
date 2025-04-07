@@ -59,12 +59,9 @@ class _RegisterPageState extends State<RegisterPage> {
     String districtId = ids[1].trim();
     String provinceId = ids[2].trim();
 
-    // Tìm tỉnh theo ID
     String provinceName = getProvinceName(provinceId);
-    // Tìm huyện theo ID
     String districtName = getDistrictName(districtId);
 
-    // Tìm xã/phường theo ID
     String wardName = getWardName(wardId);
 
     setState(() {
@@ -461,8 +458,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             }).toList(),
                         onChanged: (value) {
                           setState(() {
-                            selectedWard =
-                                value.toString(); // Đảm bảo luôn là String
+                            selectedWard = value.toString();
                           });
                         },
                       ),

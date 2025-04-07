@@ -5,7 +5,7 @@ import 'package:app/keys/shipping.dart';
 import 'package:app/models/cart_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/services/api_service.dart';
-import 'package:app/ui/login/UpdateAddressScreen.dart';
+import 'package:app/ui/login/update_address_page.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -31,6 +31,7 @@ class PaymentConfirmationScreen extends StatefulWidget {
 }
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
+  TextEditingController _emailController = TextEditingController();
   final TextEditingController _couponController = TextEditingController();
   String email = "";
   String address = "";
@@ -44,6 +45,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   int selectedDistrict = 0;
   int selectedWard = 0;
   double shippingFee = 0;
+  bool checkFreeShip = false;
 
   double discount = 0;
   bool isCouponApplied = false;
@@ -157,6 +159,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     } else {
       setState(() {
         shippingFee = 0;
+        checkFreeShip = true;
       });
       print("Áp dụng Freeship!");
     }
@@ -255,11 +258,15 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         builder: (context) => UpdateAddressScreen(currentAddress: address),
       ),
     );
-
     if (newAddress != null && newAddress.isNotEmpty) {
       setState(() {
         address = newAddress;
       });
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        code = prefs.getString('code')!;
+      });
+      getShippingFee();
     }
   }
 
@@ -339,7 +346,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                   "Phí giao tiêu chuẩn",
                   isBold: true,
                 ),
-                _buildPriceRow(shippingFee),
+                _buildPriceRow(shippingFee, checkFreeShip),
 
                 SizedBox(height: 16),
 
@@ -380,11 +387,13 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                 _buildSummaryRow("Tổng tạm tính:", totalProductPrice),
                 _buildSummaryRow("Phí vận chuyển:", shippingFee),
                 _buildSummaryRow("Thuế (2%):", tax),
-                _buildSummaryRow("Giảm giá từ mã khuyến mãi:", -discount),
-                _buildSummaryRow(
-                  "Giảm giá điểm thành viên:",
-                  isMemberPointsUsed ? -points.toDouble() : 0,
-                ),
+                if (-discount != 0)
+                  _buildSummaryRow("Giảm giá từ mã khuyến mãi:", -discount),
+                if (isMemberPointsUsed && points != 0)
+                  _buildSummaryRow(
+                    "Giảm giá điểm thành viên:",
+                    isMemberPointsUsed ? -points.toDouble() : 0,
+                  ),
 
                 if (totalDiscount > 0)
                   _buildSummaryRow(
@@ -499,7 +508,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
           ),
           Expanded(
             child: TextField(
-              controller: TextEditingController(text: value),
+              controller: _emailController,
               textAlign: TextAlign.right,
               enabled: isValueEmpty,
               decoration: InputDecoration(
@@ -682,20 +691,31 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     );
   }
 
-  Widget _buildPriceRow(double amount) {
+  Widget _buildPriceRow(double amount, bool checkFreeShip) {
     return Align(
       alignment: Alignment.centerRight,
-      child:
-          (address.toString() == "Chưa có địa chỉ")
-              ? Text(
-                "${ConvertMoney.currencyFormatter.format(amount)} đ",
-
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              )
-              : Text(
-                "${ConvertMoney.currencyFormatter.format(amount)} đ",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+      child: Text(
+        checkFreeShip
+            ? "Free ship"
+            : (address.toString() == "Chưa có địa chỉ")
+            ? "${ConvertMoney.currencyFormatter.format(amount)} đ"
+            : "${ConvertMoney.currencyFormatter.format(amount)} đ",
+        style: TextStyle(
+          fontSize: 16,
+          color:
+              checkFreeShip
+                  ? Colors.green
+                  : (address.toString() == "Chưa có địa chỉ"
+                      ? Colors.grey
+                      : Colors.black),
+          fontWeight:
+              checkFreeShip
+                  ? FontWeight.bold
+                  : (address.toString() == "Chưa có địa chỉ"
+                      ? FontWeight.normal
+                      : FontWeight.bold),
+        ),
+      ),
     );
   }
 
@@ -736,6 +756,35 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   Widget _buildPayButton() {
     return ElevatedButton(
       onPressed: () {
+        String email = _emailController.text.trim();
+
+        if (address == null || address == "Chưa có địa chỉ") {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Vui lòng nhập địa chỉ giao hàng",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          );
+          return;
+        }
+
+        if (email.isEmpty || !email.contains("@")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Vui lòng nhập email hợp lệ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          );
+          return;
+        }
+
+        // Nếu hợp lệ, chuyển sang trang thành công
         Navigator.pushReplacementNamed(context, "/success");
       },
       style: ElevatedButton.styleFrom(

@@ -10,7 +10,7 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://192.168.70.182:8080/api';
+    baseUrl ??= 'http://192.168.1.137:8080/api';
   }
 
   final Dio _dio;
@@ -280,6 +280,54 @@ class _ApiService implements ApiService {
         _result.data!
             .map((dynamic i) => ProductInfo.fromJson(i as Map<String, dynamic>))
             .toList();
+    return value;
+  }
+
+  @override
+  Future<List<RatingInfo>> getRatingsByProduct(productId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'productId': productId};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<RatingInfo>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/rating/product',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!
+            .map((dynamic i) => RatingInfo.fromJson(i as Map<String, dynamic>))
+            .toList();
+    return value;
+  }
+
+  @override
+  Future<RatingInfo> createRating(productId, rating) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(rating.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<RatingInfo>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/rating/product/${productId}',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = RatingInfo.fromJson(_result.data!);
     return value;
   }
 

@@ -158,6 +158,7 @@ public class ProductService {
 
         ProductDetailDTO productDTO = new ProductDetailDTO();
         productDTO.setId(product.getId());
+        productDTO.setName(product.getName());
         productDTO.setBrand(product.getFkBrand());
         productDTO.setCategory(product.getFkCategory());
         productDTO.setDescription(product.getShortDescription());

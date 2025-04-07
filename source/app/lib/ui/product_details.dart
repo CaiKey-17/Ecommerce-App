@@ -6,9 +6,13 @@ import 'package:app/models/color_model.dart';
 import 'package:app/models/image_model.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/models/product_info_detail.dart';
+import 'package:app/models/rating_info.dart';
+import 'package:app/models/sentiment_request.dart';
+import 'package:app/models/sentiment_response.dart';
 import 'package:app/models/variant_model.dart';
 import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
+import 'package:app/services/api_service_sentiment.dart';
 import 'package:app/services/cart_service.dart';
 import 'package:app/ui/main_page.dart';
 import 'package:app/ui/order/payment_process.dart';
@@ -31,7 +35,6 @@ class _ProductPageState extends State<ProductPage> {
   late ApiService apiService;
   int selectedColorIndex = 0;
   int selectedVersionIndex = 0;
-
   int id_Color = -1;
   int id_Variant = -1;
   String name = "";
@@ -45,51 +48,10 @@ class _ProductPageState extends State<ProductPage> {
 
   List<ColorOption> colors = [];
   List<Variant> versions = [];
+  List<RatingInfo> ratings = [];
   final List<double> priceModifiers = [0, 200000, 500000];
-
-  final List<Map<String, dynamic>> reviews = [
-    {
-      'name': 'Huỳnh Hữu Thiện',
-      'rating': 5,
-      'content': 'Ad cho hỏi...',
-      'likes': 16,
-      'days': 7,
-      'verified': true,
-      'goodCount': 0,
-      'badCount': 0,
-    },
-    {
-      'name': 'L',
-      'rating': 5,
-      'content': 'Tôi có chụp ảnh...',
-      'likes': 9,
-      'days': 4,
-      'verified': true,
-      'goodCount': 0,
-      'badCount': 0,
-    },
-    {
-      'name': 'Nguyễn Văn A',
-      'rating': 5,
-      'content': 'Sản phẩm rất tuyệt...',
-      'likes': 5,
-      'days': 3,
-      'verified': true,
-      'goodCount': 0,
-      'badCount': 0,
-    },
-    {
-      'name': 'Bùi Bảo',
-      'rating': 4,
-      'content': 'Mình thấy ổn...',
-      'likes': 2,
-      'days': 1,
-      'verified': false,
-      'goodCount': 0,
-      'badCount': 0,
-    },
-  ];
-
+  List<Map<String, dynamic>> reviews = [];
+  bool hasReviewed = false;
   final List<Map<String, dynamic>> comments = [
     {
       'username': 'Undefined',
@@ -293,7 +255,10 @@ class _ProductPageState extends State<ProductPage> {
         }
         fetchProductsBrand(product!.brand);
         fetchProductsCategory(product!.category);
-        isLoading = false;
+        fetchRatingsByProduct(widget.productId);
+        setState(() {
+          isLoading = false;
+        });
       });
     } catch (e) {
       print("Lỗi khi gọi API: $e");
@@ -312,6 +277,47 @@ class _ProductPageState extends State<ProductPage> {
             products_brand.add(i);
           }
         }
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchRatingsByProduct(int producId) async {
+    try {
+      final response = await apiService.getRatingsByProduct(producId);
+      setState(() {
+        ratings = response;
+        reviews =
+            ratings.map((rating) {
+              final isVerified =
+                  (rating.sentiment == 1 || rating.sentiment == 2);
+              final goodCount = (rating.sentiment == 1) ? 1 : 0;
+              bool like = (rating.sentiment == 1) ? true : false;
+
+              final badCount = (rating.sentiment == 0) ? 1 : 0;
+              bool dislike = (rating.sentiment == 0) ? true : false;
+              print(rating.sentiment);
+              return {
+                'id': rating.id,
+                'name': rating.name,
+                'rating': rating.rating,
+                'content': rating.content,
+                'verified': isVerified,
+                'goodCount': goodCount,
+                'badCount': badCount,
+                'liked': like,
+                'disliked': dislike,
+                'idFkCustomer': rating.idFkCustomer,
+              };
+            }).toList();
+
+        hasReviewed = reviews.any((review) => review['idFkCustomer'] == userId);
+
         isLoading = false;
       });
     } catch (e) {
@@ -660,7 +666,8 @@ class _ProductPageState extends State<ProductPage> {
                                     const DescriptionWidget(),
                                     const SizedBox(height: 10),
                                     ProductRatingWidget(
-                                      productName: "Sản phẩm A",
+                                      productName: product!.name,
+                                      productId: product!.id,
                                       reviews: reviews,
                                       images: images,
                                       onViewMoreReviews: () {
@@ -726,8 +733,11 @@ class _ProductPageState extends State<ProductPage> {
                 ),
               ),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(color: Colors.white),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(113, 204, 204, 204),
+        ),
+        padding: const EdgeInsets.all(16),
+
         child: Row(
           children: [
             Expanded(
@@ -742,6 +752,7 @@ class _ProductPageState extends State<ProductPage> {
                   );
                 },
                 style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white,
                   side: const BorderSide(color: Colors.blue, width: 1.5),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -1157,14 +1168,16 @@ class DescriptionWidget extends StatelessWidget {
 
 class ProductRatingWidget extends StatefulWidget {
   final String productName;
-  final List<Map<String, dynamic>> reviews;
+  final int productId;
+  List<Map<String, dynamic>> reviews;
   final List<String> images;
   final VoidCallback? onViewMoreReviews;
   final VoidCallback? onWriteReview;
 
-  const ProductRatingWidget({
+  ProductRatingWidget({
     super.key,
     required this.productName,
+    required this.productId,
     required this.reviews,
     required this.images,
     this.onViewMoreReviews,
@@ -1176,13 +1189,149 @@ class ProductRatingWidget extends StatefulWidget {
 }
 
 class _ProductRatingWidgetState extends State<ProductRatingWidget> {
+  late ApiService apiService;
+  late ApiServiceSentiment apiServiceSentiment;
+  List<RatingInfo> ratings = [];
+  String fullName = "";
+  int userId = -1;
+
+  String? sentiment;
+  bool isLoading = true;
   bool showAllReviews = false;
   int selectedRating = 0;
+  bool hasReviewed = false;
   final TextEditingController _commentController = TextEditingController();
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? "";
+      fullName = prefs.getString('fullName') ?? "";
+      userId = prefs.getInt('userId') ?? -1;
+      isLoading = false;
+    });
+  }
+
+  Future<void> fetchRatingsByProduct() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      final response = await apiService.getRatingsByProduct(widget.productId);
+      setState(() {
+        ratings = response;
+        widget.reviews =
+            ratings.map((rating) {
+              final isVerified =
+                  (rating.sentiment == 1 || rating.sentiment == 2);
+              final goodCount = (rating.sentiment == 1) ? 1 : 0;
+              bool like = (rating.sentiment == 1) ? true : false;
+
+              final badCount = (rating.sentiment == 0) ? 1 : 0;
+              bool dislike = (rating.sentiment == 0) ? true : false;
+
+              return {
+                'id': rating.id,
+                'name': rating.name,
+                'rating': rating.rating,
+                'content': rating.content,
+                'verified': isVerified,
+                'goodCount': goodCount,
+                'badCount': badCount,
+                'liked': like,
+                'disliked': dislike,
+                'idFkCustomer': rating.idFkCustomer,
+              };
+            }).toList();
+        hasReviewed = widget.reviews.any(
+          (review) => review['idFkCustomer'] == userId,
+        );
+
+        print(hasReviewed);
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchSentiment(int rating, String text) async {
+    try {
+      final request = SentimentRequest(text: text);
+      final response = await apiServiceSentiment.getSentiment(request);
+      setState(() {
+        isLoading = true;
+        hasReviewed = true;
+      });
+
+      setState(() {
+        sentiment = response.result;
+        print("ok");
+        print(sentiment);
+      });
+      int sentimentValue;
+      if (sentiment == 'Positive') {
+        sentimentValue = 1;
+      } else if (sentiment == 'Negative') {
+        sentimentValue = 0;
+      } else {
+        sentimentValue = 3;
+      }
+      final rating_info = RatingInfo.noId(
+        name: fullName,
+        rating: rating,
+        content: text,
+        sentiment: sentimentValue,
+        idFkCustomer: userId,
+        idFkProduct: widget.productId,
+      );
+
+      final response_rating = await apiService.createRating(
+        widget.productId,
+        rating_info,
+      );
+      widget.reviews.add(
+        {
+              'name': fullName,
+              'rating': rating,
+              'content': text,
+              'verified': sentiment == 'Positive' || sentiment == 'Negative',
+              'goodCount': sentiment == 'Positive' ? 1 : 0,
+              'badCount': sentiment == 'Negative' ? 1 : 0,
+              'liked': sentiment == 'Positive',
+              'disliked': sentiment == 'Negative',
+              'idFkCustomer': rating_info.idFkCustomer,
+            }
+            as Map<String, Object>,
+      );
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    apiServiceSentiment = ApiServiceSentiment(Dio());
+    apiService = ApiService(Dio());
+
+    _loadUserData();
+
+    fetchRatingsByProduct();
     for (var review in widget.reviews) {
       review['liked'] = false;
       review['disliked'] = false;
@@ -1240,343 +1389,331 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Đánh giá sản phẩm',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Column(
+      child:
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Text(
+                    'Đánh giá sản phẩm',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        averageRating.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.star, color: Colors.amber, size: 24),
-                      const Text('/5', style: TextStyle(fontSize: 13)),
-                    ],
-                  ),
-                  Text(
-                    '$satisfactionText ',
-                    style: TextStyle(color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    '( $totalReviews đánh giá )',
-                    style: TextStyle(color: Colors.grey[600]),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Tốt: $goodCount',
-                        style: const TextStyle(
-                          color: Colors.green,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Text(
-                        'Không tốt: $badCount',
-                        style: const TextStyle(color: Colors.red, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(5, (index) {
-                    int star = 5 - index;
-                    double percentage = ratingPercentages[star] ?? 0.0;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Row(
+                      Column(
                         children: [
-                          SizedBox(
-                            width: 20,
-                            child: Text(
-                              '$star',
-                              style: const TextStyle(fontSize: 14),
-                              textAlign: TextAlign.right,
-                            ),
-                          ),
-                          const Icon(Icons.star, size: 15, color: Colors.amber),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                left: 10,
-                                right: 10,
-                              ),
-                              child: LinearProgressIndicator(
-                                value: percentage,
-                                backgroundColor: Colors.grey[300],
-                                valueColor: const AlwaysStoppedAnimation(
-                                  Colors.blue,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                averageRating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
-                                minHeight: 10,
-                                borderRadius: BorderRadius.circular(5),
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 24,
+                              ),
+                              const Text('/5', style: TextStyle(fontSize: 13)),
+                            ],
                           ),
-                          SizedBox(
-                            width: 40,
-                            child: Text(
-                              '${(percentage * 100).round()}%',
-                              style: const TextStyle(fontSize: 14),
-                              textAlign: TextAlign.left,
-                            ),
+                          Text(
+                            '$satisfactionText ',
+                            style: TextStyle(color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
+                          ),
+                          Text(
+                            '( $totalReviews đánh giá )',
+                            style: TextStyle(color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Tốt: $goodCount',
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Text(
+                                'Không tốt: $badCount',
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    );
-                  }),
-                ),
-              ),
-            ],
-          ),
-          const Divider(color: Colors.grey, thickness: 1),
-          const SizedBox(height: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Lọc theo',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _buildFilterButton('Tất cả'),
-                  const SizedBox(width: 7),
-                  _buildFilterButton('Có hình ảnh'),
-                ],
-              ),
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  _buildStarRating(5),
-                  const SizedBox(width: 7),
-                  _buildStarRating(4),
-                  const SizedBox(width: 7),
-                  _buildStarRating(3),
-                  const SizedBox(width: 7),
-                  _buildStarRating(2),
-                  const SizedBox(width: 7),
-                  _buildStarRating(1),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Stack(
-            children: [
-              Column(
-                children:
-                    displayedReviews.map((review) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: List.generate(5, (index) {
+                            int star = 5 - index;
+                            double percentage = ratingPercentages[star] ?? 0.0;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4.0,
+                              ),
+                              child: Row(
                                 children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        review['name'] as String,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      if (review['verified'] as bool)
-                                        const Icon(
-                                          Icons.verified,
-                                          color: Colors.green,
-                                          size: 16,
-                                        ),
-                                    ],
+                                  SizedBox(
+                                    width: 20,
+                                    child: Text(
+                                      '$star',
+                                      style: const TextStyle(fontSize: 14),
+                                      textAlign: TextAlign.right,
+                                    ),
                                   ),
-                                  Row(
-                                    children: List.generate(
-                                      5,
-                                      (i) => Icon(
-                                        i < (review['rating'] as int)
-                                            ? Icons.star
-                                            : Icons.star_border,
-                                        color: Colors.amber,
-                                        size: 20,
+                                  const Icon(
+                                    Icons.star,
+                                    size: 15,
+                                    color: Colors.amber,
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 10,
+                                        right: 10,
+                                      ),
+                                      child: LinearProgressIndicator(
+                                        value: percentage,
+                                        backgroundColor: Colors.grey[300],
+                                        valueColor:
+                                            const AlwaysStoppedAnimation(
+                                              Colors.blue,
+                                            ),
+                                        minHeight: 10,
+                                        borderRadius: BorderRadius.circular(5),
                                       ),
                                     ),
                                   ),
-                                  Text(review['content'] as String),
+                                  SizedBox(
+                                    width: 40,
+                                    child: Text(
+                                      '${(percentage * 100).round()}%',
+                                      style: const TextStyle(fontSize: 14),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Colors.grey, thickness: 1),
+                  // Column(
+                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                  //   children: [
+                  //     const Text(
+                  //       'Đánh giá sản phẩm ',
+                  //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  //     ),
+                  //   ],
+                  // ),
+                  Stack(
+                    children: [
+                      Column(
+                        children:
+                            displayedReviews.map((review) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                review['name'] + " ",
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              if (review['verified'] as bool)
+                                                const Icon(
+                                                  Icons.verified,
+                                                  color: Colors.green,
+                                                  size: 16,
+                                                ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: List.generate(
+                                              5,
+                                              (i) => Icon(
+                                                i < (review['rating'] as int)
+                                                    ? Icons.star
+                                                    : Icons.star_border,
+                                                color: Colors.amber,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          ),
+                                          Text(review['content'] as String),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.sentiment_satisfied_alt,
+                                            color:
+                                                review['liked']
+                                                    ? Colors.green
+                                                    : Colors.grey,
+                                          ),
+                                          onPressed: () {},
+                                        ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons
+                                                .sentiment_dissatisfied_outlined,
+                                            color:
+                                                review['disliked']
+                                                    ? Colors.red
+                                                    : Colors.grey,
+                                          ),
+                                          onPressed: () {},
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                      ),
+                      if (widget.reviews.length > 3 && !showAllReviews)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          height: 60,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.white.withOpacity(0),
+                                  Colors.white.withOpacity(0.7),
+                                  Colors.white,
                                 ],
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.thumb_up,
-                                    color:
-                                        review['liked']
-                                            ? Colors.green
-                                            : Colors.grey,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (!review['liked']) {
-                                        if (review['disliked']) {
-                                          review['disliked'] = false;
-                                          review['badCount'] =
-                                              (review['badCount'] as int) - 1;
-                                        }
-                                        review['liked'] = true;
-                                        review['goodCount'] =
-                                            (review['goodCount'] as int) + 1;
-                                      }
-                                    });
-                                  },
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.thumb_down,
-                                    color:
-                                        review['disliked']
-                                            ? Colors.red
-                                            : Colors.grey,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (!review['disliked']) {
-                                        if (review['liked']) {
-                                          review['liked'] = false;
-                                          review['goodCount'] =
-                                              (review['goodCount'] as int) - 1;
-                                        }
-                                        review['disliked'] = true;
-                                        review['badCount'] =
-                                            (review['badCount'] as int) + 1;
-                                      }
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
+                          ),
                         ),
-                      );
-                    }).toList(),
-              ),
-              if (widget.reviews.length > 3 && !showAllReviews)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: 60,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.white.withOpacity(0),
-                          Colors.white.withOpacity(0.7),
-                          Colors.white,
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => AllReviewsDialog(
-                          reviews: widget.reviews,
-                          onUpdateReview: updateReview,
-                        ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[200],
-                ),
-                child: const Text('Xem đánh giá'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => ReviewDialog(
-                          productName: widget.productName,
-                          images: widget.images,
-                          onSubmit: (rating, comment) {
-                            setState(() {
-                              widget.reviews.add({
-                                'name': 'Người dùng mới',
-                                'rating': rating,
-                                'content': comment,
-                                'likes': 0,
-                                'days': 0,
-                                'verified': false,
-                                'goodCount': 0,
-                                'badCount': 0,
-                                'liked': false,
-                                'disliked': false,
-                              });
-                            });
-                            print('Đánh giá: $rating sao - $comment');
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AllReviewsDialog(
+                                    reviews: widget.reviews,
+                                    onUpdateReview: updateReview,
+                                  ),
+                            );
                           },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            side: const BorderSide(
+                              color: Colors.blue,
+                              width: 1.5,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                          ),
+
+                          child: const Text(
+                            'Xem đánh giá',
+                            style: TextStyle(color: Colors.blue),
+                          ),
                         ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Viết đánh giá'),
+                      ),
+                      const SizedBox(width: 10),
+                      if (token != null &&
+                          token.isNotEmpty &&
+                          hasReviewed == false)
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder:
+                                    (context) => ReviewDialog(
+                                      productName: widget.productName,
+                                      images: widget.images,
+                                      onSubmit: (rating, comment) {
+                                        setState(() {
+                                          fetchSentiment(rating, comment);
+                                        });
+                                      },
+                                    ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                            ),
+                            child: const Text('Viết đánh giá'),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }
 
 class AllReviewsDialog extends StatefulWidget {
   final List<Map<String, dynamic>> reviews;
+
   final Function(int, Map<String, dynamic>) onUpdateReview;
 
   const AllReviewsDialog({
@@ -1672,7 +1809,7 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
                                 children: [
                                   IconButton(
                                     icon: Icon(
-                                      Icons.thumb_up,
+                                      Icons.sentiment_satisfied_alt,
                                       color:
                                           review['liked']
                                               ? Colors.green
@@ -1698,7 +1835,7 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
                                   const SizedBox(width: 8),
                                   IconButton(
                                     icon: Icon(
-                                      Icons.thumb_down,
+                                      Icons.sentiment_dissatisfied_outlined,
                                       color:
                                           review['disliked']
                                               ? Colors.red
@@ -1761,6 +1898,7 @@ class _ReviewDialogState extends State<ReviewDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1772,9 +1910,9 @@ class _ReviewDialogState extends State<ReviewDialog> {
               widget.images.isNotEmpty
                   ? widget.images[0]
                   : 'https://via.placeholder.com/150',
+              width: 200,
               height: 100,
-              width: 100,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 10),
             Text(
@@ -1808,25 +1946,14 @@ class _ReviewDialogState extends State<ReviewDialog> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                  ),
                 ),
                 maxLines: 3,
               ),
-            // const SizedBox(height: 10),
-            // if (selectedRating > 0)
-            //   GestureDetector(
-            //     onTap: () {
-            //       print('Tải ảnh thực tế');
-            //     },
-            //     child: Container(
-            //       height: 50,
-            //       width: double.infinity,
-            //       decoration: BoxDecoration(
-            //         border: Border.all(color: Colors.grey),
-            //         borderRadius: BorderRadius.circular(10),
-            //       ),
-            //       child: const Center(child: Text('Thêm ảnh thực tế')),
-            //     ),
-            //   ),
+
             const SizedBox(height: 10),
             if (selectedRating > 0)
               ElevatedButton(
@@ -1884,6 +2011,7 @@ List<ProductInfo> products_category = [];
 late CartRepository cartRepository;
 late CartService cartService;
 String token = "";
+int? userId;
 
 Widget _buildListView(List<ProductInfo> products) {
   return Container(
@@ -2160,6 +2288,10 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 8,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.blue, width: 2.0),
                     ),
                   ),
                 ),
