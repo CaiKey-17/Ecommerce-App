@@ -28,7 +28,7 @@ class ApiResponse<T> {
   ApiResponse({required this.code, required this.message, this.data});
 }
 
-@RestApi(baseUrl: "http://192.168.1.137:8080/api")
+@RestApi(baseUrl: "http://192.168.70.182:8080/api")
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 

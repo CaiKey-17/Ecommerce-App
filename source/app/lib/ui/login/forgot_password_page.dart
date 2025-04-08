@@ -69,90 +69,84 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "Khôi phục tài khoản",
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
+          "Khôi phục mật khẩu",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 7,
         shadowColor: Colors.black.withOpacity(0.3),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Nhập email để đặt lại mật khẩu.",
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
-            ),
-            SizedBox(height: 20),
-
-            TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                labelText: "Email",
-                prefixIcon: Icon(Icons.email, color: Colors.blue),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: Colors.blue.shade300),
-                ),
-                errorText: _errorMessage,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: Colors.blue, width: 2),
-                ),
-              ),
-              keyboardType: TextInputType.emailAddress,
-              onChanged: _validateInput,
-            ),
-            SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed:
-                    isButtonEnabled && !isLoading
-                        ? () => sendResetPassword(_controller.text.trim())
-                        : null,
-
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 55),
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  textStyle: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  backgroundColor:
-                      isButtonEnabled ? Colors.blue : Colors.grey[300],
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
+      body: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  prefixIcon: Icon(Icons.email, color: Colors.blue),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.blue.shade300),
+                  ),
+                  errorText: _errorMessage,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
                   ),
                 ),
-                child:
-                    isLoading
-                        ? SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 3,
-                          ),
-                        )
-                        : Text("Xác nhận"),
+                keyboardType: TextInputType.emailAddress,
+                onChanged: _validateInput,
               ),
-            ),
-          ],
+              SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed:
+                      isButtonEnabled && !isLoading
+                          ? () => sendResetPassword(_controller.text.trim())
+                          : null,
+
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 55),
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    textStyle: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    backgroundColor:
+                        isButtonEnabled ? Colors.blue : Colors.grey[300],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child:
+                      isLoading
+                          ? SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 3,
+                            ),
+                          )
+                          : Text("Xác nhận"),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

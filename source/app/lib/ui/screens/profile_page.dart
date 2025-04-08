@@ -1,5 +1,6 @@
 import 'package:app/ui/login/login_page.dart';
 import 'package:app/ui/login/register_page.dart';
+import 'package:app/ui/profile/address_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
@@ -80,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 214, 210, 210),
+      backgroundColor: const Color.fromARGB(255, 243, 243, 243),
       body: Stack(
         children: [
           Positioned(
@@ -114,6 +115,7 @@ class _ProfilePageState extends State<ProfilePage> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+
           decoration: const BoxDecoration(
             image: DecorationImage(
               image: AssetImage("assets/images/nenprofile.jpg"),
@@ -178,18 +180,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
         ),
-        Positioned(
-          top: 35,
-          right: 1,
-          child: IconButton(
-            icon: const Icon(
-              Icons.settings_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-            onPressed: () {},
-          ),
-        ),
       ],
     );
   }
@@ -203,22 +193,26 @@ class _ProfilePageState extends State<ProfilePage> {
         print("Nhấn vào Kế hoạch di chuyển");
       }),
       SizedBox(height: 10),
-      _buildMenuItem(Icons.account_balance_wallet, "Sổ địa chỉ", () {
-        print("Nhấn vào Ví trả sau - bePaylater");
+      _buildMenuItem(Icons.location_history_outlined, "Sổ địa chỉ", () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => AddressListScreen()),
+        );
+        ;
       }),
-      _buildMenuItem(Icons.access_time, "Thay đổi ngôn ngữ", () {
+      _buildMenuItem(Icons.language, "Thay đổi ngôn ngữ", () {
         print("Nhấn vào Home PayLater");
       }),
-      _buildMenuItem(Icons.link, "Chính sách và điều khoản", () {
+      _buildMenuItem(Icons.security, "Chính sách và điều khoản", () {
         print("Nhấn vào Liên kết tài khoản");
       }),
       SizedBox(height: 10),
 
       check
-          ? _buildMenuItem(Icons.directions_car, "Đăng xuất", () {
+          ? _buildMenuItem(Icons.logout, "Đăng xuất", () {
             _confirmLogout();
           })
-          : _buildMenuItem(Icons.login, "Đăng nhập", () {
+          : _buildMenuItem(Icons.account_circle_outlined, "Đăng nhập", () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => LoginPage()),
