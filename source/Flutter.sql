@@ -312,52 +312,6 @@ CREATE DEFINER=`root`@`%` PROCEDURE `MinusToCart` (IN `p_OrderId` VARCHAR(50), I
         WHERE id = p_OrderId;
 END$$
 
-CREATE DEFINER=`root`@`%` PROCEDURE `Ordering` (IN `p_OrderId` VARCHAR(50), IN `p_Payment` VARCHAR(50) CHARACTER SET utf8)   BEGIN
-
-	DECLARE v_customerId int;
-	DECLARE v_couponId int;
-	DECLARE v_points int;
-    
-    
-    SELECT id_fk_customer INTO v_customerId FROM orders WHERE Id = p_OrderId;
-    SELECT fk_coupon_Id INTO v_couponId FROM orders WHERE id = p_OrderId;
-    SELECT point_total INTO v_points FROM orders WHERE id = p_OrderId;
-    
-    
-    
-   UPDATE product_variant
-    SET quantity = quantity - (
-        SELECT quantity
-        FROM order_details
-        WHERE order_details.fk_product_Id = product_variant.id AND order_details.fk_order_Id = p_OrderId
-    )
-    WHERE id IN (
-        SELECT fk_product_Id
-        FROM order_details
-        WHERE fk_order_Id = p_OrderId
-    );
-    
-   
-    UPDATE coupons
-    SET max_allowed_uses = max_allowed_uses -1
-    WHERE id = v_couponId;
-
-    UPDATE customer
-    SET points = 0
-    WHERE id = v_customerId;
-    
-    
-        
-    UPDATE orders
-    SET process = 'dangdat'
-    WHERE id = p_OrderId;
-
-    INSERT INTO `bills`(`created_at`,`status_order`,`method_payment`, `fk_order_Id`) VALUES (NOW(),'Chưa thanh toán',p_Payment ,p_OrderId);
-    
-END$$
-
-DELIMITER ;
-
 
 
 
@@ -423,6 +377,7 @@ SET pc.quantity = pc.quantity - sub.total_quantity;
         total = v_Total,
         process = 'dangdat',
         created_at = NOW(),
+        coupon_total = p_CouponTotal
         address = p_Address,
         email = p_Email,
         fk_coupon_id = p_FkCouponId,
@@ -436,8 +391,6 @@ SET pc.quantity = pc.quantity - sub.total_quantity;
         
     END ;;
     DELIMITER ;
-
-
     
 
 

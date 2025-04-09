@@ -40,13 +40,16 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   int points = 0;
   late ApiService apiService;
   bool isLoading = true;
+  bool isLoadingPayment = false;
   Coupon? apiResponseCoupon;
   CouponData? couponData;
   int selectedDistrict = 0;
   int selectedWard = 0;
   double shippingFee = 0;
   bool checkFreeShip = false;
-
+  double appliedMemberPoints = 0;
+  double appliedDiscount = 0;
+  int couponId = -1;
   double discount = 0;
   bool isCouponApplied = false;
   bool isMemberPointsUsed = false;
@@ -58,41 +61,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       (sum, product) => sum + (product.price * product.quantity),
     );
   }
-
-  // List<Product> products = [
-  //   Product(
-  //     name: "Apple TV 4K (3rd Gen) Wifi + Ethernet",
-  //     imageUrl:
-  //         "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/apple-tv-4k-hero-select-202210_FMT_WHH?wid=640&hei=640&fmt=jpeg&qlt=95&.v=1664896361380",
-  //     price: 3890000,
-  //     originalPrice: 5123000,
-  //     quantity: 1,
-  //   ),
-  //   Product(
-  //     name: "MacBook Air M2 2023",
-  //     imageUrl:
-  //         "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
-  //     price: 28900000,
-  //     originalPrice: 31900000,
-  //     quantity: 1,
-  //   ),
-  //   Product(
-  //     name: "iPhone 15 Pro Max 256GB",
-  //     imageUrl:
-  //         "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
-  //     price: 31990000,
-  //     originalPrice: 34990000,
-  //     quantity: 2,
-  //   ),
-  //   Product(
-  //     name: "iPhone 15 Pro Max 256GB",
-  //     imageUrl:
-  //         "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/macbook-air-midnight-config-20220606?wid=900&hei=820&fmt=jpeg&qlt=95&.v=1654122899519",
-  //     price: 31990000,
-  //     originalPrice: 34990000,
-  //     quantity: 3,
-  //   ),
-  // ];
 
   double get totalAmount {
     double subtotal = totalProductPrice + tax;
@@ -166,8 +134,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   double get totalDiscount {
-    double appliedDiscount = isCouponApplied ? discount : 0;
-    double appliedMemberPoints = isMemberPointsUsed ? points.toDouble() : 0;
+    appliedDiscount = isCouponApplied ? discount : 0;
+    appliedMemberPoints = isMemberPointsUsed ? points.toDouble() : 0;
     return appliedDiscount + appliedMemberPoints;
   }
 
@@ -183,6 +151,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       if (response.code == 200) {
         setState(() {
           couponData = response.data;
+          couponId = couponData!.id;
           discount = couponData!.couponValue ?? 0;
           isCouponApplied = true;
         });
@@ -291,6 +260,43 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       }
       getShippingFee();
     });
+  }
+
+  void _handleOrder(String email) async {
+    setState(() {
+      isLoadingPayment = true;
+    });
+
+    try {
+      final response = await apiService.confirmToCart(
+        widget.orderId,
+        address,
+        appliedDiscount,
+        email,
+        couponId,
+        appliedMemberPoints,
+        totalProductPrice,
+        shippingFee,
+      );
+
+      setState(() {
+        isLoading = false;
+      });
+      Navigator.pushNamedAndRemoveUntil(context, "/success", (route) => false);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        "/success",
+        (route) => false,
+        arguments: {'total': totalAmount},
+      );
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Có lỗi xảy ra, vui lòng thử lại")),
+      );
+    }
   }
 
   @override
@@ -754,51 +760,56 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   Widget _buildPayButton() {
-    return ElevatedButton(
-      onPressed: () {
-        String email = _emailController.text.trim();
+    return isLoadingPayment
+        ? SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+        )
+        : ElevatedButton(
+          onPressed: () {
+            String email = _emailController.text.trim();
 
-        if (address == null || address == "Chưa có địa chỉ") {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.red,
-              content: Text(
-                "Vui lòng nhập địa chỉ giao hàng",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+            if (address == null || address == "Chưa có địa chỉ") {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.red,
+                  content: Text(
+                    "Vui lòng nhập địa chỉ giao hàng",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              );
+              return;
+            } else if (email.isEmpty || !email.contains("@")) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: Colors.red,
+                  content: Text(
+                    "Vui lòng nhập email hợp lệ",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              );
+              return;
+            } else {
+              _handleOrder(email);
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.black,
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-          );
-          return;
-        }
-
-        if (email.isEmpty || !email.contains("@")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.red,
-              content: Text(
-                "Vui lòng nhập email hợp lệ",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          );
-          return;
-        }
-
-        // Nếu hợp lệ, chuyển sang trang thành công
-        Navigator.pushReplacementNamed(context, "/success");
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.black,
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        minimumSize: Size(double.infinity, 50),
-        elevation: 0,
-      ),
-      child: Text(
-        "Thanh toán",
-        style: TextStyle(fontSize: 16, color: Colors.white),
-      ),
-    );
+            minimumSize: Size(double.infinity, 50),
+            elevation: 0,
+          ),
+          child: Text(
+            "Thanh toán",
+            style: TextStyle(fontSize: 16, color: Colors.white),
+          ),
+        );
   }
 }

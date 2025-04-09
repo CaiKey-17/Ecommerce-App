@@ -1,8 +1,27 @@
+import 'package:app/globals/convert_money.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class PaymentSuccessScreen extends StatelessWidget {
+class PaymentSuccessScreen extends StatefulWidget {
+  const PaymentSuccessScreen({super.key});
+
+  @override
+  State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
+}
+
+class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
+  String generateTransactionId() {
+    final now = DateTime.now();
+    return "${now.microsecondsSinceEpoch}";
+  }
+
   @override
   Widget build(BuildContext context) {
+    final args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final total = args['total'];
+    String temp = ConvertMoney.currencyFormatter.format(total) + " đ";
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -37,9 +56,16 @@ class PaymentSuccessScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _transactionDetailRow("Mã giao dịch:", "#123456789"),
-                    _transactionDetailRow("Ngày giao dịch:", "18/03/2025"),
-                    _transactionDetailRow("Số tiền:", "500.000 VNĐ"),
+                    _transactionDetailRow(
+                      "Mã giao dịch:",
+                      "#${generateTransactionId()}",
+                    ),
+                    _transactionDetailRow(
+                      "Ngày giao dịch:",
+                      DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                    ),
+
+                    _transactionDetailRow("Số tiền: ", temp),
                   ],
                 ),
               ),

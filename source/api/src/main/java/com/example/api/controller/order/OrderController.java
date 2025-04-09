@@ -2,28 +2,33 @@ package com.example.api.controller.order;
 
 import com.example.api.model.Brand;
 import com.example.api.service.BrandService;
+import com.example.api.service.CartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/order")
 public class OrderController {
 
     @Autowired
-    private BrandService brandService;
+    private CartService cartService;
 
-    public OrderController(BrandService brandService) {
-        this.brandService = brandService;
-    }
-
-    @GetMapping("/list")
-    public ResponseEntity<List<Brand>> getAllCategory() {
-        List<Brand> brands = brandService.getAll();
-        return ResponseEntity.ok(brands);
+    @PostMapping("/confirm")
+    public ResponseEntity<?> confirmToCart(
+            @RequestParam int orderId,
+            @RequestParam String address,
+            @RequestParam double couponTotal,
+            @RequestParam String email,
+            @RequestParam int fkCouponId,
+            @RequestParam double pointTotal,
+            @RequestParam double priceTotal,
+            @RequestParam double ship
+            ) {
+        cartService.confirmToCart(orderId,address,couponTotal,email,fkCouponId,pointTotal,priceTotal,ship);
+        return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
     }
 }

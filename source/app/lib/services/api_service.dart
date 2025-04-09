@@ -111,4 +111,16 @@ abstract class ApiService {
   Future<Map<String, dynamic>> deleteToCart(
     @Query("orderDetailId") int orderDetailId,
   );
+
+  @POST("/order/confirm")
+  Future<Map<String, dynamic>> confirmToCart(
+    @Query("orderId") int orderId,
+    @Query("address") String address,
+    @Query("couponTotal") double couponTotal,
+    @Query("email") String email,
+    @Query("fkCouponId") int fkCouponId,
+    @Query("pointTotal") double pointTotal,
+    @Query("priceTotal") double priceTotal,
+    @Query("ship") double ship,
+  );
 }
