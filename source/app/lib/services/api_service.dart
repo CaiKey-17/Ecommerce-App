@@ -1,3 +1,5 @@
+import 'package:app/models/address.dart';
+import 'package:app/models/address_response.dart';
 import 'package:app/models/category_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/models/product_info.dart';
@@ -46,6 +48,22 @@ abstract class ApiService {
 
   @GET("/auth/user-info")
   Future<UserInfo> getUserInfo(@Header("Authorization") String token);
+
+  @GET("/address")
+  Future<List<AddressList>> getListAddress(
+    @Header("Authorization") String token,
+  );
+  @POST("/address/add")
+  Future<AddressResponse> addAddress(
+    @Header("Authorization") String token,
+    @Body() AddressList address,
+  );
+
+  @POST("/address/default")
+  Future<void> chooseAddressDefault(
+    @Header("Authorization") String token,
+    @Query("addressId") int addressId,
+  );
 
   @GET("/category/list")
   Future<List<CategoryInfo>> getListCategory();

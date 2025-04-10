@@ -21,6 +21,7 @@ public class Address {
     private String codes;
 
     private Integer userId;
+    private Integer status=0;
 
     public Address(String address, int id_fk,String codes) {
         this.address = address;

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AddressService {
@@ -17,7 +18,18 @@ public class AddressService {
         addressRepository.save(address);
     }
     public List<Address> getAddressesByUserId(Integer userId) {
-        return addressRepository.findByUserId(userId);
+        return addressRepository.findByUserIdOrderByStatusDesc(userId);
+    }
+
+
+    public Optional<Address> findAddressById(Integer id) {
+        return addressRepository.findById(id);
+    }
+
+    public void setDefaultAddress(int userId, int addressId) {
+        addressRepository.resetStatusByUserId(userId);
+
+        addressRepository.setDefaultAddress(addressId);
     }
 
 }

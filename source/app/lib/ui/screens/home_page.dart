@@ -77,6 +77,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchCategories() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       final response = await apiService.getListCategory();
       setState(() {
@@ -92,6 +95,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchProducts() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       final response = await apiService.getProducts();
       setState(() {
