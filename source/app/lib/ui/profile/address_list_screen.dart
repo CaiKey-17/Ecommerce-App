@@ -1,4 +1,9 @@
+import 'package:app/models/address.dart';
+import 'package:app/models/user_info.dart';
+import 'package:app/services/api_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'add_address_screen.dart';
 
 class AddressListScreen extends StatefulWidget {
@@ -7,34 +12,85 @@ class AddressListScreen extends StatefulWidget {
 }
 
 class _AddressListScreenState extends State<AddressListScreen> {
-  List<Map<String, dynamic>> addresses = [
-    {
-      'specificAddress': 'Số 87, Đường Số 1',
-      'location': 'Xã Phường Bình Thuận, Huyện Quận 7, Tỉnh TP. Hồ Chí Minh',
-      'isDefault': 'false',
-      'isCurrentDefault': false,
-    },
-    {
-      'specificAddress': 'Giấy đẹp Cao Minh - Đối diện chợ Sơn Hà',
-      'location': 'Xã Sơn Hà, Huyện Sơn Hà, Tỉnh Quảng Ngãi',
-      'isDefault': 'false',
-      'isCurrentDefault': false,
-    },
-    {
-      'specificAddress': 'Đại Học Tôn Đức Thắng, 19 Đ.Nguyễn Hữu Thọ',
-      'location': 'Xã Phường Tân Phong, Huyện Quận 7, Tỉnh TP. Hồ Chí Minh',
-      'isDefault': 'false',
-      'isCurrentDefault': false,
-    },
-  ];
+  late ApiService apiService;
+  List<AddressList> addresses_api = [];
+  List<Map<String, dynamic>> addresses = [];
+  int? indexSelected;
+  bool isLoading = true;
+  String token = "";
+  List<Map<String, dynamic>> convertAddressListToMap(List<AddressList> input) {
+    return input.map((address) {
+      List<String> parts = address.address.split(',');
+      String specificAddress = parts.isNotEmpty ? parts[0].trim() : '';
+      String location =
+          parts.length > 1 ? parts.sublist(1).join(',').trim() : '';
 
-  void _addNewAddress(Map<String, dynamic> newAddress) {
+      return {
+        'id': address.id,
+        'specificAddress': specificAddress,
+        'location': location,
+        'isDefault': address.status == 1 ? 'true' : 'false',
+        'isCurrentDefault': address.status == 1 ? true : false,
+      };
+    }).toList();
+  }
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      addresses.add({...newAddress, 'isCurrentDefault': false});
+      token = prefs.getString('token') ?? "";
+      fetchAddresses();
     });
   }
 
-  void _setDefaultAddress() {
+  Future<void> fetchAddresses() async {
+    try {
+      final response = await apiService.getListAddress(token);
+      setState(() {
+        addresses_api = response;
+
+        addresses = convertAddressListToMap(addresses_api);
+
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    apiService = ApiService(Dio());
+    _loadUserData();
+  }
+
+  Map<String, Object> convertSingleAddress(AddressList address) {
+    List<String> parts = address.address.split(',');
+    String specificAddress = parts.isNotEmpty ? parts[0].trim() : '';
+    String location = parts.length > 1 ? parts.sublist(1).join(',').trim() : '';
+
+    return {
+      'id': address.id!,
+      'specificAddress': specificAddress,
+      'location': location,
+      'isDefault': 'false',
+      'isCurrentDefault': false,
+    };
+  }
+
+  void _addNewAddress(AddressList n) {
+    final newAddress = convertSingleAddress(n);
+
+    setState(() {
+      addresses.add(newAddress);
+    });
+  }
+
+  void _setDefaultAddress() async {
     setState(() {
       final selectedAddressIndex = addresses.indexWhere(
         (address) => address['isDefault'] == 'true',
@@ -45,6 +101,9 @@ class _AddressListScreenState extends State<AddressListScreen> {
           address['isCurrentDefault'] = false;
         }
         addresses[selectedAddressIndex]['isCurrentDefault'] = true;
+        setState(() {
+          indexSelected = addresses[selectedAddressIndex]['id'];
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -53,6 +112,29 @@ class _AddressListScreenState extends State<AddressListScreen> {
         );
       }
     });
+
+    if (indexSelected != -1) {
+      try {
+        final response = await apiService.chooseAddressDefault(
+          token,
+          indexSelected!,
+        );
+        try {
+          UserInfo userInfo = await apiService.getUserInfo("Bearer $token");
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setStringList('addresses', userInfo.addresses);
+          await prefs.setStringList('codes', userInfo.codes);
+        } catch (e) {
+          print("Lỗi khi lấy thông tin người dùng: $e");
+        }
+      } catch (e) {
+        print("Lỗi khi gọi API: $e");
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -166,7 +248,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
               child: Center(
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    final newAddress = await Navigator.push(
+                    AddressList newAddress = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => AddAddressScreen(),

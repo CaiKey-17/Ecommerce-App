@@ -6,6 +6,7 @@ import 'package:app/models/cart_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/login/update_address_page.dart';
+import 'package:app/ui/profile/address_list_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -122,6 +123,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
       setState(() {
         shippingFee = (data['data']['total'] as num).toDouble();
+        checkFreeShip = false;
       });
       print("Phí vận chuyển: ${shippingFee}đ");
     } else {
@@ -221,22 +223,13 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   void _changeAddress() async {
-    final newAddress = await Navigator.push(
+    await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => UpdateAddressScreen(currentAddress: address),
-      ),
+      MaterialPageRoute(builder: (context) => AddressListScreen()),
     );
-    if (newAddress != null && newAddress.isNotEmpty) {
-      setState(() {
-        address = newAddress;
-      });
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      setState(() {
-        code = prefs.getString('code')!;
-      });
-      getShippingFee();
-    }
+    setState(() {
+      _loadUserData();
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -259,6 +252,10 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         address = "Chưa có địa chỉ";
       }
       getShippingFee();
+
+      if (_emailController.text.isEmpty && email.isNotEmpty) {
+        _emailController.text = email;
+      }
     });
   }
 
@@ -769,6 +766,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         : ElevatedButton(
           onPressed: () {
             String email = _emailController.text.trim();
+            print(email);
 
             if (address == null || address == "Chưa có địa chỉ") {
               ScaffoldMessenger.of(context).showSnackBar(

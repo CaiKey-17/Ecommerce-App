@@ -133,6 +133,77 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<List<AddressList>> getListAddress(token) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<AddressList>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/address',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!
+            .map((dynamic i) => AddressList.fromJson(i as Map<String, dynamic>))
+            .toList();
+    return value;
+  }
+
+  @override
+  Future<AddressResponse> addAddress(token, address) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final _data = <String, dynamic>{};
+    _data.addAll(address.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<AddressResponse>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/address/add',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = AddressResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<void> chooseAddressDefault(token, addressId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'addressId': addressId};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    await _dio.fetch<void>(
+      _setStreamType<void>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/address/default',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+  }
+
+  @override
   Future<List<CategoryInfo>> getListCategory() async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

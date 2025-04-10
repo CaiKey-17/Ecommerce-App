@@ -66,7 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     setState(() {
       fullAddress =
-          " ${_specificAddressController.text}, $wardName,$districtName, $provinceName";
+          "${_specificAddressController.text}, $wardName, $districtName, $provinceName";
     });
   }
 
