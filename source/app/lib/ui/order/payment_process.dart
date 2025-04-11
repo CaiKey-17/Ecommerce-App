@@ -2,10 +2,13 @@ import 'dart:convert';
 
 import 'package:app/globals/convert_money.dart';
 import 'package:app/keys/shipping.dart';
+import 'package:app/models/address.dart';
 import 'package:app/models/cart_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/login/update_address_page.dart';
+import 'package:app/ui/product_details.dart';
+import 'package:app/ui/profile/add_address_screen.dart';
 import 'package:app/ui/profile/address_list_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
@@ -67,6 +70,76 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     double subtotal = totalProductPrice + tax;
     double total = subtotal - totalDiscount + shippingFee;
     return total < 0 ? 0 : total;
+  }
+
+  Future<void> getShippingFeeWithoutLogin(
+    String codes,
+    String newAddress,
+  ) async {
+    setState(() {
+      var temp = codes.split(",");
+      address = newAddress;
+      selectedDistrict = int.parse(temp[1]);
+      selectedWard = int.parse(temp[0]);
+    });
+
+    int totalWeight = widget.cartItems.fold(
+      0,
+      (sum, item) => sum + (400 * item.quantity),
+    );
+
+    final url = Uri.parse(
+      "https://dev-online-gateway.ghn.vn/shiip/public-api/v2/shipping-order/fee",
+    );
+
+    final body = jsonEncode({
+      "to_district_id": selectedDistrict,
+      "to_ward_code": selectedWard.toString(),
+      "service_id": 53321,
+      "service_type_id": 2,
+      "weight": totalWeight,
+      "length": 30,
+      "width": 20,
+      "height": 10,
+      "insurance_value": 0,
+      "coupon": null,
+      "items":
+          widget.cartItems.map((item) {
+            return {
+              "name": item.nameVariant,
+              "quantity": item.quantity,
+              "weight": 400,
+              "length": 30,
+              "width": 20,
+              "height": 10,
+            };
+          }).toList(),
+    });
+    Shipping shipping = Shipping();
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Token": shipping.apiKey,
+        "ShopId": shipping.shopId,
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
+      setState(() {
+        shippingFee = (data['data']['total'] as num).toDouble();
+        checkFreeShip = false;
+      });
+      print("Phí vận chuyển: ${shippingFee}đ");
+    } else {
+      setState(() {
+        shippingFee = 0;
+        checkFreeShip = true;
+      });
+      print("Áp dụng Freeship!");
+    }
   }
 
   Future<void> getShippingFee() async {
@@ -223,13 +296,24 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   void _changeAddress() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AddressListScreen()),
-    );
-    setState(() {
-      _loadUserData();
-    });
+    if (token == "") {
+      AddressList newAddress = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AddAddressScreen()),
+      );
+      if (newAddress != null) {
+        _addNewAddress(newAddress);
+      }
+    }
+    if (token != "") {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AddressListScreen()),
+      );
+      setState(() {
+        _loadUserData();
+      });
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -237,6 +321,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     setState(() {
       email = prefs.getString('email') ?? "";
       points = prefs.getInt('points') ?? 0;
+      token = prefs.getString('token') ?? "";
+      userId = prefs.getInt('userId') ?? 0;
 
       List<String>? codes = prefs.getStringList('codes');
       if (codes != null && codes.isNotEmpty) {
@@ -809,5 +895,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
             style: TextStyle(fontSize: 16, color: Colors.white),
           ),
         );
+  }
+
+  void _addNewAddress(AddressList newAddress) {
+    getShippingFeeWithoutLogin(newAddress.codes, newAddress.address);
   }
 }

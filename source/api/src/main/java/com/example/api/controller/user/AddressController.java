@@ -56,21 +56,10 @@ public class AddressController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> getUserInfo(@RequestHeader("Authorization") String token, @RequestBody Address address) {
+    public ResponseEntity<?> getUserInfo(@RequestBody Address address) {
         try {
-            int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", ""));
-            Users user = userService.getUserById(userId);
-            Customer customer = customerService.getCustomerById(userId);
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                        "code", 404,
-                        "message", "Không tìm thấy người dùng"
-                ));
-            } else {
-                addressService.save(address);
-                return ResponseEntity.ok(Map.of("data", address, "message", "Thêm địa chỉ mới thành công"));
-
-            }
+            addressService.save(address);
+            return ResponseEntity.ok(Map.of("data", address, "message", "Thêm địa chỉ mới thành công"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "code", 500,
@@ -84,7 +73,6 @@ public class AddressController {
         try {
             int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", ""));
             Users user = userService.getUserById(userId);
-            Customer customer = customerService.getCustomerById(userId);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
                         "code", 404,

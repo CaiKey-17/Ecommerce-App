@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -146,10 +147,10 @@ class CartService {
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
         );
-      } else {
-        // Provider.of<CartProvider>(context, listen: false).removeItem(id);
-        return true;
       }
+      Provider.of<CartProvider>(context, listen: false).minusItem(id);
+
+      return true;
     } catch (error) {
       print("Lỗi khi gọi API: $error");
       Fluttertoast.showToast(
@@ -179,7 +180,6 @@ class CartService {
           gravity: ToastGravity.BOTTOM,
         );
       } else {
-        // Provider.of<CartProvider>(context, listen: false).removeItem(id);
         return true;
       }
     } catch (error) {

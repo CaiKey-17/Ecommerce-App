@@ -1,6 +1,8 @@
 package com.example.api.controller.cart;
 
+import com.example.api.dto.CartItemProjection;
 import com.example.api.dto.OrderDetailProjection;
+import com.example.api.repository.OrderDetailRepository;
 import com.example.api.security.JwtTokenUtil;
 import com.example.api.service.*;
 import jakarta.servlet.http.Cookie;
@@ -10,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +28,10 @@ public class CartController {
 
     @Autowired
     private OrderDetailService orderDetailService;
+
+
+    @Autowired
+    private OrderDetailRepository orderDetailRepository;
 
     @Autowired
     private ProductColorService productColorService;
@@ -148,5 +155,19 @@ public class CartController {
         return ResponseEntity.ok(list);
     }
 
+
+
+
+    @GetMapping("/quantity")
+    public ResponseEntity<Map<Integer, Integer>> getCartQuantities(@RequestParam("userId") Integer userId) {
+        List<CartItemProjection> items = orderDetailRepository.findCartItemsByCustomerId(userId);
+
+        Map<Integer, Integer> result = new HashMap<>();
+        for (CartItemProjection item : items) {
+            result.put(item.getId(), item.getQuantity());
+        }
+
+        return ResponseEntity.ok(result);
+    }
 
 }

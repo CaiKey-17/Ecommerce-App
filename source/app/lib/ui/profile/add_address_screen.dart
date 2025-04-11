@@ -78,9 +78,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         address: fullAddress!,
         codes: codes,
         userId: userId!,
-        status: 0,
+        status: token == "" ? 1 : 0,
       );
-      final response = await apiService.addAddress(token, addressList);
+      final response = await apiService.addAddress(addressList);
       AddressResponse addressResponse = response;
       AddressList a = addressResponse.data;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -253,7 +253,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
           },
         ),
         title: Text(
-          'Địa chỉ mới',
+          token == "" ? 'Chọn địa chỉ' : 'Địa chỉ mới',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
