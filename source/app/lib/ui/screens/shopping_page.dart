@@ -91,6 +91,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
       token: token,
       context: context,
     );
+
     if (check) {
       setState(() {
         cartItems[index].quantity++;
@@ -110,15 +111,11 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         setState(() {
           cartItems[index].quantity--;
         });
-        Provider.of<CartProvider>(
-          context,
-          listen: false,
-        ).updateItem(cartItems[index].orderDetailId, cartItems[index].quantity);
       }
     }
   }
 
-  void _removeItem(int index, int orderDetailId) async {
+  void _removeItem(int index, int orderDetailId, int id) async {
     bool check = await cartService.deleteToCart(
       orderDetailId: orderDetailId,
       context: context,
@@ -127,9 +124,8 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
       setState(() {
         cartItems.removeAt(index);
       });
-      int itemId = cartItems[index].orderDetailId;
 
-      Provider.of<CartProvider>(context, listen: false).removeItem(itemId);
+      Provider.of<CartProvider>(context, listen: false).removeItem(id);
     }
   }
 
@@ -141,6 +137,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     BuildContext context,
     int index,
     int orderDetailId,
+    int productId,
   ) {
     showDialog(
       context: context,
@@ -158,7 +155,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _removeItem(index, orderDetailId);
+                _removeItem(index, orderDetailId, productId);
               },
               child: const Text("Xóa", style: TextStyle(color: Colors.red)),
             ),
@@ -169,37 +166,63 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
   }
 
   void _removeSelectedItems() async {
-    List<int> orderDetailIds;
+    final selectedItems =
+        cartItems
+            .asMap()
+            .entries
+            .where((entry) => entry.value.selected)
+            .toList();
 
-    if (cartItems.any((item) => item.selected)) {
-      orderDetailIds =
-          cartItems
-              .where((item) => item.selected)
-              .map((item) => item.orderDetailId)
-              .toList();
-    } else {
-      orderDetailIds = cartItems.map((item) => item.orderDetailId).toList();
-    }
+    final itemsToRemove =
+        selectedItems.isNotEmpty
+            ? selectedItems
+            : cartItems.asMap().entries.toList();
 
-    for (int i = orderDetailIds.length - 1; i >= 0; i--) {
-      bool check = await cartService.deleteToCart(
-        orderDetailId: orderDetailIds[i],
-        context: context,
-      );
-      if (check) {
-        setState(() {
-          cartItems.removeWhere(
-            (item) => item.orderDetailId == orderDetailIds[i],
-          );
-        });
+    Provider.of<CartProvider>(context, listen: false).printCartItems();
 
-        Provider.of<CartProvider>(
-          context,
-          listen: false,
-        ).removeItem(orderDetailIds[i]);
-      }
+    for (int i = itemsToRemove.length - 1; i >= 0; i--) {
+      final index = itemsToRemove[i].key;
+      final item = itemsToRemove[i].value;
+      print("Trá");
+      print(item.quantity);
+      print(item.orderDetailId);
+
+      _removeItem(index, item.orderDetailId, item.orderDetailId);
     }
   }
+
+  //   void _removeSelectedItems() async {
+  //     List<int> orderDetailIds;
+
+  //     if (cartItems.any((item) => item.selected)) {
+  //       orderDetailIds =
+  //           cartItems
+  //               .where((item) => item.selected)
+  //               .map((item) => item.productId)
+  //               .toList();
+  //     } else {
+  //       orderDetailIds = cartItems.map((item) => item.productId).toList();
+  //     }
+
+  //     for (int i = orderDetailIds.length - 1; i >= 0; i--) {
+  // _removeItem(i,  orderDetailIds[i], ...);
+
+  //       bool check = await cartService.deleteToCart(
+  //         orderDetailId: orderDetailIds[i],
+  //         context: context,
+  //       );
+  //       if (check) {
+  //         setState(() {
+  //           cartItems.removeWhere((item) => item.productId == orderDetailIds[i]);
+  //         });
+
+  //         Provider.of<CartProvider>(
+  //           context,
+  //           listen: false,
+  //         ).removeItem(orderDetailIds[i]);
+  //       }
+  //     }
+  //   }
 
   void _showDeleteAllConfirmation(BuildContext context) {
     bool hasSelectedItems = cartItems.any((item) => item.selected);
@@ -358,6 +381,8 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                                   child: Image.network(
                                     item.image,
                                     fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: 150,
                                   ),
                                 ),
                               ),
@@ -506,6 +531,7 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                                   context,
                                   index,
                                   item.orderDetailId,
+                                  item.productId,
                                 ),
                             icon: const Icon(Icons.close, size: 14),
                             color: Colors.grey.shade600,

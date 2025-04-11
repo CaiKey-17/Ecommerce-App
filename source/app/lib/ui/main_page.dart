@@ -1,3 +1,4 @@
+import 'package:app/ui/product_details.dart';
 import 'package:app/ui/screens/activity_page.dart';
 import 'package:app/ui/screens/category_page.dart';
 import 'package:app/ui/screens/home_page.dart';
@@ -8,6 +9,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/providers/cart_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
@@ -22,6 +24,18 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   late int _selectedIndex;
+  int? userId;
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getInt('userId') ?? -1;
+      Future.microtask(() {
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);
+        cartProvider.fetchCartFromApi(userId);
+      });
+    });
+  }
 
   List<Widget> pages = const [
     HomePage(),
@@ -57,6 +71,7 @@ class _MainPageState extends State<MainPage> {
       const ActivityPage(),
       const ProfilePage(),
     ];
+    _loadUserData();
   }
 
   @override

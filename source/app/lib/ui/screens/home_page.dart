@@ -130,6 +130,7 @@ class _HomePageState extends State<HomePage> {
     apiService = ApiService(Dio());
     cartRepository = CartRepository(apiService);
     cartService = CartService(cartRepository: cartRepository);
+
     fetchCategories();
     fetchProducts();
     _loadInitialData();
@@ -546,8 +547,11 @@ class _HomePageState extends State<HomePage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
                       child: Image.network(
-                        categories[index].images ?? 'error.jpg',
+                        categories[index].images ??
+                            "https://file.hstatic.net/200000722513/file/thang_02_layout_web_-12.png",
                         fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 150,
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
                           return Center(child: CircularProgressIndicator());

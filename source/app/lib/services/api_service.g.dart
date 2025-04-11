@@ -10,7 +10,7 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://192.168.70.182:8080/api';
+    baseUrl ??= 'http://192.168.0.169:8080/api';
   }
 
   final Dio _dio;
@@ -159,11 +159,10 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<AddressResponse> addAddress(token, address) async {
+  Future<AddressResponse> addAddress(address) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'Authorization': token};
-    _headers.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(address.toJson());
     final _result = await _dio.fetch<Map<String, dynamic>>(
@@ -426,6 +425,29 @@ class _ApiService implements ApiService {
         _result.data!
             .map((dynamic i) => CartInfo.fromJson(i as Map<String, dynamic>))
             .toList();
+    return value;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getRawQuantityInCart(userId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'userId': userId};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Map<String, dynamic>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/cart/quantity',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value = Map<String, dynamic>.from(_result.data!);
     return value;
   }
 

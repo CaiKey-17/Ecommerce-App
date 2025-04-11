@@ -30,7 +30,7 @@ class ApiResponse<T> {
   ApiResponse({required this.code, required this.message, this.data});
 }
 
-@RestApi(baseUrl: "http://192.168.70.182:8080/api")
+@RestApi(baseUrl: "http://192.168.0.169:8080/api")
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -54,10 +54,7 @@ abstract class ApiService {
     @Header("Authorization") String token,
   );
   @POST("/address/add")
-  Future<AddressResponse> addAddress(
-    @Header("Authorization") String token,
-    @Body() AddressList address,
-  );
+  Future<AddressResponse> addAddress(@Body() AddressList address);
 
   @POST("/address/default")
   Future<void> chooseAddressDefault(
@@ -103,6 +100,11 @@ abstract class ApiService {
     @Header("Authorization") String? token,
     @Query("id") int? id,
   });
+
+  @GET("/cart/quantity")
+  Future<Map<String, dynamic>> getRawQuantityInCart(
+    @Query("userId") int? userId,
+  );
 
   @POST("/auth/forgot-password")
   Future<void> sendResetPassword(@Query("email") String email);

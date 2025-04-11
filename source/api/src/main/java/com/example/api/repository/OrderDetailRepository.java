@@ -1,5 +1,6 @@
 package com.example.api.repository;
 
+import com.example.api.dto.CartItemProjection;
 import com.example.api.dto.OrderDetailProjection;
 import com.example.api.model.Order_detail;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -52,4 +53,14 @@ public interface OrderDetailRepository extends JpaRepository<Order_detail, Integ
             "WHERE c.id = :customerId AND od.process = 'giohang'",
             nativeQuery = true)
     List<OrderDetailProjection> findOrderDetailsByCustomerId(@Param("customerId") Integer customerId);
+
+
+    @Query(value = "SELECT d.id AS id, d.quantity AS quantity " +
+            "FROM order_details d, orders o " +
+            "WHERE d.fk_order_id = o.id " +
+            "AND o.process = 'giohang' " +
+            "AND o.id_fk_customer = :customerId",
+            nativeQuery = true)
+    List<CartItemProjection> findCartItemsByCustomerId(@Param("customerId") Integer customerId);
+
 }
