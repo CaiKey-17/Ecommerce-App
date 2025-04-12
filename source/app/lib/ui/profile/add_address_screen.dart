@@ -38,11 +38,33 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   String? _selectedProvinceCode;
   String? _selectedDistrictCode;
 
+  // FocusNode cho ô địa chỉ cụ thể
+  final _specificAddressFocusNode = FocusNode();
+
+  // FocusNode cho các ô chọn Tỉnh/Quận/Xã
+  final _provinceFocusNode = FocusNode();
+  final _districtFocusNode = FocusNode();
+  final _wardFocusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
     apiService = ApiService(Dio());
     _loadUserData();
+
+    // Thêm listener cho FocusNode để rebuild khi focus thay đổi
+    _specificAddressFocusNode.addListener(() {
+      setState(() {});
+    });
+    _provinceFocusNode.addListener(() {
+      setState(() {});
+    });
+    _districtFocusNode.addListener(() {
+      setState(() {});
+    });
+    _wardFocusNode.addListener(() {
+      setState(() {});
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -55,7 +77,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   }
 
   Future<void> _addAddress() async {
-    if (selectedDistrict == null ||
+    if (selectedProvince == null ||
         selectedDistrict == null ||
         selectedWard == null) {
       Fluttertoast.showToast(msg: "Vui lòng chọn đầy đủ địa chỉ");
@@ -168,12 +190,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     return ward != null ? ward['WardName'] : "Không tìm thấy xã";
   }
 
-  @override
-  void dispose() {
-    _addressController.dispose();
-    super.dispose();
-  }
-
   Future<void> fetchProvinces() async {
     Shipping shipping = new Shipping();
     final url = Uri.parse(
@@ -199,9 +215,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       body: jsonEncode({"province_id": provinceId}),
     );
 
-    print(
-      "Response Districts: ${utf8.decode(response.bodyBytes)}",
-    ); // Debug API UTF-8
+    print("Response Districts: ${utf8.decode(response.bodyBytes)}");
 
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -227,9 +241,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       body: jsonEncode({"district_id": districtId}),
     );
 
-    print(
-      "Response Wards: ${utf8.decode(response.bodyBytes)}",
-    ); // Debug API UTF-8
+    print("Response Wards: ${utf8.decode(response.bodyBytes)}");
 
     if (response.statusCode == 200) {
       final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -269,9 +281,29 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 16),
-
               DropdownButtonFormField(
-                hint: Text("Chọn tỉnh/thành"),
+                focusNode: _provinceFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Chọn tỉnh/thành',
+                  labelStyle: TextStyle(
+                    color:
+                        _provinceFocusNode.hasFocus
+                            ? Colors.blue
+                            : Colors.black,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
                 value: selectedProvince,
                 items:
                     provinces.map((province) {
@@ -289,16 +321,42 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     fetchDistricts(int.parse(value.toString()));
                   });
                 },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Vui lòng chọn tỉnh/thành';
+                  }
+                  return null;
+                },
               ),
+              SizedBox(height: 16),
               DropdownButtonFormField(
-                hint: Text("Chọn quận/huyện"),
+                focusNode: _districtFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Chọn quận/huyện',
+                  labelStyle: TextStyle(
+                    color:
+                        _districtFocusNode.hasFocus
+                            ? Colors.blue
+                            : Colors.black,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
                 value: selectedDistrict,
                 items:
                     districts.map((district) {
                       return DropdownMenuItem(
-                        value:
-                            district['DistrictID']
-                                .toString(), // Chuyển thành String
+                        value: district['DistrictID'].toString(),
                         child: Text(
                           district['DistrictName'],
                           style: TextStyle(fontFamily: 'Roboto'),
@@ -308,21 +366,42 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                 onChanged: (value) {
                   setState(() {
                     selectedDistrict = value.toString();
-                    fetchWards(
-                      int.parse(value.toString()),
-                    ); // Gọi API phường/xã
+                    fetchWards(int.parse(value.toString()));
                   });
                 },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Vui lòng chọn quận/huyện';
+                  }
+                  return null;
+                },
               ),
-
+              SizedBox(height: 16),
               DropdownButtonFormField(
-                hint: Text("Chọn phường/xã"),
+                focusNode: _wardFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Chọn phường/xã',
+                  labelStyle: TextStyle(
+                    color: _wardFocusNode.hasFocus ? Colors.blue : Colors.black,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
                 value: selectedWard,
                 items:
                     wards.map((ward) {
                       return DropdownMenuItem(
-                        value:
-                            ward['WardCode'].toString(), // Chuyển thành String
+                        value: ward['WardCode'].toString(),
                         child: Text(ward['WardName']),
                       );
                     }).toList(),
@@ -331,20 +410,42 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     selectedWard = value.toString();
                   });
                 },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Vui lòng chọn phường/xã';
+                  }
+                  return null;
+                },
               ),
-
               SizedBox(height: 16),
-
               TextFormField(
                 controller: _specificAddressController,
+                focusNode: _specificAddressFocusNode,
                 decoration: InputDecoration(
                   labelText: 'Địa chỉ cụ thể',
+                  labelStyle: TextStyle(
+                    color:
+                        _specificAddressFocusNode.hasFocus
+                            ? Colors.blue
+                            : Colors.black,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
+                onTapOutside: (event) {
+                  _specificAddressFocusNode.unfocus();
+                },
               ),
-
               SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _addAddress,
@@ -375,5 +476,16 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _specificAddressController.dispose();
+    _addressController.dispose();
+    _specificAddressFocusNode.dispose();
+    _provinceFocusNode.dispose();
+    _districtFocusNode.dispose();
+    _wardFocusNode.dispose();
+    super.dispose();
   }
 }

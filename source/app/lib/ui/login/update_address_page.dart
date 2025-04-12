@@ -26,8 +26,10 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
 
   TextEditingController _specificAddressController = TextEditingController();
 
+  // FocusNode cho ô địa chỉ cụ thể
   final _specificAddressFocusNode = FocusNode();
 
+  // FocusNode cho các ô chọn Tỉnh/Quận/Xã
   final _provinceFocusNode = FocusNode();
   final _districtFocusNode = FocusNode();
   final _wardFocusNode = FocusNode();
@@ -48,6 +50,7 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
 
     fetchProvinces();
 
+    // Thêm listener cho FocusNode để rebuild khi focus thay đổi
     _specificAddressFocusNode.addListener(() {
       setState(() {});
     });
@@ -198,7 +201,7 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
       appBar: AppBar(
         title: Text("Cập nhật địa chỉ", style: TextStyle(color: Colors.white)),
         centerTitle: true,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue, // AppBar màu xanh dương
         iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
@@ -375,9 +378,9 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
-                backgroundColor: Colors.blue,
+                backgroundColor: Colors.blue, // Khung màu xanh dương
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10), // Bo góc vuông hơn
                 ),
               ),
             ),
