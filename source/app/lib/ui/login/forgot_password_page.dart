@@ -14,6 +14,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool isButtonEnabled = false;
   bool isLoading = false;
 
+  final _emailFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _emailFocusNode.addListener(() {
+      setState(() {});
+    });
+
+    _controller.addListener(() {
+      _validateInput(_controller.text);
+    });
+  }
+
   bool isValidEmail(String email) {
     final RegExp emailRegex = RegExp(
       r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
@@ -83,7 +97,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         elevation: 7,
         shadowColor: Colors.black.withOpacity(0.3),
       ),
-
       body: Container(
         color: Colors.white,
         child: Padding(
@@ -91,23 +104,38 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
+              TextFormField(
                 controller: _controller,
+                focusNode: _emailFocusNode,
                 decoration: InputDecoration(
                   labelText: "Email",
-                  prefixIcon: Icon(Icons.email, color: Colors.blue),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: Colors.blue.shade300),
+                  prefixIcon: Icon(
+                    Icons.email,
+                    color: _emailFocusNode.hasFocus ? Colors.blue : Colors.grey,
                   ),
-                  errorText: _errorMessage,
+                  labelStyle: TextStyle(
+                    color:
+                        _emailFocusNode.hasFocus ? Colors.blue : Colors.black,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide(color: Colors.blue, width: 2),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  errorText: _errorMessage,
                 ),
                 keyboardType: TextInputType.emailAddress,
                 onChanged: _validateInput,
+                onTapOutside: (event) {
+                  _emailFocusNode.unfocus();
+                },
               ),
               SizedBox(height: 20),
               SizedBox(
@@ -117,7 +145,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       isButtonEnabled && !isLoading
                           ? () => sendResetPassword(_controller.text.trim())
                           : null,
-
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 55),
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -150,5 +177,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _emailFocusNode.dispose();
+    super.dispose();
   }
 }

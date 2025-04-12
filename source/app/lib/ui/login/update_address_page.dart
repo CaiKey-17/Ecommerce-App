@@ -26,6 +26,12 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
 
   TextEditingController _specificAddressController = TextEditingController();
 
+  final _specificAddressFocusNode = FocusNode();
+
+  final _provinceFocusNode = FocusNode();
+  final _districtFocusNode = FocusNode();
+  final _wardFocusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +47,19 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
     }
 
     fetchProvinces();
+
+    _specificAddressFocusNode.addListener(() {
+      setState(() {});
+    });
+    _provinceFocusNode.addListener(() {
+      setState(() {});
+    });
+    _districtFocusNode.addListener(() {
+      setState(() {});
+    });
+    _wardFocusNode.addListener(() {
+      setState(() {});
+    });
   }
 
   Future<void> fetchProvinces() async {
@@ -176,14 +195,37 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Cập nhật địa chỉ"), centerTitle: true),
-
+      appBar: AppBar(
+        title: Text("Cập nhật địa chỉ", style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             DropdownButtonFormField(
-              hint: Text("Chọn tỉnh/thành"),
+              focusNode: _provinceFocusNode,
+              decoration: InputDecoration(
+                labelText: 'Chọn tỉnh/thành',
+                labelStyle: TextStyle(
+                  color:
+                      _provinceFocusNode.hasFocus ? Colors.blue : Colors.black,
+                ),
+                floatingLabelBehavior: FloatingLabelBehavior.auto,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: Colors.blue, width: 2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: Colors.grey, width: 1),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
               value: selectedProvince,
               items:
                   provinces.map((province) {
@@ -201,9 +243,35 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
                   fetchDistricts(int.parse(value.toString()));
                 });
               },
+              validator: (value) {
+                if (value == null) {
+                  return 'Vui lòng chọn tỉnh/thành';
+                }
+                return null;
+              },
             ),
+            SizedBox(height: 16),
             DropdownButtonFormField(
-              hint: Text("Chọn quận/huyện"),
+              focusNode: _districtFocusNode,
+              decoration: InputDecoration(
+                labelText: 'Chọn quận/huyện',
+                labelStyle: TextStyle(
+                  color:
+                      _districtFocusNode.hasFocus ? Colors.blue : Colors.black,
+                ),
+                floatingLabelBehavior: FloatingLabelBehavior.auto,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: Colors.blue, width: 2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: Colors.grey, width: 1),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
               value: selectedDistrict,
               items:
                   districts.map((district) {
@@ -221,10 +289,34 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
                   fetchWards(int.parse(value.toString()));
                 });
               },
+              validator: (value) {
+                if (value == null) {
+                  return 'Vui lòng chọn quận/huyện';
+                }
+                return null;
+              },
             ),
-
+            SizedBox(height: 16),
             DropdownButtonFormField(
-              hint: Text("Chọn phường/xã"),
+              focusNode: _wardFocusNode,
+              decoration: InputDecoration(
+                labelText: 'Chọn phường/xã',
+                labelStyle: TextStyle(
+                  color: _wardFocusNode.hasFocus ? Colors.blue : Colors.black,
+                ),
+                floatingLabelBehavior: FloatingLabelBehavior.auto,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: Colors.blue, width: 2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: Colors.grey, width: 1),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
               value: selectedWard,
               items:
                   wards.map((ward) {
@@ -238,25 +330,70 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
                   selectedWard = value.toString();
                 });
               },
+              validator: (value) {
+                if (value == null) {
+                  return 'Vui lòng chọn phường/xã';
+                }
+                return null;
+              },
             ),
-
             SizedBox(height: 16),
-
             TextFormField(
               controller: _specificAddressController,
+              focusNode: _specificAddressFocusNode,
               decoration: InputDecoration(
                 labelText: 'Địa chỉ cụ thể',
+                labelStyle: TextStyle(
+                  color:
+                      _specificAddressFocusNode.hasFocus
+                          ? Colors.blue
+                          : Colors.black,
+                ),
+                floatingLabelBehavior: FloatingLabelBehavior.auto,
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: Colors.blue, width: 2),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15),
+                  borderSide: BorderSide(color: Colors.grey, width: 1),
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
+              onTapOutside: (event) {
+                _specificAddressFocusNode.unfocus();
+              },
             ),
             SizedBox(height: 20),
-
-            ElevatedButton(onPressed: _saveAddress, child: Text("Lưu địa chỉ")),
+            ElevatedButton(
+              onPressed: _saveAddress,
+              child: Text(
+                "Lưu địa chỉ",
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 50),
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _specificAddressController.dispose();
+    _specificAddressFocusNode.dispose();
+    _provinceFocusNode.dispose();
+    _districtFocusNode.dispose();
+    _wardFocusNode.dispose();
+    super.dispose();
   }
 }

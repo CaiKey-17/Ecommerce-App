@@ -12,9 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: Colors.blue[700],
-      ),
+      theme: ThemeData(primaryColor: Colors.blue[700]),
       home: UserInfoScreen(),
     );
   }
@@ -29,7 +27,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController _specificAddressController = TextEditingController();
+  final TextEditingController _specificAddressController =
+      TextEditingController();
 
   List<dynamic> _provinces = [];
   List<dynamic> _districts = [];
@@ -45,7 +44,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     _fetchProvinces();
   }
 
-  /// Lấy danh sách tỉnh/thành phố
   Future<void> _fetchProvinces() async {
     final url = 'https://vn-public-apis.fpo.vn/provinces/getAll?limit=-1';
     try {
@@ -63,9 +61,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     }
   }
 
-  /// Lấy danh sách quận/huyện theo tỉnh
   Future<void> _fetchDistricts(String provinceCode) async {
-    final url = 'https://vn-public-apis.fpo.vn/districts/getByProvince?provinceCode=$provinceCode&limit=-1';
+    final url =
+        'https://vn-public-apis.fpo.vn/districts/getByProvince?provinceCode=$provinceCode&limit=-1';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -84,9 +82,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     }
   }
 
-  /// Lấy danh sách xã/phường theo quận/huyện
   Future<void> _fetchWards(String districtCode) async {
-    final url = 'https://vn-public-apis.fpo.vn/wards/getByDistrict?districtCode=$districtCode&limit=-1';
+    final url =
+        'https://vn-public-apis.fpo.vn/wards/getByDistrict?districtCode=$districtCode&limit=-1';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -121,8 +119,18 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
           child: Column(
             children: [
               _buildTextField("Họ và tên", nameController, Icons.person),
-              _buildTextField("Số điện thoại", phoneController, Icons.phone, keyboardType: TextInputType.phone),
-              _buildTextField("Email", emailController, Icons.email, keyboardType: TextInputType.emailAddress),
+              _buildTextField(
+                "Số điện thoại",
+                phoneController,
+                Icons.phone,
+                keyboardType: TextInputType.phone,
+              ),
+              _buildTextField(
+                "Email",
+                emailController,
+                Icons.email,
+                keyboardType: TextInputType.emailAddress,
+              ),
               SizedBox(height: 20),
               _buildSectionTitle("ĐỊA CHỈ MẶC ĐỊNH"),
               _buildDropdown(
@@ -158,10 +166,15 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                 },
               ),
               TextFormField(
-                        controller: _specificAddressController,
-                        decoration: InputDecoration(labelText: 'Địa chỉ cụ thể', border: OutlineInputBorder(borderRadius: BorderRadius.circular(15))),
+                controller: _specificAddressController,
+                decoration: InputDecoration(
+                  labelText: 'Địa chỉ cụ thể',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
               ),
-                      SizedBox(height: 16),
+              SizedBox(height: 16),
               SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {
@@ -187,7 +200,12 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, IconData icon, {TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller,
+    IconData icon, {
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8),
       child: TextField(
@@ -196,7 +214,10 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: Colors.blue[700]),
           labelText: label,
-          labelStyle: TextStyle(color: Colors.blue[700], fontWeight: FontWeight.w500),
+          labelStyle: TextStyle(
+            color: Colors.blue[700],
+            fontWeight: FontWeight.w500,
+          ),
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(
@@ -216,17 +237,23 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     );
   }
 
-  Widget _buildDropdown({required String label, required String? value, required List<dynamic> items, required Function(String?) onChanged}) {
+  Widget _buildDropdown({
+    required String label,
+    required String? value,
+    required List<dynamic> items,
+    required Function(String?) onChanged,
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8),
       child: DropdownButtonFormField<String>(
         value: value,
-        items: items.map((item) {
-          return DropdownMenuItem<String>(
-            value: item['code'],
-            child: Text(item['name']),
-          );
-        }).toList(),
+        items:
+            items.map((item) {
+              return DropdownMenuItem<String>(
+                value: item['code'],
+                child: Text(item['name']),
+              );
+            }).toList(),
         onChanged: onChanged,
         decoration: InputDecoration(
           labelText: label,
@@ -243,7 +270,11 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
       padding: EdgeInsets.only(top: 10, bottom: 10),
       child: Text(
         title,
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blue[700]),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          color: Colors.blue[700],
+        ),
       ),
     );
   }
