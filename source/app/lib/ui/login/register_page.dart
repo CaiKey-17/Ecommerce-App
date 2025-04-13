@@ -41,10 +41,69 @@ class _RegisterPageState extends State<RegisterPage> {
   String? fullAddress;
   String codes = "";
 
+  final _fullNameFocusNode = FocusNode();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+  final _confirmPasswordFocusNode = FocusNode();
+  final _specificAddressFocusNode = FocusNode();
+  final _provinceFocusNode = FocusNode();
+  final _districtFocusNode = FocusNode();
+  final _wardFocusNode = FocusNode();
+
+  String? _emailError;
+  String? _confirmPasswordError;
+
   @override
   void initState() {
     super.initState();
     fetchProvinces();
+
+    _fullNameFocusNode.addListener(() {
+      setState(() {});
+    });
+    _emailFocusNode.addListener(() {
+      setState(() {});
+    });
+    _passwordFocusNode.addListener(() {
+      setState(() {});
+    });
+    _confirmPasswordFocusNode.addListener(() {
+      setState(() {});
+    });
+    _specificAddressFocusNode.addListener(() {
+      setState(() {});
+    });
+    _provinceFocusNode.addListener(() {
+      setState(() {});
+    });
+    _districtFocusNode.addListener(() {
+      setState(() {});
+    });
+    _wardFocusNode.addListener(() {
+      setState(() {});
+    });
+
+    _emailController.addListener(() {
+      setState(() {
+        _emailError = _validateEmail(_emailController.text.trim());
+      });
+    });
+
+    _confirmPasswordController.addListener(() {
+      setState(() {
+        _confirmPasswordError = _validateConfirmPassword(
+          _confirmPasswordController.text.trim(),
+        );
+      });
+    });
+
+    _passwordController.addListener(() {
+      setState(() {
+        _confirmPasswordError = _validateConfirmPassword(
+          _confirmPasswordController.text.trim(),
+        );
+      });
+    });
   }
 
   void getNameFromIds(String idString) {
@@ -71,7 +130,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String getProvinceName(String provinceId) {
-    // Giả sử provinces là danh sách các tỉnh đã tải về
     var province = provinces.firstWhere(
       (element) => element['ProvinceID'].toString() == provinceId,
       orElse: () => null,
@@ -80,7 +138,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String getDistrictName(String districtId) {
-    // Giả sử districts là danh sách các huyện đã tải về
     var district = districts.firstWhere(
       (element) => element['DistrictID'].toString() == districtId,
       orElse: () => null,
@@ -89,7 +146,6 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String getWardName(String wardId) {
-    // Giả sử wards là danh sách các xã/phường đã tải về
     var ward = wards.firstWhere(
       (element) => element['WardCode'].toString() == wardId,
       orElse: () => null,
@@ -98,7 +154,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-    if (selectedDistrict == null ||
+    if (selectedProvince == null ||
         selectedDistrict == null ||
         selectedWard == null) {
       Fluttertoast.showToast(msg: "Vui lòng chọn đầy đủ địa chỉ");
@@ -248,12 +304,26 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  // bool _isValidEmail(String email) {
-  //   final RegExp regex = RegExp(
-  //     r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$',
-  //   );
-  //   return regex.hasMatch(email);
-  // }
+  String? _validateEmail(String email) {
+    if (email.isEmpty) {
+      return null;
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      return "Email không hợp lệ!";
+    }
+    return null;
+  }
+
+  String? _validateConfirmPassword(String confirmPassword) {
+    if (confirmPassword.isEmpty) {
+      return null;
+    }
+    if (confirmPassword != _passwordController.text.trim()) {
+      return "Mật khẩu không khớp";
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -288,6 +358,9 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Container(
               height: MediaQuery.of(context).size.height * 0.75,
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+              margin: EdgeInsets.only(
+                top: MediaQuery.of(context).size.height * 0.25,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -308,52 +381,140 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                       ),
-
                       SizedBox(height: 20),
                       TextFormField(
                         controller: _fullNameController,
                         keyboardType: TextInputType.text,
+                        focusNode: _fullNameFocusNode,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.person),
+                          prefixIcon: Icon(
+                            Icons.person,
+                            color:
+                                _fullNameFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.grey,
+                          ),
                           labelText: 'Họ tên',
+                          labelStyle: TextStyle(
+                            color:
+                                _fullNameFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
+                        onTapOutside: (event) {
+                          _fullNameFocusNode.unfocus();
+                        },
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.isEmpty) {
                             return 'Vui lòng nhập họ tên';
+                          }
                           return null;
                         },
                       ),
                       SizedBox(height: 16),
-
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        focusNode: _emailFocusNode,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.email),
+                          prefixIcon: Icon(
+                            Icons.email,
+                            color:
+                                _emailFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.grey,
+                          ),
                           labelText: 'Địa chỉ Email',
+                          labelStyle: TextStyle(
+                            color:
+                                _emailFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
+                          errorText: _emailError,
                         ),
+                        onTapOutside: (event) {
+                          _emailFocusNode.unfocus();
+                        },
                         validator: (value) {
-                          if (value == null || value.isEmpty)
+                          if (value == null || value.trim().isEmpty) {
                             return 'Vui lòng nhập email của bạn';
-                          // if (!_isValidEmail(value))
-                          //   return 'Định dạng email không hợp lệ';
-                          return null;
+                          }
+                          return _validateEmail(value.trim());
                         },
                       ),
                       SizedBox(height: 16),
-
                       TextFormField(
                         controller: _passwordController,
                         obscureText: !_isPasswordVisible,
+                        focusNode: _passwordFocusNode,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.lock),
+                          prefixIcon: Icon(
+                            Icons.lock,
+                            color:
+                                _passwordFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.grey,
+                          ),
                           labelText: 'Mật khẩu',
+                          labelStyle: TextStyle(
+                            color:
+                                _passwordFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -362,6 +523,10 @@ class _RegisterPageState extends State<RegisterPage> {
                               _isPasswordVisible
                                   ? Icons.visibility
                                   : Icons.visibility_off,
+                              color:
+                                  _passwordFocusNode.hasFocus
+                                      ? Colors.blue
+                                      : Colors.grey,
                             ),
                             onPressed: () {
                               setState(() {
@@ -370,15 +535,51 @@ class _RegisterPageState extends State<RegisterPage> {
                             },
                           ),
                         ),
+                        onTapOutside: (event) {
+                          _passwordFocusNode.unfocus();
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Vui lòng nhập mật khẩu';
+                          }
+                          return null;
+                        },
                       ),
                       SizedBox(height: 16),
-
                       TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: !_isConfirmPasswordVisible,
+                        focusNode: _confirmPasswordFocusNode,
                         decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.lock_outline),
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color:
+                                _confirmPasswordFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.grey,
+                          ),
                           labelText: 'Xác nhận mật khẩu',
+                          labelStyle: TextStyle(
+                            color:
+                                _confirmPasswordFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
@@ -387,6 +588,10 @@ class _RegisterPageState extends State<RegisterPage> {
                               _isConfirmPasswordVisible
                                   ? Icons.visibility
                                   : Icons.visibility_off,
+                              color:
+                                  _confirmPasswordFocusNode.hasFocus
+                                      ? Colors.blue
+                                      : Colors.grey,
                             ),
                             onPressed: () {
                               setState(() {
@@ -395,12 +600,48 @@ class _RegisterPageState extends State<RegisterPage> {
                               });
                             },
                           ),
+                          errorText: _confirmPasswordError,
                         ),
+                        onTapOutside: (event) {
+                          _confirmPasswordFocusNode.unfocus();
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Vui lòng xác nhận mật khẩu';
+                          }
+                          return _validateConfirmPassword(value.trim());
+                        },
                       ),
                       SizedBox(height: 16),
-
                       DropdownButtonFormField(
-                        hint: Text("Chọn tỉnh/thành"),
+                        focusNode: _provinceFocusNode,
+                        decoration: InputDecoration(
+                          labelText: 'Chọn tỉnh/thành',
+                          labelStyle: TextStyle(
+                            color:
+                                _provinceFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
                         value: selectedProvince,
                         items:
                             provinces.map((province) {
@@ -418,16 +659,48 @@ class _RegisterPageState extends State<RegisterPage> {
                             fetchDistricts(int.parse(value.toString()));
                           });
                         },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Vui lòng chọn tỉnh/thành';
+                          }
+                          return null;
+                        },
                       ),
+                      SizedBox(height: 16),
                       DropdownButtonFormField(
-                        hint: Text("Chọn quận/huyện"),
+                        focusNode: _districtFocusNode,
+                        decoration: InputDecoration(
+                          labelText: 'Chọn quận/huyện',
+                          labelStyle: TextStyle(
+                            color:
+                                _districtFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
                         value: selectedDistrict,
                         items:
                             districts.map((district) {
                               return DropdownMenuItem(
-                                value:
-                                    district['DistrictID']
-                                        .toString(), // Chuyển thành String
+                                value: district['DistrictID'].toString(),
                                 child: Text(
                                   district['DistrictName'],
                                   style: TextStyle(fontFamily: 'Roboto'),
@@ -437,22 +710,51 @@ class _RegisterPageState extends State<RegisterPage> {
                         onChanged: (value) {
                           setState(() {
                             selectedDistrict = value.toString();
-                            fetchWards(
-                              int.parse(value.toString()),
-                            ); // Gọi API phường/xã
+                            fetchWards(int.parse(value.toString()));
                           });
                         },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Vui lòng chọn quận/huyện';
+                          }
+                          return null;
+                        },
                       ),
-
+                      SizedBox(height: 16),
                       DropdownButtonFormField(
-                        hint: Text("Chọn phường/xã"),
+                        focusNode: _wardFocusNode,
+                        decoration: InputDecoration(
+                          labelText: 'Chọn phường/xã',
+                          labelStyle: TextStyle(
+                            color:
+                                _wardFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
                         value: selectedWard,
                         items:
                             wards.map((ward) {
                               return DropdownMenuItem(
-                                value:
-                                    ward['WardCode']
-                                        .toString(), // Chuyển thành String
+                                value: ward['WardCode'].toString(),
                                 child: Text(ward['WardName']),
                               );
                             }).toList(),
@@ -461,18 +763,47 @@ class _RegisterPageState extends State<RegisterPage> {
                             selectedWard = value.toString();
                           });
                         },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Vui lòng chọn phường/xã';
+                          }
+                          return null;
+                        },
                       ),
-
                       SizedBox(height: 16),
-
                       TextFormField(
                         controller: _specificAddressController,
+                        focusNode: _specificAddressFocusNode,
                         decoration: InputDecoration(
                           labelText: 'Địa chỉ cụ thể',
+                          labelStyle: TextStyle(
+                            color:
+                                _specificAddressFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
                         ),
+                        onTapOutside: (event) {
+                          _specificAddressFocusNode.unfocus();
+                        },
                       ),
                       SizedBox(height: 16),
                       Row(
@@ -493,7 +824,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ],
                       ),
                       SizedBox(height: 10),
-
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -539,7 +869,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                       SizedBox(height: 20),
-
                       Center(
                         child: TextButton(
                           onPressed: () {
@@ -579,5 +908,23 @@ class _RegisterPageState extends State<RegisterPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _specificAddressController.dispose();
+    _fullNameFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    _confirmPasswordFocusNode.dispose();
+    _specificAddressFocusNode.dispose();
+    _provinceFocusNode.dispose();
+    _districtFocusNode.dispose();
+    _wardFocusNode.dispose();
+    super.dispose();
   }
 }
