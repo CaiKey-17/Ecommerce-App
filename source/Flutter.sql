@@ -270,7 +270,7 @@ CREATE DEFINER=`root`@`%` PROCEDURE `DeleteToCart` (IN `p_id` INT)   BEGIN
 
 END$$
 
-CREATE DEFINER=`root`@`%` PROCEDURE `MinusToCart` (IN `p_OrderId` VARCHAR(50), IN `p_ProductId` INT)   BEGIN
+CREATE DEFINER=`root`@`%` PROCEDURE `MinusToCart` (IN `p_OrderId` VARCHAR(50), IN `p_ProductId` INT, IN `p_ColorId` INT)   BEGIN
 
     DECLARE v_PriceProduct DOUBLE;
     DECLARE v_Quantity INT;
@@ -278,17 +278,29 @@ CREATE DEFINER=`root`@`%` PROCEDURE `MinusToCart` (IN `p_OrderId` VARCHAR(50), I
     DECLARE v_Price_Total DOUBLE;
 
 
-    SELECT price INTO v_PriceProduct FROM order_details  WHERE fk_order_Id = p_OrderId and fk_product_Id = p_ProductId;
+
+
+    IF p_ColorId != -1 THEN
+        SELECT price INTO v_PriceProduct FROM order_details  WHERE fk_order_Id = p_OrderId AND fk_product_Id = p_ProductId AND fk_color_Id = p_ColorId AND fk_color_Id IS NOT NULL;
+
+       UPDATE order_details
+        SET quantity = quantity - 1, total = total - v_PriceProduct
+        WHERE fk_order_Id = p_OrderId AND fk_product_Id = p_ProductId AND fk_color_Id = p_ColorId AND fk_color_Id IS NOT NULL;
+    ELSE
+        SELECT price INTO v_PriceProduct FROM order_details  WHERE fk_order_Id = p_OrderId and fk_product_Id = p_ProductId AND fk_color_Id IS NULL;
 
 
 
+        UPDATE order_details
+        SET quantity = quantity - 1, total = total - v_PriceProduct
+        WHERE fk_order_Id = p_OrderId AND fk_product_Id = p_ProductId AND fk_color_Id IS NULL;
 
-    
-    UPDATE order_details
-    SET quantity = quantity - 1, total = total - v_PriceProduct
-    WHERE fk_order_Id = p_OrderId AND fk_product_Id = p_ProductId;
+        SELECT quantity INTO v_Quantity_check FROM order_details WHERE fk_order_Id = p_OrderId and fk_product_Id = p_ProductId  AND fk_color_Id IS NULL;
 
-    SELECT quantity INTO v_Quantity_check FROM order_details WHERE fk_order_Id = p_OrderId and fk_product_Id = p_ProductId;
+    END IF;
+
+
+
 
 
     IF v_Quantity_check = 0 THEN

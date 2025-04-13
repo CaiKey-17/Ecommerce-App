@@ -115,9 +115,11 @@ public class CartController {
     @PostMapping("/minus")
     public ResponseEntity<?> minusToCart(
             @RequestParam int productId,
-            @RequestParam int orderId) {
+            @RequestParam int orderId,
+            @RequestParam int colorId
+            ) {
 
-        cartService.minusToCart(productId, orderId);
+        cartService.minusToCart(productId, orderId,colorId);
         return ResponseEntity.ok(Map.of("message", "Đã trừ trong giỏ hàng"));
     }
 
