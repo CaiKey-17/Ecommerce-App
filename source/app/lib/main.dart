@@ -39,8 +39,8 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => SplashScreen(),
-          '/main': (context) => MainPage(),
+          '/': (context) => DashboardScreen(),
+          '/main': (context) => DashboardScreen(),
           '/manager': (context) => DashboardScreen(),
           '/login': (context) => LoginPage(),
           '/otp': (context) => VerifyOtpScreen(),

@@ -36,4 +36,68 @@ public class Product {
 
     @Column(name = "fk_category", length = 100, nullable = true)
     private String fkCategory;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getShortDescription() {
+        return shortDescription;
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getMainImage() {
+        return mainImage;
+    }
+
+    public void setMainImage(String mainImage) {
+        this.mainImage = mainImage;
+    }
+
+    public Boolean getHasColor() {
+        return hasColor;
+    }
+
+    public void setHasColor(Boolean hasColor) {
+        this.hasColor = hasColor;
+    }
+
+    public String getFkBrand() {
+        return fkBrand;
+    }
+
+    public void setFkBrand(String fkBrand) {
+        this.fkBrand = fkBrand;
+    }
+
+    public String getFkCategory() {
+        return fkCategory;
+    }
+
+    public void setFkCategory(String fkCategory) {
+        this.fkCategory = fkCategory;
+    }
 }

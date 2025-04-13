@@ -30,7 +30,7 @@ class _ProductScreenState extends State<ProductScreen> {
 
   void _initializeProducts() {
     for (int i = 0; i < 5; i++) {
-      _addProduct("Sản phẩm $i", "1000000", "10", null, "Điện thoại", 0);
+      _addProduct("Sản phẩm $i", "1000000", "10", "null", "Điện thoại", "Apple", 0);
     }
   }
 
@@ -44,6 +44,7 @@ class _ProductScreenState extends State<ProductScreen> {
     String quantity,
     String? image,
     String category,
+    String brand,
     double discount,
   ) {
     setState(() {
@@ -53,6 +54,7 @@ class _ProductScreenState extends State<ProductScreen> {
         "price": double.parse(price),
         "quantity": int.parse(quantity),
         "category": category,
+        "brand": brand,
         "discount": discount,
         "image": image,
       });
@@ -83,7 +85,7 @@ class _ProductScreenState extends State<ProductScreen> {
           if (_searchType == "category") {
             return product["category"].toLowerCase().contains(query.toLowerCase());
           } else if (_searchType == "brand") {
-            return product["name"].toLowerCase().contains(query.toLowerCase());
+            return product["brand"].toLowerCase().contains(query.toLowerCase()); // Sửa từ "name" thành "brand"
           }
           return true;
         }).toList();
@@ -132,6 +134,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     product["quantity"].toString(),
                     product["image"],
                     product["category"],
+                    product["brand"],
                     product["discount"],
                   );
                 },
@@ -306,6 +309,7 @@ class _ProductScreenState extends State<ProductScreen> {
                                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
                                       ),
                                       Text("Loại: ${product["category"]}", style: TextStyle(fontSize: 14)),
+                                      Text("Hãng: ${product["brand"]}", style: TextStyle(fontSize: 14)),
                                     ],
                                   ),
                                 ),
@@ -383,8 +387,8 @@ class _ProductScreenState extends State<ProductScreen> {
 
   Widget _buildProductImage(String? imagePath) {
     return Container(
-      width: 70,
-      height: 70,
+      width: 80,
+      height: 80,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.grey.shade400, width: 1),

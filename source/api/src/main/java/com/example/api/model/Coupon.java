@@ -27,4 +27,44 @@ public class Coupon {
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp createdAt;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getCouponValue() {
+        return couponValue;
+    }
+
+    public void setCouponValue(Integer couponValue) {
+        this.couponValue = couponValue;
+    }
+
+    public Integer getMaxAllowedUses() {
+        return maxAllowedUses;
+    }
+
+    public void setMaxAllowedUses(Integer maxAllowedUses) {
+        this.maxAllowedUses = maxAllowedUses;
+    }
+
+    public Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
 }

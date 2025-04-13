@@ -22,6 +22,27 @@ public class Product_image {
     @Column(length = 255, nullable = true)
     private Integer fkImageProduct;
 
+    public Integer getId() {
+        return id;
+    }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Integer getFkImageProduct() {
+        return fkImageProduct;
+    }
+
+    public void setFkImageProduct(Integer fkImageProduct) {
+        this.fkImageProduct = fkImageProduct;
+    }
 }

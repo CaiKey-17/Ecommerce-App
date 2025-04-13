@@ -356,14 +356,26 @@
       if (_valueController.text.isNotEmpty &&
           (showTitleInput || (showKeyValueInput && _keyController.text.isNotEmpty))) {
         setState(() {
-          specifications.add({
+          Map<String, String> newSpec = {
             showTitleInput ? "title" : _keyController.text: _valueController.text
-          });
+          };
+          specifications.add(newSpec);
+          
+          String specString = specifications.map((spec) {
+            String key = spec.keys.first;
+            String value = spec.values.first;
+            return key == "title" ? "Title: $value" : "$key: $value";
+          }).join("; "); 
+          
+          print("Specifications as string: $specString");
+          
           _keyController.clear();
           _valueController.clear();
           showTitleInput = false;
           showKeyValueInput = false;
         });
+      } else {
+        print("Error: Input is incomplete!");
       }
     }
 
