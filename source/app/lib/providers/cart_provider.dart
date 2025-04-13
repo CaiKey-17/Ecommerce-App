@@ -58,6 +58,8 @@ class CartProvider extends ChangeNotifier {
       _cartItems
         ..clear()
         ..addAll(mapped);
+
+      printCartItems();
       notifyListeners();
     } catch (e) {
       debugPrint("Lỗi khi load giỏ hàng: $e");

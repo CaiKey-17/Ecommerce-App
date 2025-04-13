@@ -45,13 +45,14 @@ public class CartService {
             }
         });
     }
-    public void minusToCart(int productId, int orderId) {
-        String sql = "{CALL MinusToCart(?,?)}";
+    public void minusToCart(int productId, int orderId,int colorId) {
+        String sql = "{CALL MinusToCart(?,?,?)}";
 
         jdbcTemplate.execute((Connection con) -> {
             try (CallableStatement cs = con.prepareCall(sql)) {
                 cs.setInt(1, orderId);
                 cs.setInt(2, productId);
+                cs.setInt(3, colorId);
                 cs.execute();
             }
             return null;

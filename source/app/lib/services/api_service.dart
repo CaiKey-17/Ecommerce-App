@@ -30,9 +30,7 @@ class ApiResponse<T> {
   ApiResponse({required this.code, required this.message, this.data});
 }
 
-
-@RestApi(baseUrl: "http://192.168.0.169:8080/api")
-
+@RestApi(baseUrl: "http://192.168.70.182:8080/api")
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -127,6 +125,7 @@ abstract class ApiService {
   Future<Map<String, dynamic>> minusToCart(
     @Query("productId") int productId,
     @Query("orderId") int orderId,
+    @Query("colorId") int colorId,
   );
 
   @POST("/cart/delete")

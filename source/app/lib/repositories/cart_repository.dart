@@ -47,9 +47,14 @@ class CartRepository {
   Future<Map<String, dynamic>> minusToCart({
     required int productId,
     required int orderId,
+    required int colorId,
   }) async {
     try {
-      final response = await apiService.minusToCart(productId, orderId);
+      final response = await apiService.minusToCart(
+        productId,
+        orderId,
+        colorId,
+      );
 
       print("✅ Phản hồi API: $response");
 

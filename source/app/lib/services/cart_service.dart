@@ -58,7 +58,9 @@ class CartService {
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
         );
-        Provider.of<CartProvider>(context, listen: false).addItem(id);
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);
+        cartProvider.fetchCartFromApi(userID);
+
         return true;
       }
     } catch (error) {
@@ -113,7 +115,9 @@ class CartService {
           userID = response["id"];
           await prefs.setInt('userId', userID!);
         }
-        Provider.of<CartProvider>(context, listen: false).addItem(id);
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);
+        cartProvider.fetchCartFromApi(userID);
+
         return true;
       }
     } catch (error) {
@@ -131,12 +135,18 @@ class CartService {
     required int productId,
     required int orderId,
     required int id,
+    required int userID,
+    required int colorId,
     required dynamic context,
   }) async {
     try {
+      print(productId);
+      print(orderId);
+      print(colorId);
       var response = await cartRepository.minusToCart(
         productId: productId,
         orderId: orderId,
+        colorId: colorId,
       );
 
       int statusCode = response["statusCode"] ?? 500;
@@ -148,7 +158,8 @@ class CartService {
           gravity: ToastGravity.BOTTOM,
         );
       }
-      Provider.of<CartProvider>(context, listen: false).minusItem(id);
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+      cartProvider.fetchCartFromApi(userID);
 
       return true;
     } catch (error) {

@@ -10,9 +10,7 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-
-    baseUrl ??= 'http://192.168.0.169:8080/api';
-
+    baseUrl ??= 'http://192.168.70.182:8080/api';
   }
 
   final Dio _dio;
@@ -531,11 +529,12 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<Map<String, dynamic>> minusToCart(productId, orderId) async {
+  Future<Map<String, dynamic>> minusToCart(productId, orderId, colorId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
       r'productId': productId,
       r'orderId': orderId,
+      r'colorId': colorId,
     };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
