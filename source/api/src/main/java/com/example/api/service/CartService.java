@@ -70,6 +70,25 @@ public class CartService {
     }
 
 
+    public void confirmToCart(int orderId,String address, double couponTotal,String email,int fkCouponId, double pointTotal,double priceTotal,double ship) {
+        String sql = "{CALL Confirm(?,?,?,?,?,?,?,?)}";
+        jdbcTemplate.execute((Connection con) -> {
+            try (CallableStatement cs = con.prepareCall(sql)) {
+                cs.setInt(1, orderId);
+                cs.setString(2, address);
+                cs.setDouble(3, couponTotal);
+                cs.setString(4, email);
+                cs.setInt(5, fkCouponId);
+                cs.setDouble(6, pointTotal);
+                cs.setDouble(7, priceTotal);
+                cs.setDouble(8, ship);
+                cs.execute();
+            }
+            return null;
+        });
+    }
+
+
 
 }
 

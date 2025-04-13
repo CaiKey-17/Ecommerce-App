@@ -10,7 +10,9 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://172.16.10.26:8080/api';
+
+    baseUrl ??= 'http://192.168.0.169:8080/api';
+
   }
 
   final Dio _dio;
@@ -130,6 +132,76 @@ class _ApiService implements ApiService {
     );
     final value = UserInfo.fromJson(_result.data!);
     return value;
+  }
+
+  @override
+  Future<List<AddressList>> getListAddress(token) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<AddressList>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/address',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!
+            .map((dynamic i) => AddressList.fromJson(i as Map<String, dynamic>))
+            .toList();
+    return value;
+  }
+
+  @override
+  Future<AddressResponse> addAddress(address) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(address.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<AddressResponse>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/address/add',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = AddressResponse.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<void> chooseAddressDefault(token, addressId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'addressId': addressId};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    await _dio.fetch<void>(
+      _setStreamType<void>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/address/default',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
   }
 
   @override
@@ -284,6 +356,54 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<List<RatingInfo>> getRatingsByProduct(productId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'productId': productId};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<RatingInfo>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/rating/product',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!
+            .map((dynamic i) => RatingInfo.fromJson(i as Map<String, dynamic>))
+            .toList();
+    return value;
+  }
+
+  @override
+  Future<RatingInfo> createRating(productId, rating) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(rating.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<RatingInfo>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/rating/product/${productId}',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = RatingInfo.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<List<CartInfo>> getItemInCart({token, id}) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'id': id};
@@ -307,6 +427,29 @@ class _ApiService implements ApiService {
         _result.data!
             .map((dynamic i) => CartInfo.fromJson(i as Map<String, dynamic>))
             .toList();
+    return value;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getRawQuantityInCart(userId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'userId': userId};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Map<String, dynamic>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/cart/quantity',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value = Map<String, dynamic>.from(_result.data!);
     return value;
   }
 
@@ -424,6 +567,46 @@ class _ApiService implements ApiService {
             .compose(
               _dio.options,
               '/cart/delete',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value = Map<String, dynamic>.from(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<Map<String, dynamic>> confirmToCart(
+    orderId,
+    address,
+    couponTotal,
+    email,
+    fkCouponId,
+    pointTotal,
+    priceTotal,
+    ship,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'orderId': orderId,
+      r'address': address,
+      r'couponTotal': couponTotal,
+      r'email': email,
+      r'fkCouponId': fkCouponId,
+      r'pointTotal': pointTotal,
+      r'priceTotal': priceTotal,
+      r'ship': ship,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Map<String, dynamic>>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/order/confirm',
               queryParameters: queryParameters,
               data: _data,
             )

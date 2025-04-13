@@ -1,7 +1,10 @@
+import 'package:app/models/address.dart';
+import 'package:app/models/address_response.dart';
 import 'package:app/models/category_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/models/product_info_detail.dart';
+import 'package:app/models/rating_info.dart';
 import 'package:app/models/resend_otp_request.dart';
 import 'package:app/models/resend_otp_response.dart';
 import 'package:app/models/valid_response.dart';
@@ -27,7 +30,9 @@ class ApiResponse<T> {
   ApiResponse({required this.code, required this.message, this.data});
 }
 
-@RestApi(baseUrl: "http://172.16.10.26:8080/api")
+
+@RestApi(baseUrl: "http://192.168.0.169:8080/api")
+
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -45,6 +50,19 @@ abstract class ApiService {
 
   @GET("/auth/user-info")
   Future<UserInfo> getUserInfo(@Header("Authorization") String token);
+
+  @GET("/address")
+  Future<List<AddressList>> getListAddress(
+    @Header("Authorization") String token,
+  );
+  @POST("/address/add")
+  Future<AddressResponse> addAddress(@Body() AddressList address);
+
+  @POST("/address/default")
+  Future<void> chooseAddressDefault(
+    @Header("Authorization") String token,
+    @Query("addressId") int addressId,
+  );
 
   @GET("/category/list")
   Future<List<CategoryInfo>> getListCategory();
@@ -68,11 +86,27 @@ abstract class ApiService {
     @Query("fk_brand") String fk_brand,
   );
 
+  @GET("/rating/product")
+  Future<List<RatingInfo>> getRatingsByProduct(
+    @Query("productId") int productId,
+  );
+
+  @POST("/rating/product/{productId}")
+  Future<RatingInfo> createRating(
+    @Path("productId") int productId,
+    @Body() RatingInfo rating,
+  );
+
   @GET("/cart/list")
   Future<List<CartInfo>> getItemInCart({
     @Header("Authorization") String? token,
     @Query("id") int? id,
   });
+
+  @GET("/cart/quantity")
+  Future<Map<String, dynamic>> getRawQuantityInCart(
+    @Query("userId") int? userId,
+  );
 
   @POST("/auth/forgot-password")
   Future<void> sendResetPassword(@Query("email") String email);
@@ -98,5 +132,17 @@ abstract class ApiService {
   @POST("/cart/delete")
   Future<Map<String, dynamic>> deleteToCart(
     @Query("orderDetailId") int orderDetailId,
+  );
+
+  @POST("/order/confirm")
+  Future<Map<String, dynamic>> confirmToCart(
+    @Query("orderId") int orderId,
+    @Query("address") String address,
+    @Query("couponTotal") double couponTotal,
+    @Query("email") String email,
+    @Query("fkCouponId") int fkCouponId,
+    @Query("pointTotal") double pointTotal,
+    @Query("priceTotal") double priceTotal,
+    @Query("ship") double ship,
   );
 }

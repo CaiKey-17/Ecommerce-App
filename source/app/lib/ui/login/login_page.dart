@@ -21,11 +21,30 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscureText = true;
   bool _isLoading = false;
 
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+
+  String? _emailError;
+
   @override
   void initState() {
     super.initState();
     _apiService = ApiService(Dio());
     _loadSavedLogin();
+
+    _emailFocusNode.addListener(() {
+      setState(() {});
+    });
+
+    _passwordFocusNode.addListener(() {
+      setState(() {});
+    });
+
+    _emailController.addListener(() {
+      setState(() {
+        _emailError = _validateEmail(_emailController.text.trim());
+      });
+    });
   }
 
   void _loadSavedLogin() async {
@@ -98,311 +117,401 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  String? _validateEmail(String email) {
+    if (email.isEmpty) {
+      return null;
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      return "Email không hợp lệ!";
+    }
+    return null;
+  }
+
   void _handleLogin() async {
     setState(() {
       _isLoading = true;
     });
-
-    if (_emailController.text.trim().isEmpty ||
-        _passwordController.text.trim().isEmpty) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Vui lòng nhập tài khoản và mật khẩu")),
-      );
-      return;
-    }
-
-    try {
-      final request = LoginRequest(
-        username: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      final response = await _apiService.login(request);
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (response.code == 200) {
-        onLoginSuccess(response.token.toString(), response.role.toString());
-      } else if (response.code == 401) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Sai tài khoản hoặc mật khẩu")));
-      } else if (response.code == 403) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Tài khoản đã bị cấm")));
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(response.message)));
+    if (_formKey.currentState!.validate()) {
+      if (_emailController.text.trim().isEmpty ||
+          _passwordController.text.trim().isEmpty) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Vui lòng nhập tài khoản và mật khẩu")),
+        );
+        return;
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
 
-      if (e is DioException) {
-        if (e.response?.statusCode == 401) {
+      try {
+        final request = LoginRequest(
+          username: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
+
+        final response = await _apiService.login(request);
+
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (response.code == 200) {
+          onLoginSuccess(response.token.toString(), response.role.toString());
+        } else if (response.code == 401) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Sai tài khoản hoặc mật khẩu")),
           );
-        } else if (e.response?.statusCode == 403) {
+        } else if (response.code == 403) {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text("Tài khoản đã bị cấm")));
         } else {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text("Lỗi kết nối đến server")));
+          ).showSnackBar(SnackBar(content: Text(response.message)));
         }
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Lỗi không xác định")));
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (e is DioException) {
+          if (e.response?.statusCode == 401) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Sai tài khoản hoặc mật khẩu")),
+            );
+          } else if (e.response?.statusCode == 403) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Tài khoản đã bị cấm")));
+          } else {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Lỗi kết nối đến server")));
+          }
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Lỗi không xác định")));
+        }
       }
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          Container(
-            height: MediaQuery.of(context).size.height * 0.4,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF1565C0), Color(0xFF64B5F6)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+      resizeToAvoidBottomInset: true,
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height * 0.4,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1565C0), Color(0xFF64B5F6)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
               ),
             ),
-          ),
-
-          Positioned(
-            top: 80,
-            left: 20,
-            child: Text(
-              "Chào bạn\nĐăng nhập ngay!",
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            Positioned(
+              top: 80,
+              left: 20,
+              child: Text(
+                "Chào bạn\nĐăng nhập ngay!",
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.75,
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 30),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      "Chào mừng bạn trở lại",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade900,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.email_outlined),
-                      labelText: 'Email',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-
-                  TextField(
-                    obscureText: _obscureText,
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock_outline),
-                      labelText: 'Mật khẩu',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureText
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureText = !_obscureText;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.75,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                margin: EdgeInsets.only(
+                  top: MediaQuery.of(context).size.height * 0.25,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ForgotPasswordScreen(),
-                            ),
-                          );
-                        },
+                      Center(
                         child: Text(
-                          "Quên mật khẩu?",
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _handleLogin,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(double.infinity, 50),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child:
-                          _isLoading
-                              ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 3,
-                                ),
-                              )
-                              : Text(
-                                "Đăng Nhập",
-                                style: TextStyle(fontSize: 18),
-                              ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, "/main");
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        side: BorderSide(color: Colors.blue),
-                      ),
-                      child: Text(
-                        "Mua hàng không cần đăng nhập",
-                        style: TextStyle(fontSize: 16, color: Colors.blue),
-                      ),
-                    ),
-                  ),
-
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Center(
-                          child: Text(
-                            "Đăng nhập với",
-                            style: TextStyle(fontSize: 16),
+                          "Chào mừng bạn trở lại",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade900,
                           ),
                         ),
-                        SizedBox(height: 10),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildSocialButton(
-                              'assets/images/facebook.png',
-                              'Facebook',
+                      ),
+                      SizedBox(height: 20),
+                      TextFormField(
+                        controller: _emailController,
+                        focusNode: _emailFocusNode,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                            color:
+                                _emailFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.grey,
+                          ),
+                          labelText: 'Email',
+                          labelStyle: TextStyle(
+                            color:
+                                _emailFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
                             ),
-                            SizedBox(width: 15),
-                            _buildSocialButton(
-                              'assets/images/google.webp',
-                              'Google',
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
                             ),
-                            SizedBox(width: 15),
-                            _buildSocialButton(
-                              'assets/images/apple.png',
-                              'Apple',
-                            ),
-                          ],
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          errorText: _emailError,
                         ),
-                        SizedBox(height: 20),
-
-                        Center(
-                          child: TextButton(
+                        onTapOutside: (event) {
+                          _emailFocusNode.unfocus();
+                        },
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Vui lòng nhập email";
+                          }
+                          return _validateEmail(value.trim());
+                        },
+                      ),
+                      SizedBox(height: 16),
+                      TextField(
+                        obscureText: _obscureText,
+                        controller: _passwordController,
+                        focusNode: _passwordFocusNode,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color:
+                                _passwordFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.grey,
+                          ),
+                          labelText: 'Mật khẩu',
+                          labelStyle: TextStyle(
+                            color:
+                                _passwordFocusNode.hasFocus
+                                    ? Colors.blue
+                                    : Colors.black,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.blue,
+                              width: 2.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                              width: 1.0,
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscureText
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color:
+                                  _passwordFocusNode.hasFocus
+                                      ? Colors.blue
+                                      : Colors.grey,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureText = !_obscureText;
+                              });
+                            },
+                          ),
+                        ),
+                        onTapOutside: (event) {
+                          _passwordFocusNode.unfocus();
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
                             onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => RegisterPage(),
+                                  builder: (context) => ForgotPasswordScreen(),
                                 ),
                               );
                             },
-                            child: RichText(
-                              text: TextSpan(
-                                text: "Bạn chưa có tài khoản? ",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                ),
-                                children: [
-                                  TextSpan(
-                                    text: "Đăng ký",
-                                    style: TextStyle(
-                                      color: Colors.blue,
-                                      fontWeight: FontWeight.bold,
+                            child: Text(
+                              "Quên mật khẩu?",
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: Size(double.infinity, 50),
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child:
+                              _isLoading
+                                  ? SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 3,
                                     ),
+                                  )
+                                  : Text(
+                                    "Đăng Nhập",
+                                    style: TextStyle(fontSize: 18),
                                   ),
-                                ],
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pushReplacementNamed(context, "/main");
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            side: BorderSide(color: Colors.blue),
+                          ),
+                          child: Text(
+                            "Mua hàng không cần đăng nhập",
+                            style: TextStyle(fontSize: 16, color: Colors.blue),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Center(
+                        child: Text(
+                          "Đăng nhập với",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildSocialButton(
+                            'assets/images/facebook.png',
+                            'Facebook',
+                          ),
+                          SizedBox(width: 15),
+                          _buildSocialButton(
+                            'assets/images/google.webp',
+                            'Google',
+                          ),
+                          SizedBox(width: 15),
+                          _buildSocialButton(
+                            'assets/images/apple.png',
+                            'Apple',
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      Center(
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RegisterPage(),
                               ),
+                            );
+                          },
+                          child: RichText(
+                            text: TextSpan(
+                              text: "Bạn chưa có tài khoản? ",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 16,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: "Đăng ký",
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
+    super.dispose();
   }
 
   Widget _buildSocialButton(String imagePath, String name) {

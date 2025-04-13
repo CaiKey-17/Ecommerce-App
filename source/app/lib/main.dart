@@ -1,7 +1,9 @@
+import 'package:app/services/api_service.dart';
 import 'package:app/ui/admin/screens/dashboard_screen.dart';
 import 'package:app/ui/order/payment_success.dart';
 import 'package:app/ui/product_details.dart';
 import 'package:app/ui/screens/shopping_page.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:async';
@@ -15,17 +17,23 @@ import 'ui/product_details.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  final dio = Dio();
+  final apiService = ApiService(dio);
+  runApp(MyApp(apiService: apiService));
 }
 
 class MyApp extends StatelessWidget {
+  final ApiService apiService;
+
+  const MyApp({super.key, required this.apiService});
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => CartProvider(),
+      create: (context) => CartProvider(apiService: apiService),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Demo',
+        title: 'Ecommerce App',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         ),

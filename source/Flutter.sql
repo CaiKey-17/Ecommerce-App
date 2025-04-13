@@ -117,8 +117,8 @@ CREATE DEFINER=`root`@`%` PROCEDURE `AddToCart` (IN `p_CustomerID` INT, IN `p_Pr
             SET v_OrderId = v_OrderIdTemp + 1;
         END IF;
 
-        INSERT INTO orders(id, quantity_total, price_total,process,coupon_total,point_total,ship,tax,id_fk_customer,id_fk_product_variant)
-        VALUES (v_OrderId,p_Quantity,v_Total,'giohang',0,0,0,0,id_Real,p_ProductId);
+        INSERT INTO orders(id, quantity_total, price_total,process,coupon_total,point_total,ship,tax,id_fk_customer)
+        VALUES (v_OrderId,p_Quantity,v_Total,'giohang',0,0,0,0,id_Real);
 
         IF p_ColorId>0 THEN
             INSERT INTO order_details(price, quantity, total, fk_order_Id, fk_product_Id,fk_color_Id)
@@ -312,51 +312,86 @@ CREATE DEFINER=`root`@`%` PROCEDURE `MinusToCart` (IN `p_OrderId` VARCHAR(50), I
         WHERE id = p_OrderId;
 END$$
 
-CREATE DEFINER=`root`@`%` PROCEDURE `Ordering` (IN `p_OrderId` VARCHAR(50), IN `p_Payment` VARCHAR(50) CHARACTER SET utf8)   BEGIN
 
-	DECLARE v_customerId int;
-	DECLARE v_couponId int;
-	DECLARE v_points int;
-    
-    
-    SELECT id_fk_customer INTO v_customerId FROM orders WHERE Id = p_OrderId;
-    SELECT fk_coupon_Id INTO v_couponId FROM orders WHERE id = p_OrderId;
-    SELECT point_total INTO v_points FROM orders WHERE id = p_OrderId;
-    
-    
-    
-   UPDATE product_variant
-    SET quantity = quantity - (
-        SELECT quantity
-        FROM order_details
-        WHERE order_details.fk_product_Id = product_variant.id AND order_details.fk_order_Id = p_OrderId
+
+
+
+    DELIMITER ;;
+    CREATE PROCEDURE `Confirm`(
+        IN p_OrderId INT,
+        IN p_Address VARCHAR(255) CHARACTER Set utf8,
+        IN p_CouponTotal DOUBLE,
+        IN p_Email VARCHAR(255),
+        IN p_FkCouponId INT,
+        IN p_PointTotal DOUBLE,
+        IN p_PriceTotal DOUBLE,
+        IN p_Ship DOUBLE
     )
-    WHERE id IN (
-        SELECT fk_product_Id
-        FROM order_details
-        WHERE fk_order_Id = p_OrderId
-    );
-    
-   
-    UPDATE coupons
-    SET max_allowed_uses = max_allowed_uses -1
-    WHERE id = v_couponId;
-
-    UPDATE customer
-    SET points = 0
-    WHERE id = v_customerId;
-    
-    
+    BEGIN
         
-    UPDATE orders
-    SET process = 'dangdat'
-    WHERE id = p_OrderId;
+        DECLARE v_Tax DOUBLE;    
+        DECLARE v_Total DOUBLE;    
+        DECLARE v_customerId INT;    
+        SET v_Tax = p_PriceTotal* 0.02;
+        SET v_Total = (p_PriceTotal+ v_Tax + p_Ship) - p_CouponTotal - p_PointTotal ;
+        
+        SELECT id_fk_customer INTO v_customerId FROM orders WHERE id = p_OrderId;
 
-    INSERT INTO `bills`(`created_at`,`status_order`,`method_payment`, `fk_order_Id`) VALUES (NOW(),'Chưa thanh toán',p_Payment ,p_OrderId);
+        
+   UPDATE product_variant pv
+JOIN (
+    SELECT od.fk_product_id, SUM(od.quantity) AS total_quantity
+    FROM order_details od
+    WHERE od.fk_order_id = p_OrderId AND od.fk_color_id IS NULL
+    GROUP BY od.fk_product_id
+) AS sub ON pv.id = sub.fk_product_id
+SET pv.quantity = pv.quantity - sub.total_quantity;
+
+        
+      UPDATE product_color pc
+JOIN (
+    SELECT od.fk_color_id, SUM(od.quantity) AS total_quantity
+    FROM order_details od
+    WHERE od.fk_order_id = p_OrderId AND od.fk_color_id IS NOT NULL
+    GROUP BY od.fk_color_id
+) AS sub ON pc.id = sub.fk_color_id
+SET pc.quantity = pc.quantity - sub.total_quantity;
+
+        
+        IF p_FkCouponId != -1 THEN
+            UPDATE coupons
+            SET max_allowed_uses = max_allowed_uses -1
+            WHERE id = p_FkCouponId;
+        END IF;
+        
+        IF p_PointTotal != 0 THEN
+            UPDATE customer
+            SET points = 0
+            WHERE id = v_customerId;
+        END IF;
+        
+        
     
-END$$
+        UPDATE orders
+        SET 
+        total = v_Total,
+        process = 'dangdat',
+        created_at = NOW(),
+        coupon_total = p_CouponTotal
+        address = p_Address,
+        email = p_Email,
+        fk_coupon_id = p_FkCouponId,
+        point_total = p_PointTotal,
+        ship = p_Ship,
+        tax = v_Tax
+        WHERE id = p_OrderId;
+                
+            INSERT INTO bills (created_at, fk_order_id, method_payment,status_order) VALUES (NOW(),p_OrderId, 'tienmat','chuathanhtoan');
 
-DELIMITER ;
+        
+    END ;;
+    DELIMITER ;
+    
 
 
 ALTER TABLE product_variant
