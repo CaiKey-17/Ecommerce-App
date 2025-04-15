@@ -14,6 +14,15 @@ public class ProductDTO {
     private int discountPercent;
     private int idVariant;
     private int idColor;
+    private double rating;
+
+    public double getRating() {
+        return rating;
+    }
+
+    public void setRating(double rating) {
+        this.rating = rating;
+    }
 
     public int getId() {
         return id;

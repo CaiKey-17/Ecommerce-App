@@ -1,3 +1,4 @@
+import 'package:app/ui/login/change_password_page.dart';
 import 'package:app/ui/login/login_page.dart';
 import 'package:app/ui/login/register_page.dart';
 import 'package:app/ui/profile/address_list_screen.dart';
@@ -209,9 +210,21 @@ class _ProfilePageState extends State<ProfilePage> {
       SizedBox(height: 10),
 
       check
-          ? _buildMenuItem(Icons.logout, "Đăng xuất", () {
-            _confirmLogout();
-          })
+          ? Column(
+            children: [
+              _buildMenuItem(Icons.password_rounded, "Đổi mật khẩu", () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangePasswordScreen(),
+                  ),
+                );
+              }),
+              _buildMenuItem(Icons.logout, "Đăng xuất", () {
+                _confirmLogout();
+              }),
+            ],
+          )
           : _buildMenuItem(Icons.account_circle_outlined, "Đăng nhập", () {
             Navigator.push(
               context,

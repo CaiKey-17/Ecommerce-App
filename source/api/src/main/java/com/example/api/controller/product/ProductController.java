@@ -25,16 +25,62 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+
+
+
     @Autowired
     private UserService userService;
     @Autowired
     private CustomerService customerService;
 
-    @GetMapping
-    public ResponseEntity<List<ProductDTO>> getProducts() {
-        List<ProductDTO> products = productService.getAllProducts();
+    @GetMapping("/promotion")
+    public ResponseEntity<List<ProductDTO>> getProductsPromotion() {
+        List<ProductDTO> products = productService.getAllProductsPromotion();
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
+
+    @GetMapping("/new")
+    public ResponseEntity<List<ProductDTO>> getProductsNew() {
+        List<ProductDTO> products = productService.getAllProductsNew();
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+    @GetMapping("/best-seller")
+    public ResponseEntity<List<ProductDTO>> getProductsBestSeller() {
+        List<ProductDTO> products = productService.getAllProductsBestSeller();
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/laptop")
+    public ResponseEntity<List<ProductDTO>> getProductsLaptop() {
+        List<ProductDTO> products = productService.getAllProductsLaptop();
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/monitor")
+    public ResponseEntity<List<ProductDTO>> getProductsMonitor() {
+        List<ProductDTO> products = productService.getAllProductsMonitor();
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/keyboard")
+    public ResponseEntity<List<ProductDTO>> getProductsKeyboard() {
+        List<ProductDTO> products = productService.getAllProductsKeyboard();
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/phone")
+    public ResponseEntity<List<ProductDTO>> getProductsPhone() {
+        List<ProductDTO> products = productService.getAllProductsPhone();
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/pc")
+    public ResponseEntity<List<ProductDTO>> getProductsPc() {
+        List<ProductDTO> products = productService.getAllProductsPc();
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
 
 
     @GetMapping("/category")

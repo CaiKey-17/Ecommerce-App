@@ -45,7 +45,17 @@ class _HomePageState extends State<HomePage> {
   String formattedPoints = "";
   String token = "";
   List<CategoryInfo> categories = [];
-  List<ProductInfo> products = [];
+  List<ProductInfo> productsPromotion = [];
+  List<ProductInfo> productsNew = [];
+  List<ProductInfo> productsBestSeller = [];
+
+  List<ProductInfo> productsPc = [];
+  List<ProductInfo> productsLaptop = [];
+  List<ProductInfo> productsPhone = [];
+  List<ProductInfo> productsKeyboard = [];
+  List<ProductInfo> productsMonitor = [];
+
+  List<CategoryInfo> brands = [];
 
   final PagingController<int, ProductInfo> _pagingController = PagingController(
     firstPageKey: 0,
@@ -61,6 +71,12 @@ class _HomePageState extends State<HomePage> {
       PagingController(firstPageKey: 0);
 
   final PagingController<int, ProductInfo> _pagingController5 =
+      PagingController(firstPageKey: 0);
+
+  final PagingController<int, ProductInfo> _pagingController6 =
+      PagingController(firstPageKey: 0);
+
+  final PagingController<int, ProductInfo> _pagingController7 =
       PagingController(firstPageKey: 0);
 
   late ScrollController _scrollController;
@@ -94,14 +110,155 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> fetchProducts() async {
+  Future<void> fetchProductsPc() async {
     setState(() {
       isLoading = true;
     });
     try {
-      final response = await apiService.getProducts();
+      final response = await apiService.getProductsPc();
       setState(() {
-        products = response;
+        productsPc = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsLaptop() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getProductsLaptop();
+      setState(() {
+        productsLaptop = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsPhone() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getProductsPhone();
+      setState(() {
+        productsPhone = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsMonitor() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getProductsMonitor();
+      setState(() {
+        productsMonitor = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsKeyboard() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getProductsKeyBoard();
+      setState(() {
+        productsKeyboard = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsNew() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getProductsNew();
+      setState(() {
+        productsNew = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsBestSeller() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getProductsBestSeller();
+      setState(() {
+        productsBestSeller = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchBrands() async {
+    try {
+      final response = await apiService.getListBrand();
+      setState(() {
+        brands = response;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProductsPromotion() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getProductsPromotion();
+      setState(() {
+        productsPromotion = response;
         isLoading = false;
       });
     } catch (e) {
@@ -130,31 +287,51 @@ class _HomePageState extends State<HomePage> {
     apiService = ApiService(Dio());
     cartRepository = CartRepository(apiService);
     cartService = CartService(cartRepository: cartRepository);
-
+    //1
     fetchCategories();
-    fetchProducts();
+    //3
+    fetchProductsPromotion();
+    fetchProductsNew();
+    fetchProductsBestSeller();
+    //5
+    fetchProductsLaptop();
+    fetchProductsKeyboard();
+    fetchProductsPc();
+    fetchProductsPhone();
+    fetchProductsMonitor();
+    //
+
+    fetchBrands();
     _loadInitialData();
     _pagingController.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController, products);
+      _fetchPage(pageKey, _pagingController, productsNew);
     });
 
     _pagingController2.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController2, products);
+      _fetchPage(pageKey, _pagingController2, productsPromotion);
     });
 
     _pagingController3.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController3, products);
+      _fetchPage(pageKey, _pagingController3, productsLaptop);
     });
 
     _pagingController4.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController4, products);
+      _fetchPage(pageKey, _pagingController4, productsPhone);
     });
 
     _pagingController5.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController5, products);
+      _fetchPage(pageKey, _pagingController5, productsMonitor);
     });
 
-    _fetchPage1(5, products);
+    _pagingController6.addPageRequestListener((pageKey) {
+      _fetchPage(pageKey, _pagingController6, productsPc);
+    });
+
+    _pagingController7.addPageRequestListener((pageKey) {
+      _fetchPage(pageKey, _pagingController7, productsKeyboard);
+    });
+
+    _fetchPage1(5, productsNew);
   }
 
   Future<void> _fetchPage(
@@ -223,7 +400,7 @@ class _HomePageState extends State<HomePage> {
     if (currentOffset >= maxScrollExtent - 200 &&
         !_isFetching &&
         _pagingController.nextPageKey != null) {
-      _fetchPage1(_pagingController.nextPageKey!, products);
+      _fetchPage1(_pagingController.nextPageKey!, productsPromotion);
     }
 
     if (delta > 0 && !isCollapsed) {
@@ -245,6 +422,8 @@ class _HomePageState extends State<HomePage> {
     _pagingController3.dispose();
     _pagingController4.dispose();
     _pagingController5.dispose();
+    _pagingController6.dispose();
+    _pagingController7.dispose();
     super.dispose();
   }
 
@@ -386,20 +565,20 @@ class _HomePageState extends State<HomePage> {
                 _isLoading
                     ? _buildProductListShimmer()
                     : _buildProductList(
-                      isNewProductSelected ? products : products,
+                      isNewProductSelected ? productsNew : productsBestSeller,
                     ),
                 _isLoading
                     ? _buildTitleShimmer()
-                    : _buildTitle("Màn hình", () {
-                      print("Màn hình mới");
+                    : _buildTitle("Laptop", () {
+                      print("Laptop");
                     }),
                 _isLoading
                     ? _buildListViewShimmer()
                     : _buildListView1(_pagingController3),
                 _isLoading
                     ? _buildTitleShimmer()
-                    : _buildTitle("PC - Máy tính bàn", () {
-                      print("PC - Máy tính bàn");
+                    : _buildTitle("Điện thoại", () {
+                      print("Điện thoại");
                     }),
 
                 _isLoading
@@ -407,11 +586,31 @@ class _HomePageState extends State<HomePage> {
                     : _buildListView1(_pagingController4),
                 _isLoading
                     ? _buildTitleShimmer()
-                    : _buildTitle1("Sản phẩm nổi bật"),
+                    : _buildTitle("Màn hình", () {
+                      print("Màn hình");
+                    }),
+                _isLoading
+                    ? _buildListViewShimmer()
+                    : _buildListView1(_pagingController5),
 
-                // _isLoading
-                //     ? _buildListViewShimmer()
-                //     : _buildListView1(_pagingController5),
+                _isLoading
+                    ? _buildTitleShimmer()
+                    : _buildTitle("PC - Máy tính bàn", () {
+                      print("PC - Máy tính bàn");
+                    }),
+                _isLoading
+                    ? _buildListViewShimmer()
+                    : _buildListView1(_pagingController6),
+
+                _isLoading
+                    ? _buildTitleShimmer()
+                    : _buildTitle("Bàn phím", () {
+                      print("Bàn phím");
+                    }),
+                _isLoading
+                    ? _buildListViewShimmer()
+                    : _buildListView1(_pagingController7),
+
                 _isLoading ? _buildGridViewShimmer() : _buildGridView(),
                 const SizedBox(height: 60),
               ]),
@@ -721,19 +920,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildTitle(String title, VoidCallback onSeeMore) {
-    List<String> brands = [
-      "Nike",
-      "Adidas",
-      "Puma",
-      "Reebok",
-      "New Balance",
-      "Converse",
-      "Under Armour",
-      "Vans",
-      "Fila",
-      "ASICS",
-    ];
-
     return LayoutBuilder(
       builder: (context, constraints) {
         bool isSmallScreen = constraints.maxWidth < 600;
@@ -830,7 +1016,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildBrandList(List<String> brands) {
+  Widget _buildBrandList(List<CategoryInfo> brands) {
     return Row(
       children:
           brands.map((brand) {
@@ -841,7 +1027,7 @@ class _HomePageState extends State<HomePage> {
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(5),
               ),
-              child: Text(brand, style: TextStyle(fontSize: 12)),
+              child: Text(brand.name, style: TextStyle(fontSize: 12)),
             );
           }).toList(),
     );
@@ -854,6 +1040,8 @@ class _HomePageState extends State<HomePage> {
           child: Image.asset(
             'assets/images/nengiamgia.webp',
             fit: BoxFit.cover,
+            height: 150,
+            width: double.infinity,
           ),
         ),
         Container(
@@ -902,8 +1090,6 @@ class _HomePageState extends State<HomePage> {
                   padding: EdgeInsets.all(8),
                   builderDelegate: PagedChildBuilderDelegate<ProductInfo>(
                     itemBuilder: (context, product, index) {
-                      final int rating = Random().nextInt(3) + 3;
-
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -1034,13 +1220,29 @@ class _HomePageState extends State<HomePage> {
                                     SizedBox(height: 4),
                                     Row(
                                       children: List.generate(5, (index) {
-                                        return Icon(
-                                          index < rating
-                                              ? Icons.star
-                                              : Icons.star_border,
-                                          color: Colors.amber,
-                                          size: 16,
-                                        );
+                                        if (index < product.rating.floor()) {
+                                          // Sao đầy
+                                          return const Icon(
+                                            Icons.star,
+                                            color: Colors.amber,
+                                            size: 16,
+                                          );
+                                        } else if (index < product.rating &&
+                                            (product.rating - index) >= 0.5) {
+                                          // Sao nửa
+                                          return const Icon(
+                                            Icons.star_half,
+                                            color: Colors.amber,
+                                            size: 16,
+                                          );
+                                        } else {
+                                          // Sao trống
+                                          return const Icon(
+                                            Icons.star_border,
+                                            color: Colors.amber,
+                                            size: 16,
+                                          );
+                                        }
                                       }),
                                     ),
                                   ],
@@ -1106,8 +1308,6 @@ class _HomePageState extends State<HomePage> {
         padding: EdgeInsets.all(8),
         builderDelegate: PagedChildBuilderDelegate<ProductInfo>(
           itemBuilder: (context, product, index) {
-            final int rating = Random().nextInt(3) + 3;
-
             return GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -1159,7 +1359,7 @@ class _HomePageState extends State<HomePage> {
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
-                            maxLines: 2,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           SizedBox(height: 4),
@@ -1186,11 +1386,29 @@ class _HomePageState extends State<HomePage> {
                           SizedBox(height: 4),
                           Row(
                             children: List.generate(5, (index) {
-                              return Icon(
-                                index < rating ? Icons.star : Icons.star_border,
-                                color: Colors.amber,
-                                size: 16,
-                              );
+                              if (index < product.rating.floor()) {
+                                // Sao đầy
+                                return const Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                  size: 16,
+                                );
+                              } else if (index < product.rating &&
+                                  (product.rating - index) >= 0.5) {
+                                // Sao nửa
+                                return const Icon(
+                                  Icons.star_half,
+                                  color: Colors.amber,
+                                  size: 16,
+                                );
+                              } else {
+                                // Sao trống
+                                return const Icon(
+                                  Icons.star_border,
+                                  color: Colors.amber,
+                                  size: 16,
+                                );
+                              }
                             }),
                           ),
                         ],
@@ -1255,7 +1473,6 @@ class _HomePageState extends State<HomePage> {
         itemCount: products.length,
         itemBuilder: (context, index) {
           final product = products[index];
-          final int rating = Random().nextInt(3) + 3;
 
           return Container(
             width: 180,
@@ -1346,11 +1563,29 @@ class _HomePageState extends State<HomePage> {
                       SizedBox(height: 4),
                       Row(
                         children: List.generate(5, (index) {
-                          return Icon(
-                            index < rating ? Icons.star : Icons.star_border,
-                            color: Colors.amber,
-                            size: 16,
-                          );
+                          if (index < product.rating.floor()) {
+                            // Sao đầy
+                            return const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
+                            );
+                          } else if (index < product.rating &&
+                              (product.rating - index) >= 0.5) {
+                            // Sao nửa
+                            return const Icon(
+                              Icons.star_half,
+                              color: Colors.amber,
+                              size: 16,
+                            );
+                          } else {
+                            // Sao trống
+                            return const Icon(
+                              Icons.star_border,
+                              color: Colors.amber,
+                              size: 16,
+                            );
+                          }
                         }),
                       ),
                     ],

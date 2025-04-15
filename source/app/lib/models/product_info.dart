@@ -14,6 +14,7 @@ class ProductInfo {
   final int discountPercent;
   final int idVariant;
   final int idColor;
+  final double rating;
 
   ProductInfo({
     required this.id,
@@ -26,6 +27,7 @@ class ProductInfo {
     required this.discountPercent,
     required this.idVariant,
     required this.idColor,
+    required this.rating,
   });
 
   factory ProductInfo.fromJson(Map<String, dynamic> json) =>

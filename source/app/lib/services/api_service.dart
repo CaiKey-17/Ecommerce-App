@@ -68,8 +68,29 @@ abstract class ApiService {
   @GET("/brand/list")
   Future<List<CategoryInfo>> getListBrand();
 
-  @GET("/products")
-  Future<List<ProductInfo>> getProducts();
+  @GET("/products/promotion")
+  Future<List<ProductInfo>> getProductsPromotion();
+
+  @GET("/products/new")
+  Future<List<ProductInfo>> getProductsNew();
+
+  @GET("/products/best-seller")
+  Future<List<ProductInfo>> getProductsBestSeller();
+
+  @GET("/products/laptop")
+  Future<List<ProductInfo>> getProductsLaptop();
+
+  @GET("/products/phone")
+  Future<List<ProductInfo>> getProductsPhone();
+
+  @GET("/products/pc")
+  Future<List<ProductInfo>> getProductsPc();
+
+  @GET("/products/keyboard")
+  Future<List<ProductInfo>> getProductsKeyBoard();
+
+  @GET("/products/monitor")
+  Future<List<ProductInfo>> getProductsMonitor();
 
   @GET("/products/category")
   Future<List<ProductInfo>> getProductsByCategory(

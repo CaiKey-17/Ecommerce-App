@@ -9,6 +9,7 @@ class Product {
   final String description;
   final List<ProductImage> images;
   final List<Variant> variants;
+  final double rating;
 
   Product({
     required this.id,
@@ -18,6 +19,7 @@ class Product {
     required this.description,
     required this.images,
     required this.variants,
+    required this.rating,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class Product {
               .toList(),
       variants:
           (json['variants'] as List).map((v) => Variant.fromJson(v)).toList(),
+      rating: json['rating'],
     );
   }
 }
