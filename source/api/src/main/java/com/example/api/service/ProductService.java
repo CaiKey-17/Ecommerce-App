@@ -34,8 +34,8 @@ public class ProductService {
     @Autowired
     private ProductColorRepository productColorRepository;
 
-    public List<ProductDTO> getAllProducts() {
-        List<Product> products = productRepository.findAll();
+    public List<ProductDTO> getAllProductsNew() {
+        List<Product> products = productRepository.findTop20ByOrderByCreatedAtDesc();
         List<ProductDTO> productDTOs = new ArrayList<>();
 
         for (Product product : products) {
@@ -47,6 +47,8 @@ public class ProductService {
 
                 ProductDTO dto = new ProductDTO();
                 dto.setId(product.getId());
+                double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
                 dto.setImage(product.getMainImage());
                 NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
                 DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
@@ -74,6 +76,307 @@ public class ProductService {
         return productDTOs;
     }
 
+
+
+    public List<ProductDTO> getAllProductsLaptop() {
+        List<Product> products = productRepository.findByFkCategory("Laptop");
+        List<ProductDTO> productDTOs = new ArrayList<>();
+
+        for (Product product : products) {
+            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+            if (!variants.isEmpty()) {
+                Product_variant variant = variants.get(0);
+                List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
+
+
+                ProductDTO dto = new ProductDTO();
+                dto.setId(product.getId());
+                Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
+                dto.setImage(product.getMainImage());
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
+                dto.setName(product.getName());
+                dto.setDescription(product.getShortDescription());
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
+                dto.setIdVariant(variant.getId());
+
+                if (!colors.isEmpty()) {
+                    dto.setIdColor(colors.get(0).getId());
+                } else {
+                    dto.setIdColor(-1);
+                }
+
+                productDTOs.add(dto);
+            }
+
+        }
+
+        return productDTOs;
+    }
+
+    public List<ProductDTO> getAllProductsMonitor() {
+        List<Product> products = productRepository.findByFkCategory("Màn hình");
+        List<ProductDTO> productDTOs = new ArrayList<>();
+
+        for (Product product : products) {
+            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+            if (!variants.isEmpty()) {
+                Product_variant variant = variants.get(0);
+                List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
+
+
+                ProductDTO dto = new ProductDTO();
+                dto.setId(product.getId());
+                Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
+                dto.setImage(product.getMainImage());
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
+                dto.setName(product.getName());
+                dto.setDescription(product.getShortDescription());
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
+                dto.setIdVariant(variant.getId());
+
+                if (!colors.isEmpty()) {
+                    dto.setIdColor(colors.get(0).getId());
+                } else {
+                    dto.setIdColor(-1);
+                }
+
+                productDTOs.add(dto);
+            }
+
+        }
+
+        return productDTOs;
+    }
+
+    public List<ProductDTO> getAllProductsPc() {
+        List<Product> products = productRepository.findByFkCategory("PC - Máy tính bàn");
+        List<ProductDTO> productDTOs = new ArrayList<>();
+
+        for (Product product : products) {
+            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+            if (!variants.isEmpty()) {
+                Product_variant variant = variants.get(0);
+                List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
+
+
+                ProductDTO dto = new ProductDTO();
+                dto.setId(product.getId());
+                Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
+                dto.setImage(product.getMainImage());
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
+                dto.setName(product.getName());
+                dto.setDescription(product.getShortDescription());
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
+                dto.setIdVariant(variant.getId());
+
+                if (!colors.isEmpty()) {
+                    dto.setIdColor(colors.get(0).getId());
+                } else {
+                    dto.setIdColor(-1);
+                }
+
+                productDTOs.add(dto);
+            }
+
+        }
+
+        return productDTOs;
+    }
+
+    public List<ProductDTO> getAllProductsPhone() {
+        List<Product> products = productRepository.findByFkCategory("Điện thoại");
+        List<ProductDTO> productDTOs = new ArrayList<>();
+
+        for (Product product : products) {
+            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+            if (!variants.isEmpty()) {
+                Product_variant variant = variants.get(0);
+                List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
+
+
+                ProductDTO dto = new ProductDTO();
+                dto.setId(product.getId());
+                Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
+                dto.setImage(product.getMainImage());
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
+                dto.setName(product.getName());
+                dto.setDescription(product.getShortDescription());
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
+                dto.setIdVariant(variant.getId());
+
+                if (!colors.isEmpty()) {
+                    dto.setIdColor(colors.get(0).getId());
+                } else {
+                    dto.setIdColor(-1);
+                }
+
+                productDTOs.add(dto);
+            }
+
+        }
+
+        return productDTOs;
+    }
+
+    public List<ProductDTO> getAllProductsKeyboard() {
+        List<Product> products = productRepository.findByFkCategory("Bàn phím");
+        List<ProductDTO> productDTOs = new ArrayList<>();
+
+        for (Product product : products) {
+            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+            if (!variants.isEmpty()) {
+                Product_variant variant = variants.get(0);
+                List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
+
+
+                ProductDTO dto = new ProductDTO();
+                dto.setId(product.getId());
+                Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
+                dto.setImage(product.getMainImage());
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
+                dto.setName(product.getName());
+                dto.setDescription(product.getShortDescription());
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
+                dto.setIdVariant(variant.getId());
+
+                if (!colors.isEmpty()) {
+                    dto.setIdColor(colors.get(0).getId());
+                } else {
+                    dto.setIdColor(-1);
+                }
+
+                productDTOs.add(dto);
+            }
+
+        }
+
+        return productDTOs;
+    }
+
+
+
+    public List<ProductDTO> getAllProductsBestSeller(){
+        List<Product> products = productRepository.findTop20BestSeller();
+        List<ProductDTO> productDTOs = new ArrayList<>();
+
+        for (Product product : products) {
+            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+            if (!variants.isEmpty()) {
+                Product_variant variant = variants.get(0);
+                List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
+
+
+                ProductDTO dto = new ProductDTO();
+                dto.setId(product.getId());
+                Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
+                dto.setImage(product.getMainImage());
+                NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                decimalFormat.applyPattern("#,### đ");
+                double discountAmount = variant.getOriginalPrice() - variant.getPrice();
+                dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
+                dto.setName(product.getName());
+                dto.setDescription(product.getShortDescription());
+                dto.setPrice(variant.getPrice());
+                dto.setOldPrice(variant.getOriginalPrice());
+                dto.setDiscountPercent(variant.getDiscountPercent());
+                dto.setIdVariant(variant.getId());
+
+                if (!colors.isEmpty()) {
+                    dto.setIdColor(colors.get(0).getId());
+                } else {
+                    dto.setIdColor(-1);
+                }
+
+                productDTOs.add(dto);
+            }
+
+        }
+
+        return productDTOs;
+    }
+
+    public List<ProductDTO> getAllProductsPromotion() {
+        List<Product> products = productRepository.findAll();
+        List<ProductDTO> productDTOs = new ArrayList<>();
+
+        for (Product product : products) {
+            List<Product_variant> variants = productVariantRepository.findByFkVariantProduct(product.getId());
+            if (!variants.isEmpty() ) {
+                for(Product_variant j:variants){
+                    if(j.getDiscountPercent()>10){
+                        List<Product_color> colors = productColorRepository.findByFkVariantProduct(j.getId());
+
+
+                        ProductDTO dto = new ProductDTO();
+                        dto.setId(product.getId());
+                        Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                        dto.setRating(avgRating);
+                        dto.setImage(product.getMainImage());
+                        NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
+                        DecimalFormat decimalFormat = (DecimalFormat) currencyFormatter;
+                        decimalFormat.applyPattern("#,### đ");
+                        double discountAmount = j.getOriginalPrice() - j.getPrice();
+                        dto.setDiscountLabel("TIẾT KIỆM\n" + decimalFormat.format(discountAmount));
+                        dto.setName(product.getName());
+                        dto.setDescription(product.getShortDescription());
+                        dto.setPrice(j.getPrice());
+                        dto.setOldPrice(j.getOriginalPrice());
+                        dto.setDiscountPercent(j.getDiscountPercent());
+                        dto.setIdVariant(j.getId());
+
+                        if (!colors.isEmpty()) {
+                            dto.setIdColor(colors.get(0).getId());
+                        } else {
+                            dto.setIdColor(-1);
+                        }
+
+                        productDTOs.add(dto);
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        return productDTOs;
+    }
     public List<ProductDTO> getAllProductsByCategory(String fk_category) {
         List<Product> products = productRepository.findByFkCategory(fk_category);
         List<ProductDTO> productDTOs = new ArrayList<>();
@@ -85,6 +388,8 @@ public class ProductService {
                 List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
                 ProductDTO dto = new ProductDTO();
                 dto.setId(product.getId());
+                Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
                 dto.setImage(product.getMainImage());
 
                 NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
@@ -123,6 +428,8 @@ public class ProductService {
                 List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
                 ProductDTO dto = new ProductDTO();
                 dto.setId(product.getId());
+                Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+                dto.setRating(avgRating);
                 dto.setImage(product.getMainImage());
 
                 NumberFormat currencyFormatter = NumberFormat.getNumberInstance(Locale.GERMANY);
@@ -158,6 +465,8 @@ public class ProductService {
 
         ProductDetailDTO productDTO = new ProductDetailDTO();
         productDTO.setId(product.getId());
+        Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
+        productDTO.setRating(avgRating);
         productDTO.setName(product.getName());
         productDTO.setBrand(product.getFkBrand());
         productDTO.setCategory(product.getFkCategory());
