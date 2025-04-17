@@ -12,8 +12,17 @@ public class ProductDetailDTO {
     private String category;
 
     private String description;
+    private String detail;
     private List<ImageDTO> images;
     private List<VariantDTO> variants;
+
+    public String getDetail() {
+        return detail;
+    }
+
+    public void setDetail(String detail) {
+        this.detail = detail;
+    }
 
     private double rating;
 

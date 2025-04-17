@@ -14,6 +14,8 @@ import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/api_service_sentiment.dart';
 import 'package:app/services/cart_service.dart';
+import 'package:app/ui/main_brand.dart';
+import 'package:app/ui/main_category.dart';
 import 'package:app/ui/main_page.dart';
 import 'package:app/ui/order/payment_process.dart';
 import 'package:app/ui/screens/shopping_page.dart';
@@ -628,7 +630,7 @@ class _ProductPageState extends State<ProductPage> {
                                                 ),
                                               ),
                                               Text(
-                                                "${ConvertMoney.currencyFormatter.format(colors[index].price)} đ",
+                                                "${ConvertMoney.currencyFormatter.format(colors[index].price)} ₫",
                                                 style: const TextStyle(
                                                   fontSize: 12,
                                                   color: Colors.black,
@@ -649,7 +651,7 @@ class _ProductPageState extends State<ProductPage> {
                                   alignment: Alignment.center,
                                   color: Colors.grey[200],
                                   child: Text(
-                                    "${ConvertMoney.currencyFormatter.format(price)} đ",
+                                    "${ConvertMoney.currencyFormatter.format(price)} ₫",
 
                                     style: const TextStyle(
                                       fontSize: 22,
@@ -670,7 +672,9 @@ class _ProductPageState extends State<ProductPage> {
                                       ),
                                     ),
                                     const SizedBox(height: 10),
-                                    const SpecificationWidget(),
+                                    SpecificationWidget(
+                                      detail: product!.detail,
+                                    ),
                                     const SizedBox(height: 10),
                                     const Text(
                                       'Mô tả sản phẩm',
@@ -680,7 +684,10 @@ class _ProductPageState extends State<ProductPage> {
                                       ),
                                     ),
                                     const SizedBox(height: 10),
-                                    const DescriptionWidget(),
+                                    DescriptionWidget(
+                                      description: product!.description,
+                                    ),
+
                                     const SizedBox(height: 10),
                                     ProductRatingWidget(
                                       productName: product!.name,
@@ -726,14 +733,30 @@ class _ProductPageState extends State<ProductPage> {
                                 ),
 
                                 _buildTitle("Sản phẩm cùng hãng", () {
-                                  print("Xem thêm được bấm!");
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => BrandPage(
+                                            selectedBrand: product!.brand,
+                                          ),
+                                    ),
+                                  );
                                 }),
                                 const Divider(color: Colors.grey, thickness: 1),
                                 const SizedBox(height: 10),
                                 _buildListView(products_brand),
                                 const SizedBox(height: 10),
                                 _buildTitle("Sản phẩm liên quan ", () {
-                                  print("Xem thêm được bấm!");
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => CategoryPage(
+                                            selectedCategory: product!.category,
+                                          ),
+                                    ),
+                                  );
                                 }),
                                 const Divider(color: Colors.grey, thickness: 1),
                                 const SizedBox(height: 10),
@@ -808,11 +831,17 @@ class _ProductPageState extends State<ProductPage> {
   }
 }
 
-class SpecificationWidget extends StatelessWidget {
-  final String sampleSpecString =
-      "Title: Thông số kỹ thuật; CPU: Snapdragon 8 Gen 2; RAM: 16GB; Title: Màn hình; Kích thước: 6.8 inch; Độ phân giải: 1440 x 3200 pixels; Title: Camera; Camera chính: 50MP; Camera trước: 32MP, ; Siêu đẹp: 32MP";
+class SpecificationWidget extends StatefulWidget {
+  final String? detail;
+  const SpecificationWidget({super.key, this.detail});
 
-  const SpecificationWidget({super.key});
+  @override
+  State<SpecificationWidget> createState() => _SpecificationWidgetState();
+}
+
+class _SpecificationWidgetState extends State<SpecificationWidget> {
+  // final String sampleSpecString =
+  //     "Title: Thông số kỹ thuật; CPU: Snapdragon 8 Gen 2; RAM: 16GB; Title: Màn hình; Kích thước: 6.8 inch; Độ phân giải: 1440 x 3200 pixels; Title: Camera; Camera chính: 50MP; Camera trước: 32MP, ; Siêu đẹp: 32MP";
 
   List<Map<String, String>> _parseSpecifications(String specString) {
     if (specString.isEmpty) return [];
@@ -836,7 +865,7 @@ class SpecificationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<Map<String, String>> specifications = _parseSpecifications(
-      sampleSpecString,
+      widget.detail!,
     );
 
     List<Map<String, String>> filteredSpecs =
@@ -1058,26 +1087,33 @@ class SpecificationWidget extends StatelessWidget {
   }
 }
 
-const String productDescription =
-    "Bạn đang cần tìm màn hình hiển thị sắc nét, hiệu năng vượt trội với mức giá hợp lý? "
-    "Màn hình MSI PRO MP242L với kích thước 24 inch (23.8 inch) chính là sự lựa chọn hoàn hảo đến từ thương hiệu uy tín. "
-    "Được trang bị độ phân giải Full HD, tấm nền IPS cao cấp và tần số quét 100Hz, thiết bị không chỉ mang lại trải nghiệm hình ảnh sống động "
-    "mà còn hỗ trợ bảo vệ thị lực tối ưu cho người dùng. Hãy cùng khám phá các thông tin nổi bật của loại màn hình này nhé!\n\n"
-    "Màn hình MSI PRO MP242L 23.8 inch nổi bật với thiết kế thanh lịch và kích thước (không chân) 542 x 28 x 321 mm, khối lượng 2kg và kích thước "
-    "(có chân) 542 x 174 x 391 mm, khối lượng 3.5kg dễ dàng phù hợp với mọi không gian sử dụng văn phòng. Với viền mỏng 3 cạnh hiện đại, tỷ lệ khung hình 16:9 "
-    "không chỉ tối ưu không gian hiển thị mà còn mang lại vẻ đẹp tinh tế, nâng tầm thẩm mỹ cho góc làm việc hay giải trí. Phần mặt sau được tô điểm bởi các họa tiết "
-    "tạo điểm nhấn độc đáo và đầy cảm hứng. Thiết kế tối giản này tạo điều kiện thuận lợi khi thiết lập đa màn hình, đáp ứng linh hoạt nhu cầu sử dụng.";
+// const String productDescription =
+//     "Bạn đang cần tìm màn hình hiển thị sắc nét, hiệu năng vượt trội với mức giá hợp lý? "
+//     "Màn hình MSI PRO MP242L với kích thước 24 inch (23.8 inch) chính là sự lựa chọn hoàn hảo đến từ thương hiệu uy tín. "
+//     "Được trang bị độ phân giải Full HD, tấm nền IPS cao cấp và tần số quét 100Hz, thiết bị không chỉ mang lại trải nghiệm hình ảnh sống động "
+//     "mà còn hỗ trợ bảo vệ thị lực tối ưu cho người dùng. Hãy cùng khám phá các thông tin nổi bật của loại màn hình này nhé!\n\n"
+//     "Màn hình MSI PRO MP242L 23.8 inch nổi bật với thiết kế thanh lịch và kích thước (không chân) 542 x 28 x 321 mm, khối lượng 2kg và kích thước "
+//     "(có chân) 542 x 174 x 391 mm, khối lượng 3.5kg dễ dàng phù hợp với mọi không gian sử dụng văn phòng. Với viền mỏng 3 cạnh hiện đại, tỷ lệ khung hình 16:9 "
+//     "không chỉ tối ưu không gian hiển thị mà còn mang lại vẻ đẹp tinh tế, nâng tầm thẩm mỹ cho góc làm việc hay giải trí. Phần mặt sau được tô điểm bởi các họa tiết "
+//     "tạo điểm nhấn độc đáo và đầy cảm hứng. Thiết kế tối giản này tạo điều kiện thuận lợi khi thiết lập đa màn hình, đáp ứng linh hoạt nhu cầu sử dụng.";
 
-class DescriptionWidget extends StatelessWidget {
-  const DescriptionWidget({super.key});
+class DescriptionWidget extends StatefulWidget {
+  final String? description;
+
+  const DescriptionWidget({super.key, this.description});
 
   @override
+  State<DescriptionWidget> createState() => _DescriptionWidgetState();
+}
+
+class _DescriptionWidgetState extends State<DescriptionWidget> {
+  @override
   Widget build(BuildContext context) {
-    bool isLongText = productDescription.length > 200;
+    bool isLongText = widget.description!.length > 200;
     String shortDescription =
         isLongText
-            ? "${productDescription.substring(0, 400)}..."
-            : productDescription;
+            ? "${widget.description!.substring(0, 400)}..."
+            : widget.description!;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1146,7 +1182,7 @@ class DescriptionWidget extends StatelessWidget {
                                 Expanded(
                                   child: SingleChildScrollView(
                                     child: Text(
-                                      productDescription,
+                                      widget.description!,
                                       style: const TextStyle(fontSize: 14),
                                     ),
                                   ),
@@ -2116,7 +2152,7 @@ Widget _buildListView(List<ProductInfo> products) {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "${ConvertMoney.currencyFormatter.format(product.price)} đ",
+                      "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -2126,7 +2162,7 @@ Widget _buildListView(List<ProductInfo> products) {
                     Row(
                       children: [
                         Text(
-                          "${ConvertMoney.currencyFormatter.format(product.oldPrice)} đ",
+                          "${ConvertMoney.currencyFormatter.format(product.oldPrice)} ₫",
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
