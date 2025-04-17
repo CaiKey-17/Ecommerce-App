@@ -36,9 +36,18 @@ public class OrderController {
             @RequestParam double pointTotal,
             @RequestParam double priceTotal,
             @RequestParam double ship
-            ) {
-        cartService.confirmToCart(orderId,address,couponTotal,email,fkCouponId,pointTotal,priceTotal,ship);
+    ) {
+        cartService.confirmToCart(orderId, address, couponTotal, email, fkCouponId, pointTotal, priceTotal, ship);
         return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
+    }
+
+    @PostMapping("/cancel")
+    public ResponseEntity<?> cancelToCart(
+            @RequestParam int orderId) {
+
+        cartService.cancelToCart(orderId);
+        return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
+
     }
 
     @GetMapping("/pending")

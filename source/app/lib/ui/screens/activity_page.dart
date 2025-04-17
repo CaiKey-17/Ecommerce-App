@@ -3,6 +3,7 @@ import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
@@ -78,6 +79,7 @@ class _ActivityPageState extends State<ActivityPage>
       final List<Map<String, dynamic>> transformed =
           response.map((order) {
             return {
+              "id": order["orderId"],
               "status": order["status"],
               "image": order["firstProductImage"],
               "name": order["firstProductName"],
@@ -179,117 +181,36 @@ class _ActivityPageState extends State<ActivityPage>
   //   },
   // ];
 
+  void _handleOrder(int orderId) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await apiService.cancelToCart(orderId);
+
+      setState(() {
+        isLoading = false;
+      });
+      Fluttertoast.showToast(
+        msg: "Hủy đơn thành công!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black54,
+        textColor: Colors.white,
+        fontSize: 14.0,
+      );
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Có lỗi xảy ra, vui lòng thử lại")),
+      );
+    }
+  }
+
   final List<Map<String, dynamic>> deliveredOrders = [
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
     {
       "store": "Điện máy xanh",
       "status": "Đã giao",
@@ -423,14 +344,99 @@ class _ActivityPageState extends State<ActivityPage>
           if (order["status"] == "Chờ xác nhận") {
             actionButton = OutlinedButton(
               onPressed: () {
-                final itemList = controller.itemList;
-                if (itemList != null && index >= 0 && index < itemList.length) {
-                  setState(() {
-                    itemList.removeAt(index);
-                    controller.notifyListeners();
-                  });
-                }
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      backgroundColor: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 24,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.red,
+                              size: 48,
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Xác nhận hủy đơn',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Bạn có chắc chắn muốn hủy đơn hàng này không?',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.grey[700],
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 10,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Không'),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 10,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    var order = pendingOrders[index];
+                                    int orderId = order["id"];
+
+                                    _handleOrder(orderId);
+                                    final itemList = controller.itemList;
+                                    if (itemList != null &&
+                                        index >= 0 &&
+                                        index < itemList.length) {
+                                      setState(() {
+                                        itemList.removeAt(index);
+                                        pendingOrders.removeAt(index);
+                                        controller.notifyListeners();
+                                      });
+                                    }
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Hủy đơn'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
               },
+
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.red),
                 foregroundColor: Colors.red,

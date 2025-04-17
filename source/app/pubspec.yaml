@@ -63,6 +63,7 @@ dependencies:
   permission_handler: ^11.0.1
   url_launcher: ^6.3.1
   get: ^4.7.2
+  google_fonts: ^6.1.0
 
 dev_dependencies:
   flutter_test:

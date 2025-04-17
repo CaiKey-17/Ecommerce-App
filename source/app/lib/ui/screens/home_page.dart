@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:app/data/banner.dart';
@@ -11,6 +12,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
@@ -31,6 +33,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late Timer countdownTimer;
+  late Duration remainingTime = const Duration(
+    hours: 32,
+    minutes: 40,
+    seconds: 32,
+  );
+
   late CartRepository cartRepository;
   late CartService cartService;
   late ApiService apiService;
@@ -283,6 +292,19 @@ class _HomePageState extends State<HomePage> {
     _scrollController1 = ScrollController();
     _scrollController.addListener(_onScroll);
     _loadUserData();
+    remainingTime = const Duration(hours: 32, minutes: 40, seconds: 32);
+
+    countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          if (remainingTime.inSeconds > 0) {
+            remainingTime -= const Duration(seconds: 1);
+          } else {
+            timer.cancel();
+          }
+        });
+      }
+    });
 
     apiService = ApiService(Dio());
     cartRepository = CartRepository(apiService);
@@ -415,6 +437,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _scrollController.removeListener(_onScroll);
+    countdownTimer.cancel();
     _scrollController.dispose();
     _scrollController1.dispose();
     _pagingController.dispose();
@@ -425,6 +448,13 @@ class _HomePageState extends State<HomePage> {
     _pagingController6.dispose();
     _pagingController7.dispose();
     super.dispose();
+  }
+
+  String formatDuration(Duration d) {
+    final hours = d.inHours.toString().padLeft(2, '0');
+    final minutes = (d.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return '$hours giờ $minutes phút $seconds giây';
   }
 
   bool isNewProductSelected = true;
@@ -1033,6 +1063,35 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildTimeBox(int value) {
+    return Container(
+      width: 35,
+      height: 35,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(50),
+        border: Border.all(color: Colors.red, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: const Color.fromARGB(203, 244, 67, 54).withOpacity(1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Text(
+        value.toString().padLeft(2, '0'),
+        style: GoogleFonts.rajdhani(
+          color: Colors.red,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1,
+        ),
+      ),
+    );
+  }
+
   Widget _buildListView(PagingController<int, ProductInfo> controller) {
     return Stack(
       children: [
@@ -1063,6 +1122,26 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    Row(
+                      children: [
+                        _buildTimeBox(remainingTime.inHours),
+                        const SizedBox(width: 4),
+                        const Text(
+                          ":",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildTimeBox(remainingTime.inMinutes % 60),
+                        const SizedBox(width: 4),
+                        const Text(
+                          ":",
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                        const SizedBox(width: 4),
+                        _buildTimeBox(remainingTime.inSeconds % 60),
+                      ],
+                    ),
+
                     TextButton(
                       onPressed: () {
                         Navigator.push(
