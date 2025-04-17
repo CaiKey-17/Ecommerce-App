@@ -38,10 +38,8 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   String? _selectedProvinceCode;
   String? _selectedDistrictCode;
 
-  // FocusNode cho ô địa chỉ cụ thể
   final _specificAddressFocusNode = FocusNode();
 
-  // FocusNode cho các ô chọn Tỉnh/Quận/Xã
   final _provinceFocusNode = FocusNode();
   final _districtFocusNode = FocusNode();
   final _wardFocusNode = FocusNode();
@@ -52,7 +50,6 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     apiService = ApiService(Dio());
     _loadUserData();
 
-    // Thêm listener cho FocusNode để rebuild khi focus thay đổi
     _specificAddressFocusNode.addListener(() {
       setState(() {});
     });
@@ -257,6 +254,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Đặt màu nền thành trắng
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_rounded),
@@ -274,7 +272,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         elevation: 1,
       ),
       body: Container(
-        color: Colors.white,
+        color: Colors.white, // Giữ lại để đảm bảo tính nhất quán
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
