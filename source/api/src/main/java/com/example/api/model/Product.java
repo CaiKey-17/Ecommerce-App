@@ -19,8 +19,19 @@ public class Product {
     @Column(length = 255, nullable = true)
     private String name;
 
-    @Column(name = "shortDescription", length = 255, nullable = true)
+    @Column(name = "shortDescription", length = 1000, nullable = true)
     private String shortDescription;
+
+    @Column(name = "detail", length = 1000, nullable = true)
+    private String detail;
+
+    public String getDetail() {
+        return detail;
+    }
+
+    public void setDetail(String detail) {
+        this.detail = detail;
+    }
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp createdAt;

@@ -1553,154 +1553,167 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (context, index) {
           final product = products[index];
 
-          return Container(
-            width: 180,
-            margin: EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade300,
-                  blurRadius: 5,
-                  spreadRadius: 2,
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductPage(productId: product.id),
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(10),
-                    ),
-                    child: Image.network(
-                      product.image,
-                      width: double.infinity,
-                      height: 150,
-                      fit: BoxFit.cover,
+              );
+            },
+            child: Container(
+              width: 180,
+              margin: EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade300,
+                    blurRadius: 5,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(10),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(10),
+                      ),
+                      child: Image.network(
+                        product.image,
+                        width: double.infinity,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        products[index].name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                  Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          products[index].name,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        products[index].description,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
+                        SizedBox(height: 4),
+                        Text(
+                          products[index].description,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade700,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "${ConvertMoney.currencyFormatter.format(products[index].price)} ₫",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                        SizedBox(height: 8),
+                        Text(
+                          "${ConvertMoney.currencyFormatter.format(products[index].price)} ₫",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (product.discountPercent > 0)
-                        Row(
-                          children: [
-                            Text(
-                              "${ConvertMoney.currencyFormatter.format(products[index].oldPrice)} ₫",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                                decoration: TextDecoration.lineThrough,
+                        if (product.discountPercent > 0)
+                          Row(
+                            children: [
+                              Text(
+                                "${ConvertMoney.currencyFormatter.format(products[index].oldPrice)} ₫",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              "- ${product.discountPercent}%" ?? "",
-                              style: TextStyle(fontSize: 12, color: Colors.red),
-                            ),
-                          ],
+                              SizedBox(width: 4),
+                              Text(
+                                "- ${product.discountPercent}%" ?? "",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                        SizedBox(height: 4),
+                        Row(
+                          children: List.generate(5, (index) {
+                            if (index < product.rating.floor()) {
+                              // Sao đầy
+                              return const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 16,
+                              );
+                            } else if (index < product.rating &&
+                                (product.rating - index) >= 0.5) {
+                              // Sao nửa
+                              return const Icon(
+                                Icons.star_half,
+                                color: Colors.amber,
+                                size: 16,
+                              );
+                            } else {
+                              // Sao trống
+                              return const Icon(
+                                Icons.star_border,
+                                color: Colors.amber,
+                                size: 16,
+                              );
+                            }
+                          }),
                         ),
-                      SizedBox(height: 4),
-                      Row(
-                        children: List.generate(5, (index) {
-                          if (index < product.rating.floor()) {
-                            // Sao đầy
-                            return const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                              size: 16,
-                            );
-                          } else if (index < product.rating &&
-                              (product.rating - index) >= 0.5) {
-                            // Sao nửa
-                            return const Icon(
-                              Icons.star_half,
-                              color: Colors.amber,
-                              size: 16,
-                            );
-                          } else {
-                            // Sao trống
-                            return const Icon(
-                              Icons.star_border,
-                              color: Colors.amber,
-                              size: 16,
-                            );
-                          }
-                        }),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Spacer(),
-                Padding(
-                  padding: EdgeInsets.all(8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        cartService.addToCart(
-                          productID: product.idVariant,
-                          colorId: product.idColor,
-                          id: product.id,
-                          token: token,
-                          context: context,
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.blue, width: 1),
-                        foregroundColor: Colors.blue,
-                        padding: EdgeInsets.symmetric(vertical: 9),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  Spacer(),
+                  Padding(
+                    padding: EdgeInsets.all(8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          cartService.addToCart(
+                            productID: product.idVariant,
+                            colorId: product.idColor,
+                            id: product.id,
+                            token: token,
+                            context: context,
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.blue, width: 1),
+                          foregroundColor: Colors.blue,
+                          padding: EdgeInsets.symmetric(vertical: 9),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        "Thêm giỏ hàng",
-                        style: TextStyle(fontSize: 14),
+                        child: Text(
+                          "Thêm giỏ hàng",
+                          style: TextStyle(fontSize: 14),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },
