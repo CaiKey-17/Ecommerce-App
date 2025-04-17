@@ -89,6 +89,17 @@ public class CartService {
         });
     }
 
+    public void cancelToCart(int orderId) {
+        String sql = "{CALL Cancel(?)}";
+        jdbcTemplate.execute((Connection con) -> {
+            try (CallableStatement cs = con.prepareCall(sql)) {
+                cs.setInt(1, orderId);
+                cs.execute();
+            }
+            return null;
+        });
+    }
+
 
 
 }

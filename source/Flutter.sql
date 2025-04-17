@@ -188,7 +188,7 @@ CREATE DEFINER=`root`@`%` PROCEDURE `AddVoucherToCart` (IN `p_OrderId` INT, IN `
 
 END$$
 
-CREATE DEFINER=`root`@`%` PROCEDURE `Cancel` (IN `p_OrderId` INT)   BEGIN
+CREATE PROCEDURE `Cancel` (IN `p_OrderId` INT)   BEGIN
 
 	DECLARE v_Process VARCHAR(255) ;
 	DECLARE v_customerId int;
@@ -202,7 +202,7 @@ CREATE DEFINER=`root`@`%` PROCEDURE `Cancel` (IN `p_OrderId` INT)   BEGIN
         SELECT id_fk_customer INTO v_customerId FROM orders
         WHERE id = p_OrderId;
 
-        SELECT fk_coupon_Id INTO v_couponId FROM orders
+        SELECT fk_coupon_id INTO v_couponId FROM orders
         WHERE id = p_OrderId;
 
         SELECT point_total INTO v_points FROM orders
@@ -213,21 +213,31 @@ CREATE DEFINER=`root`@`%` PROCEDURE `Cancel` (IN `p_OrderId` INT)   BEGIN
         WHERE id = v_couponId;
 
         UPDATE customer
-        SET points =  v_points
+        SET points = points+ v_points
         WHERE id = v_customerId;
 
         
-        UPDATE product_variant
-        SET quantity = quantity + (
-            SELECT quantity
-            FROM order_details
-            WHERE order_details.fk_product_Id = product_variant.id AND order_details.fk_order_Id = p_OrderId
-        )
-        WHERE id IN (
-            SELECT fk_product_Id
-            FROM order_details
-            WHERE fk_order_Id = p_OrderId
-        );
+       -- Tạo bảng tạm chứa số lượng cần cộng thêm theo product_variant.id
+            UPDATE product_variant pv
+            JOIN (
+                SELECT od.fk_product_id AS id, SUM(od.quantity) AS quantity_to_add
+                FROM order_details od
+                WHERE od.fk_order_Id = p_OrderId AND od.fk_color_id IS NULL
+                GROUP BY od.fk_product_id
+            ) AS t ON pv.id = t.id
+            SET pv.quantity = pv.quantity + t.quantity_to_add;
+
+        
+       UPDATE product_color pc
+JOIN (
+    SELECT od.fk_color_id AS id, SUM(od.quantity) AS quantity_to_add
+    FROM order_details od
+    WHERE od.fk_order_Id = p_OrderId AND od.fk_color_id IS NOT NULL
+    GROUP BY od.fk_color_id
+) AS t ON pc.id = t.id
+SET pc.quantity = pc.quantity + t.quantity_to_add;
+
+        
         
 
         UPDATE orders
@@ -235,7 +245,11 @@ CREATE DEFINER=`root`@`%` PROCEDURE `Cancel` (IN `p_OrderId` INT)   BEGIN
         WHERE id = p_OrderId;
 
         DELETE FROM bills 
-        WHERE fk_order_Id = p_OrderId;
+        WHERE fk_order_id = p_OrderId;
+        
+         DELETE FROM order_details 
+        WHERE fk_order_id = p_OrderId;
+        
 
     
     END IF;

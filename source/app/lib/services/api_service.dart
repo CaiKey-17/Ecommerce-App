@@ -197,4 +197,7 @@ abstract class ApiService {
     @Query("priceTotal") double priceTotal,
     @Query("ship") double ship,
   );
+
+  @POST("/order/cancel")
+  Future<Map<String, dynamic>> cancelToCart(@Query("orderId") int orderId);
 }
