@@ -14,6 +14,7 @@ class UserInfo {
   final String createdAt;
   final int points;
   final List<String> codes;
+  final String image;
 
   UserInfo({
     required this.id,
@@ -26,6 +27,7 @@ class UserInfo {
     required this.createdAt,
     required this.points,
     required this.codes,
+    required this.image,
   });
 
   factory UserInfo.fromJson(Map<String, dynamic> json) =>

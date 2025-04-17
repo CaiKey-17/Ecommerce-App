@@ -1,4 +1,4 @@
-package com.example.api.controller;
+package com.example.api.controller.user;
 
 import com.example.api.dto.LoginRequest;
 import com.example.api.model.Users;
@@ -8,10 +8,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import com.example.api.service.UserService;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -19,6 +20,10 @@ import java.util.Map;
 public class LoginController {
     @Autowired
     private UserService userService;
+
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
@@ -66,6 +71,45 @@ public class LoginController {
             ));
         }
     }
+
+    @PostMapping("/changePassword")
+    public ResponseEntity<?> changePassword(
+            @RequestHeader("Authorization") String token,
+            @RequestParam String oldPassword,
+            @RequestParam String newPassword) {
+        try {
+            int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", ""));
+            Users user = userService.getUserById(userId);
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "code", 404,
+                        "message", "Không tìm thấy người dùng"
+                ));
+            }
+
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                        "code", 400,
+                        "message", "Mật khẩu cũ không đúng"
+                ));
+            }
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userService.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                    "code", 200,
+                    "message", "Đổi mật khẩu thành công"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "code", 500,
+                    "message", "Lỗi khi đổi mật khẩu"
+            ));
+        }
+    }
+
 
 
 }

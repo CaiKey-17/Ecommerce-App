@@ -1,4 +1,10 @@
+import 'package:app/globals/convert_money.dart';
+import 'package:app/services/api_service.dart';
+import 'package:app/services/cart_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -11,9 +17,15 @@ class ActivityPage extends StatefulWidget {
 
 class _ActivityPageState extends State<ActivityPage>
     with SingleTickerProviderStateMixin {
+  List<Map<String, dynamic>> pendingOrders = [];
+  List<Map<String, dynamic>> deliveringOrders = [];
+
+  bool isLoading = false;
+  String token = "";
+  late ApiService apiService;
+
   late TabController _tabController;
 
-  // PagingController cho từng tab
   final PagingController<int, Map<String, dynamic>> _pendingController =
       PagingController(firstPageKey: 0);
   final PagingController<int, Map<String, dynamic>> _deliveringController =
@@ -23,52 +35,149 @@ class _ActivityPageState extends State<ActivityPage>
 
   static const int _pageSize = 3;
 
-  // Danh sách đơn hàng mẫu
-  final List<Map<String, dynamic>> pendingOrders = [
-    {
-      "store": "Honjianda Official Store",
-      "status": "Chờ xác nhận",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Ổ cắm điện đa năng HONJIANDA Sạc nhanh",
-      "time": "23/02/2025, 17:01",
-      "details": "0448, 8 lỗ cắm, 1.8 mét",
-      "quantity": 1,
-      "totalPrice": 99000,
-    },
-    {
-      "store": "Honjianda Official Store",
-      "status": "Chờ xác nhận",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Ổ cắm điện đa năng HONJIANDA Sạc nhanh",
-      "time": "23/02/2025, 17:01",
-      "details": "0448, 8 lỗ cắm, 1.8 mét",
-      "quantity": 1,
-      "totalPrice": 99000,
-    },
-    {
-      "store": "Honjianda Official Store",
-      "status": "Chờ xác nhận",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Ổ cắm điện đa năng HONJIANDA Sạc nhanh",
-      "time": "23/02/2025, 17:01",
-      "details": "0448, 8 lỗ cắm, 1.8 mét",
-      "quantity": 1,
-      "totalPrice": 99000,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
 
-  final List<Map<String, dynamic>> deliveringOrders = [
-    {
-      "store": "Tech Store",
-      "status": "Chờ giao hàng",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Switch Brown, kết nối USB",
-      "quantity": 1,
-      "totalPrice": 499000,
-    },
-  ];
+    _deliveredController.addPageRequestListener((pageKey) {
+      _fetchOrders(pageKey, _deliveredController, deliveredOrders);
+    });
+    apiService = ApiService(Dio());
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? "";
+    });
+    fetchPendingOrders(token);
+    fetchOrderingOrders(token);
+
+    _pendingController.addPageRequestListener((pageKey) {
+      _fetchOrders(pageKey, _pendingController, pendingOrders);
+    });
+    _deliveringController.addPageRequestListener((pageKey) {
+      _fetchOrders(pageKey, _deliveringController, deliveringOrders);
+    });
+  }
+
+  String formatDate(String isoDate) {
+    DateTime dateTime = DateTime.parse(isoDate);
+    return DateFormat('dd/MM/yyyy, HH:mm').format(dateTime);
+  }
+
+  Future<void> fetchPendingOrders(String token) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.findPendingOrdersByCustomer(token);
+
+      final List<Map<String, dynamic>> transformed =
+          response.map((order) {
+            return {
+              "status": order["status"],
+              "image": order["firstProductImage"],
+              "name": order["firstProductName"],
+              "time": formatDate(order["createdAt"]),
+              "details": "",
+              "quantity": order["totalItems"],
+              "totalPrice": ConvertMoney.currencyFormatter.format(
+                order["total"],
+              ),
+            };
+          }).toList();
+
+      setState(() {
+        pendingOrders = transformed;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchOrderingOrders(String token) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.findDeliveringOrdersByCustomer(token);
+
+      final List<Map<String, dynamic>> transformed =
+          response.map((order) {
+            return {
+              "status": order["status"],
+              "image": order["firstProductImage"],
+              "name": order["firstProductName"],
+              "time": formatDate(order["createdAt"]),
+              "details": "",
+              "quantity": order["totalItems"],
+              "totalPrice": ConvertMoney.currencyFormatter.format(
+                order["total"],
+              ),
+            };
+          }).toList();
+
+      setState(() {
+        deliveringOrders = transformed;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // final List<Map<String, dynamic>> pendingOrders = [
+  //   {
+  //     "status": "Chờ xác nhận",
+  //     "image": "assets/images/dienthoai.webp",
+  //     "name": "Ổ cắm điện đa năng HONJIANDA Sạc nhanh 1",
+  //     "time": "23/02/2025, 17:01",
+  //     "details": "0448, 8 lỗ cắm, 1.8 mét",
+  //     "quantity": 1,
+  //     "totalPrice": 99000,
+  //   },
+  //   {
+  //     "status": "Chờ xác nhận",
+  //     "image": "assets/images/dienthoai.webp",
+  //     "name": "Ổ cắm điện đa năng HONJIANDA Sạc nhanh 2",
+  //     "time": "23/02/2025, 17:01",
+  //     "details": "0448, 8 lỗ cắm, 1.8 mét",
+  //     "quantity": 1,
+  //     "totalPrice": 99000,
+  //   },
+  //   {
+  //     "status": "Chờ xác nhận",
+  //     "image": "assets/images/dienthoai.webp",
+  //     "name": "Ổ cắm điện đa năng HONJIANDA Sạc nhanh 3",
+  //     "time": "23/02/2025, 17:01",
+  //     "details": "0448, 8 lỗ cắm, 1.8 mét",
+  //     "quantity": 1,
+  //     "totalPrice": 99000,
+  //   },
+  // ];
+
+  // final List<Map<String, dynamic>> deliveringOrders = [
+  //   {
+  //     "store": "Tech Store",
+  //     "status": "Chờ giao hàng",
+  //     "image": "assets/images/dienthoai.webp",
+  //     "name": "Bàn phím cơ RGB gaming",
+  //     "time": "23/02/2025",
+  //     "details": "Switch Brown, kết nối USB",
+  //     "quantity": 1,
+  //     "totalPrice": 499000,
+  //   },
+  // ];
 
   final List<Map<String, dynamic>> deliveredOrders = [
     {
@@ -193,23 +302,6 @@ class _ActivityPageState extends State<ActivityPage>
     },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-
-    // Thiết lập listener cho từng controller
-    _pendingController.addPageRequestListener((pageKey) {
-      _fetchOrders(pageKey, _pendingController, pendingOrders);
-    });
-    _deliveringController.addPageRequestListener((pageKey) {
-      _fetchOrders(pageKey, _deliveringController, deliveringOrders);
-    });
-    _deliveredController.addPageRequestListener((pageKey) {
-      _fetchOrders(pageKey, _deliveredController, deliveredOrders);
-    });
-  }
-
   // Hàm lấy dữ liệu phân trang
   Future<void> _fetchOrders(
     int pageKey,
@@ -253,15 +345,24 @@ class _ActivityPageState extends State<ActivityPage>
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text("Hoạt động"),
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            color: Colors.blue, // 👈 Chỉ phần này có màu nền
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(0), // Có thể bo góc nếu thích
+            ),
+          ),
+        ),
         centerTitle: true,
         titleTextStyle: const TextStyle(
-          color: Color.fromARGB(255, 31, 133, 216),
+          color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.message_outlined, color: Colors.blue),
+            icon: const Icon(Icons.message_outlined, color: Colors.white),
             onPressed: () {
               print("Nhấn vào thông báo!");
             },
@@ -269,34 +370,40 @@ class _ActivityPageState extends State<ActivityPage>
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
-          child: Align(
-            alignment: Alignment.center,
-            child: TabBar(
-              controller: _tabController,
-              labelColor: Colors.blue,
-              unselectedLabelColor: Colors.grey,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.normal,
+          child: Container(
+            color: Colors.white,
+            child: Align(
+              alignment: Alignment.center,
+              child: TabBar(
+                controller: _tabController,
+                labelColor: Colors.blue,
+                unselectedLabelColor: Colors.blue,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                ),
+                indicatorColor: Colors.blue,
+                indicatorWeight: 3.0,
+                tabs: const [
+                  Tab(text: "Chờ xác nhận"),
+                  Tab(text: "Đang giao"),
+                  Tab(text: "Lịch sử"),
+                ],
               ),
-              indicatorColor: Colors.blue,
-              indicatorWeight: 3.0,
-              tabs: const [
-                Tab(text: "Chờ xác nhận"),
-                Tab(text: "Chờ giao hàng"),
-                Tab(text: "Lịch sử"),
-              ],
             ),
           ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          buildOrderList(_pendingController, pendingOrders),
-          buildOrderList(_deliveringController, deliveringOrders),
-          buildOrderList(_deliveredController, deliveredOrders),
-        ],
+      body: Container(
+        color: Colors.white,
+        child: TabBarView(
+          controller: _tabController,
+          children: [
+            buildOrderList(_pendingController, pendingOrders),
+            buildOrderList(_deliveringController, deliveringOrders),
+            buildOrderList(_deliveredController, deliveredOrders),
+          ],
+        ),
       ),
     );
   }
@@ -315,14 +422,22 @@ class _ActivityPageState extends State<ActivityPage>
 
           if (order["status"] == "Chờ xác nhận") {
             actionButton = OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                final itemList = controller.itemList;
+                if (itemList != null && index >= 0 && index < itemList.length) {
+                  setState(() {
+                    itemList.removeAt(index);
+                    controller.notifyListeners();
+                  });
+                }
+              },
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.red),
                 foregroundColor: Colors.red,
               ),
               child: const Text("Hủy đơn hàng"),
             );
-          } else if (order["status"] == "Chờ giao hàng") {
+          } else if (order["status"] == "Đã xác nhận") {
             actionButton = ElevatedButton(
               onPressed: () {},
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
@@ -347,6 +462,7 @@ class _ActivityPageState extends State<ActivityPage>
           }
 
           return Card(
+            color: const Color.fromARGB(255, 247, 247, 247),
             margin: const EdgeInsets.symmetric(vertical: 8),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -362,8 +478,15 @@ class _ActivityPageState extends State<ActivityPage>
                     children: [
                       Text(
                         order["status"] ?? "Không xác định",
-                        style: const TextStyle(
-                          color: Colors.orange,
+                        style: TextStyle(
+                          color:
+                              order["status"] == "Chờ xác nhận"
+                                  ? Colors.orange
+                                  : order["status"] == "Đã xác nhận"
+                                  ? Colors.green
+                                  : order["status"] == "Lịch sử"
+                                  ? Colors.red
+                                  : Colors.grey,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -377,9 +500,17 @@ class _ActivityPageState extends State<ActivityPage>
                         height: 70,
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: AssetImage(
-                              order["image"] ?? "assets/images/dienthoai.webp",
-                            ),
+                            image:
+                                order["image"] != null &&
+                                        order["image"].toString().startsWith(
+                                          'http',
+                                        )
+                                    ? NetworkImage(order["image"])
+                                        as ImageProvider
+                                    : const AssetImage(
+                                      "assets/images/dienthoai.webp",
+                                    ),
+
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -433,7 +564,7 @@ class _ActivityPageState extends State<ActivityPage>
                         style: TextStyle(color: Colors.grey),
                       ),
                       Text(
-                        "₫${order["totalPrice"]?.toString() ?? 'N/A'}",
+                        "${order["totalPrice"]?.toString() ?? 'N/A'} ₫",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -456,139 +587,147 @@ class _ActivityPageState extends State<ActivityPage>
             ),
           );
         },
-        firstPageProgressIndicatorBuilder: (context) => SizedBox(
-          height: MediaQuery.of(context).size.height * 0.5, // Giới hạn chiều cao
-          child: Shimmer.fromColors(
-            baseColor: Colors.grey.shade300,
-            highlightColor: Colors.grey.shade100,
-            period: const Duration(seconds: 1),
-            child: ListView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 5, // Số lượng placeholder
-              itemBuilder: (context, index) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade300,
-                        blurRadius: 5,
-                        spreadRadius: 2,
-                        offset: const Offset(0, 2),
+        firstPageProgressIndicatorBuilder:
+            (context) => SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: Shimmer.fromColors(
+                baseColor: Colors.grey.shade300,
+                highlightColor: Colors.grey.shade100,
+                period: const Duration(seconds: 1),
+                child: ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.shade300,
+                            blurRadius: 5,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: 100,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Divider(),
-                        Row(
-                          children: [
-                            Container(
-                              width: 70,
-                              height: 70,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    height: 20,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  width: 100,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
-                                  const SizedBox(height: 5),
-                                  Container(
-                                    width: 150,
-                                    height: 16,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
+                                ),
+                              ],
+                            ),
+                            const Divider(),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 70,
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
-                                  const SizedBox(height: 5),
-                                  Container(
-                                    width: 120,
-                                    height: 15,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: double.infinity,
+                                        height: 20,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Container(
+                                        width: 150,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Container(
+                                        width: 120,
+                                        height: 15,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  width: 80,
+                                  height: 16,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                                Container(
+                                  width: 60,
+                                  height: 18,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Container(
+                                  width: 100,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                            Container(
-                              width: 60,
-                              height: 18,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              width: 100,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
-        ),
         newPageProgressIndicatorBuilder:
             (context) => const Padding(
               padding: EdgeInsets.only(top: 8, bottom: 58),

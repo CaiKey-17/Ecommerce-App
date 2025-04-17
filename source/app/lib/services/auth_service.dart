@@ -26,6 +26,8 @@ class AuthRepository {
       await prefs.setBool('active', userInfo.active == 1);
       await prefs.setString('createdAt', userInfo.createdAt);
       await prefs.setInt('points', userInfo.points);
+      await prefs.setString('image', userInfo.image);
+
       return true;
     } catch (e) {
       print("Lỗi khi lấy thông tin người dùng: $e");

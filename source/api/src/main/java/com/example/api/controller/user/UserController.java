@@ -1,4 +1,4 @@
-package com.example.api.controller;
+package com.example.api.controller.user;
 
 import com.example.api.model.Customer;
 import com.example.api.model.Users;
@@ -10,10 +10,7 @@ import com.example.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -63,8 +60,43 @@ public class UserController {
             userInfo.put("addresses", addressList);
             userInfo.put("codes", addressCode);
             userInfo.put("points", customer.getPoints());
+            if(user.getImage()!=null){
+                userInfo.put("image", user.getImage());
+            }
+            else{
+                userInfo.put("image", "");
 
+            }
             return ResponseEntity.ok(userInfo);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "code", 500,
+                    "message", "Lỗi khi lấy thông tin người dùng"
+            ));
+        }
+    }
+
+    @PostMapping("/user-info/change")
+    public ResponseEntity<?> changeImage(@RequestHeader("Authorization") String token, @RequestParam String image) {
+        try {
+            int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", ""));
+            Users user = userService.getUserById(userId);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "code", 404,
+                        "message", "Không tìm thấy người dùng"
+                ));
+            }
+            user.setImage(image);
+            userService.updateUser(user);
+
+            System.out.println("📸 Ảnh nhận được: " + image);
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                    "code", 200,
+                    "message", "Lưu ảnh người dùng thành công!"
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "code", 500,

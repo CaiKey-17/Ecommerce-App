@@ -1,4 +1,4 @@
-package com.example.api.controller;
+package com.example.api.controller.user;
 
 import com.example.api.dto.RegisterRequest;
 import com.example.api.dto.ValidRequest;

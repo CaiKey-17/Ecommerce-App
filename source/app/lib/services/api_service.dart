@@ -2,6 +2,7 @@ import 'package:app/models/address.dart';
 import 'package:app/models/address_response.dart';
 import 'package:app/models/category_info.dart';
 import 'package:app/models/coupon_info.dart';
+
 import 'package:app/models/product_info.dart';
 import 'package:app/models/product_info_detail.dart';
 import 'package:app/models/rating_info.dart';
@@ -28,6 +29,14 @@ class ApiResponse<T> {
   final T? data;
 
   ApiResponse({required this.code, required this.message, this.data});
+
+  factory ApiResponse.fromJson(Map<String, dynamic> json) {
+    return ApiResponse(
+      code: json['code'],
+      message: json['message'],
+      data: json['data'],
+    );
+  }
 }
 
 @RestApi(baseUrl: "http://192.168.70.182:8080/api")
@@ -36,6 +45,13 @@ abstract class ApiService {
 
   @POST("/auth/login")
   Future<LoginResponse> login(@Body() LoginRequest request);
+
+  @POST("/auth/changePassword")
+  Future<ApiResponse> changePassword(
+    @Header("Authorization") String token,
+    @Query("oldPassword") String oldPassword,
+    @Query("newPassword") String newPassword,
+  );
 
   @POST("/auth/register")
   Future<RegisterResponse> register(@Body() RegisterRequest request);
@@ -48,6 +64,12 @@ abstract class ApiService {
 
   @GET("/auth/user-info")
   Future<UserInfo> getUserInfo(@Header("Authorization") String token);
+
+  @POST("/auth/user-info/change")
+  Future<void> changeImage(
+    @Header("Authorization") String token,
+    @Query("image") String image,
+  );
 
   @GET("/address")
   Future<List<AddressList>> getListAddress(
@@ -152,6 +174,16 @@ abstract class ApiService {
   @POST("/cart/delete")
   Future<Map<String, dynamic>> deleteToCart(
     @Query("orderDetailId") int orderDetailId,
+  );
+
+  @GET("/order/pending")
+  Future<List<Map<String, dynamic>>> findPendingOrdersByCustomer(
+    @Header("Authorization") String? token,
+  );
+
+  @GET("/order/delivering")
+  Future<List<Map<String, dynamic>>> findDeliveringOrdersByCustomer(
+    @Header("Authorization") String? token,
   );
 
   @POST("/order/confirm")

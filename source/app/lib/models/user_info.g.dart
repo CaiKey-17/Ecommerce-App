@@ -18,6 +18,7 @@ UserInfo _$UserInfoFromJson(Map<String, dynamic> json) => UserInfo(
       createdAt: json['createdAt'] as String,
       points: (json['points'] as num).toInt(),
       codes: (json['codes'] as List<dynamic>).map((e) => e as String).toList(),
+      image: json['image'] as String,
     );
 
 Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
@@ -31,4 +32,5 @@ Map<String, dynamic> _$UserInfoToJson(UserInfo instance) => <String, dynamic>{
       'createdAt': instance.createdAt,
       'points': instance.points,
       'codes': instance.codes,
+      'image': instance.image,
     };

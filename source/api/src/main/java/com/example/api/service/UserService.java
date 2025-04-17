@@ -28,6 +28,10 @@ public class UserService {
     @Autowired
     private AddressService addressService;
 
+    public void save(Users u){
+        userRepository.save(u);
+    }
+
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -41,6 +45,11 @@ public class UserService {
         Optional<Users> user = userRepository.findByEmail(email);
         System.out.println(user.toString());
         return user.isPresent() && passwordEncoder.matches(password, user.get().getPassword());
+    }
+
+
+    public void updateUser(Users user) {
+        userRepository.save(user);
     }
 
     public Users findByEmail(String email) {

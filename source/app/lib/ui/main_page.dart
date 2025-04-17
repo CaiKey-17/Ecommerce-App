@@ -7,6 +7,7 @@ import 'package:app/ui/screens/shopping_page.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:app/providers/cart_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,11 +26,13 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   late int _selectedIndex;
   int? userId;
+  String token = "";
 
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       userId = prefs.getInt('userId') ?? -1;
+      token = prefs.getString('token') ?? "";
       Future.microtask(() {
         final cartProvider = Provider.of<CartProvider>(context, listen: false);
         cartProvider.fetchCartFromApi(userId);
@@ -64,6 +67,8 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
+    _loadUserData();
+
     pages = [
       const HomePage(),
       const CategoryPageList(),
@@ -71,7 +76,6 @@ class _MainPageState extends State<MainPage> {
       const ActivityPage(),
       const ProfilePage(),
     ];
-    _loadUserData();
   }
 
   @override
@@ -174,6 +178,18 @@ class _MainPageState extends State<MainPage> {
                           ),
                 ),
                 onTap: (index) {
+                  if (index == 3 && token.isEmpty) {
+                    Fluttertoast.showToast(
+                      msg: "Vui lòng đăng nhập để xem hoạt động!",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.black54,
+                      textColor: Colors.white,
+                      fontSize: 14.0,
+                    );
+                    return;
+                  }
+
                   setState(() {
                     _selectedIndex = index;
                     if (index == 2) {

@@ -41,6 +41,36 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<ApiResponse<dynamic>> changePassword(
+    token,
+    oldPassword,
+    newPassword,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'oldPassword': oldPassword,
+      r'newPassword': newPassword,
+    };
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse<dynamic>>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/auth/changePassword',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse<dynamic>.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<RegisterResponse> register(request) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -130,6 +160,27 @@ class _ApiService implements ApiService {
     );
     final value = UserInfo.fromJson(_result.data!);
     return value;
+  }
+
+  @override
+  Future<void> changeImage(token, image) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'image': image};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    await _dio.fetch<void>(
+      _setStreamType<void>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/auth/user-info/change',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
   }
 
   @override
@@ -748,6 +799,60 @@ class _ApiService implements ApiService {
       ),
     );
     var value = Map<String, dynamic>.from(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> findPendingOrdersByCustomer(token) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<Map<String, dynamic>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/order/pending',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+
+    return value;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> findDeliveringOrdersByCustomer(
+    token,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<Map<String, dynamic>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/order/delivering',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+
     return value;
   }
 

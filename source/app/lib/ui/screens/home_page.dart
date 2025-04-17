@@ -1180,7 +1180,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      "${ConvertMoney.currencyFormatter.format(product.price)} đ",
+                                      "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -1193,7 +1193,7 @@ class _HomePageState extends State<HomePage> {
                                       Row(
                                         children: [
                                           Text(
-                                            "${ConvertMoney.currencyFormatter.format(product.oldPrice)} đ",
+                                            "${ConvertMoney.currencyFormatter.format(product.oldPrice)} ₫",
                                             style: TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey,
@@ -1374,7 +1374,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            "${ConvertMoney.currencyFormatter.format(product.price)} đ",
+                            "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -1531,7 +1531,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        "${ConvertMoney.currencyFormatter.format(products[index].price)} đ",
+                        "${ConvertMoney.currencyFormatter.format(products[index].price)} ₫",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -1544,7 +1544,7 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           children: [
                             Text(
-                              "${ConvertMoney.currencyFormatter.format(products[index].oldPrice)} đ",
+                              "${ConvertMoney.currencyFormatter.format(products[index].oldPrice)} ₫",
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,
@@ -1753,7 +1753,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  "${ConvertMoney.currencyFormatter.format(product.price)} đ",
+                  "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -1765,7 +1765,7 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     children: [
                       Text(
-                        "${ConvertMoney.currencyFormatter.format(product.oldPrice)} đ",
+                        "${ConvertMoney.currencyFormatter.format(product.oldPrice)} ₫",
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
