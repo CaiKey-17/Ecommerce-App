@@ -4,7 +4,7 @@ import 'package:app/ui/login/edit_profile_page.dart';
 import 'package:app/ui/login/login_page.dart';
 import 'package:app/ui/login/register_page.dart';
 import 'package:app/ui/profile/address_list_screen.dart';
-import 'package:app/ui/profile/edit_profile_page.dart';
+import 'package:app/ui/login/edit_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
