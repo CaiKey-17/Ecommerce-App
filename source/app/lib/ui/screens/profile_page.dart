@@ -1,3 +1,4 @@
+import 'package:app/providers/profile_image_picker.dart';
 import 'package:app/ui/login/change_password_page.dart';
 import 'package:app/ui/login/login_page.dart';
 import 'package:app/ui/login/register_page.dart';
@@ -16,11 +17,11 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   String fullName = "";
-
   int points = 0;
   String token = "";
   bool check = false;
   String formattedPoints = "";
+  String image_url = "";
 
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -28,6 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
       fullName = prefs.getString('fullName') ?? "";
       points = prefs.getInt('points') ?? 0;
       token = prefs.getString('token') ?? "";
+      image_url = prefs.getString('image') ?? "";
       if (token.isNotEmpty) {
         check = true;
       } else {
@@ -96,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           Column(
             children: [
-              _buildHeader(),
+              _buildHeader(token),
               Expanded(
                 child: SingleChildScrollView(
                   physics: NeverScrollableScrollPhysics(),
@@ -110,14 +112,14 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String token) {
     return Stack(
       children: [
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
 
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             image: DecorationImage(
               image: AssetImage("assets/images/nenprofile.jpg"),
               fit: BoxFit.cover,
@@ -128,7 +130,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.only(
@@ -136,48 +138,41 @@ class _ProfilePageState extends State<ProfilePage> {
                   bottomRight: Radius.circular(20),
                   bottomLeft: Radius.circular(20),
                 ),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  color: Colors.white,
-                  child: const Icon(
-                    Icons.person,
-                    size: 40,
-                    color: Colors.black,
-                  ),
-                ),
+                child: ProfileImagePicker(imageUrl: image_url),
               ),
               const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "${fullName}",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Row(
+              token.isNotEmpty
+                  ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        "Điểm tích lũy:",
-                        style: TextStyle(fontSize: 14, color: Colors.white),
-                      ),
-                      const SizedBox(width: 6),
                       Text(
-                        "🪙 ${formattedPoints}",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
+                        fullName,
+                        style: const TextStyle(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
+                      Row(
+                        children: [
+                          const Text(
+                            "Điểm tích lũy:",
+                            style: TextStyle(fontSize: 14, color: Colors.white),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "🪙 $formattedPoints",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
-                  ),
-                ],
-              ),
+                  )
+                  : GestureDetector(onTap: () {}, child: const Text("")),
             ],
           ),
         ),
@@ -216,7 +211,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChangePasswordScreen(),
+                    builder: (context) => ChangePasswordScreen(token: token),
                   ),
                 );
               }),

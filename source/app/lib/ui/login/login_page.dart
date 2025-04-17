@@ -246,255 +246,261 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: Form(
                   key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: Text(
-                          "Chào mừng bạn trở lại",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade900,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            "Chào mừng bạn trở lại",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade900,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      TextFormField(
-                        controller: _emailController,
-                        focusNode: _emailFocusNode,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(
-                            Icons.email_outlined,
-                            color:
-                                _emailFocusNode.hasFocus
-                                    ? Colors.blue
-                                    : Colors.grey,
-                          ),
-                          labelText: 'Email',
-                          labelStyle: TextStyle(
-                            color:
-                                _emailFocusNode.hasFocus
-                                    ? Colors.blue
-                                    : Colors.black,
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.blue,
-                              width: 2.0,
+                        SizedBox(height: 20),
+                        TextFormField(
+                          controller: _emailController,
+                          focusNode: _emailFocusNode,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color:
+                                  _emailFocusNode.hasFocus
+                                      ? Colors.blue
+                                      : Colors.grey,
                             ),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: 1.0,
+                            labelText: 'Email',
+                            labelStyle: TextStyle(
+                              color:
+                                  _emailFocusNode.hasFocus
+                                      ? Colors.blue
+                                      : Colors.black,
                             ),
-                            borderRadius: BorderRadius.circular(15),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.blue,
+                                width: 2.0,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.grey,
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            errorText: _emailError,
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          errorText: _emailError,
+                          onTapOutside: (event) {
+                            _emailFocusNode.unfocus();
+                          },
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Vui lòng nhập email";
+                            }
+                            return _validateEmail(value.trim());
+                          },
                         ),
-                        onTapOutside: (event) {
-                          _emailFocusNode.unfocus();
-                        },
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return "Vui lòng nhập email";
-                          }
-                          return _validateEmail(value.trim());
-                        },
-                      ),
-                      SizedBox(height: 16),
-                      TextField(
-                        obscureText: _obscureText,
-                        controller: _passwordController,
-                        focusNode: _passwordFocusNode,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(
-                            Icons.lock_outline,
-                            color:
-                                _passwordFocusNode.hasFocus
-                                    ? Colors.blue
-                                    : Colors.grey,
-                          ),
-                          labelText: 'Mật khẩu',
-                          labelStyle: TextStyle(
-                            color:
-                                _passwordFocusNode.hasFocus
-                                    ? Colors.blue
-                                    : Colors.black,
-                          ),
-                          floatingLabelBehavior: FloatingLabelBehavior.auto,
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.blue,
-                              width: 2.0,
-                            ),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureText
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
+                        SizedBox(height: 16),
+                        TextField(
+                          obscureText: _obscureText,
+                          controller: _passwordController,
+                          focusNode: _passwordFocusNode,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(
+                              Icons.lock_outline,
                               color:
                                   _passwordFocusNode.hasFocus
                                       ? Colors.blue
                                       : Colors.grey,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _obscureText = !_obscureText;
-                              });
-                            },
+                            labelText: 'Mật khẩu',
+                            labelStyle: TextStyle(
+                              color:
+                                  _passwordFocusNode.hasFocus
+                                      ? Colors.blue
+                                      : Colors.black,
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.blue,
+                                width: 2.0,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Colors.grey,
+                                width: 1.0,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureText
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color:
+                                    _passwordFocusNode.hasFocus
+                                        ? Colors.blue
+                                        : Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscureText = !_obscureText;
+                                });
+                              },
+                            ),
+                          ),
+                          onTapOutside: (event) {
+                            _passwordFocusNode.unfocus();
+                          },
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) => ForgotPasswordScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Quên mật khẩu?",
+                                style: TextStyle(color: Colors.blue),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _handleLogin,
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: Size(double.infinity, 50),
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child:
+                                _isLoading
+                                    ? SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 3,
+                                      ),
+                                    )
+                                    : Text(
+                                      "Đăng Nhập",
+                                      style: TextStyle(fontSize: 18),
+                                    ),
                           ),
                         ),
-                        onTapOutside: (event) {
-                          _passwordFocusNode.unfocus();
-                        },
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
+                        SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pushReplacementNamed(context, "/main");
+                            },
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              side: BorderSide(color: Colors.blue),
+                            ),
+                            child: Text(
+                              "Mua hàng không cần đăng nhập",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Center(
+                          child: Text(
+                            "Đăng nhập với",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildSocialButton(
+                              'assets/images/facebook.png',
+                              'Facebook',
+                            ),
+                            SizedBox(width: 15),
+                            _buildSocialButton(
+                              'assets/images/google.webp',
+                              'Google',
+                            ),
+                            SizedBox(width: 15),
+                            _buildSocialButton(
+                              'assets/images/apple.png',
+                              'Apple',
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20),
+                        Center(
+                          child: TextButton(
                             onPressed: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ForgotPasswordScreen(),
+                                  builder: (context) => RegisterPage(),
                                 ),
                               );
                             },
-                            child: Text(
-                              "Quên mật khẩu?",
-                              style: TextStyle(color: Colors.blue),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: Size(double.infinity, 50),
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          child:
-                              _isLoading
-                                  ? SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 3,
-                                    ),
-                                  )
-                                  : Text(
-                                    "Đăng Nhập",
-                                    style: TextStyle(fontSize: 18),
-                                  ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pushReplacementNamed(context, "/main");
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            side: BorderSide(color: Colors.blue),
-                          ),
-                          child: Text(
-                            "Mua hàng không cần đăng nhập",
-                            style: TextStyle(fontSize: 16, color: Colors.blue),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Center(
-                        child: Text(
-                          "Đăng nhập với",
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildSocialButton(
-                            'assets/images/facebook.png',
-                            'Facebook',
-                          ),
-                          SizedBox(width: 15),
-                          _buildSocialButton(
-                            'assets/images/google.webp',
-                            'Google',
-                          ),
-                          SizedBox(width: 15),
-                          _buildSocialButton(
-                            'assets/images/apple.png',
-                            'Apple',
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      Center(
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RegisterPage(),
-                              ),
-                            );
-                          },
-                          child: RichText(
-                            text: TextSpan(
-                              text: "Bạn chưa có tài khoản? ",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: "Đăng ký",
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            child: RichText(
+                              text: TextSpan(
+                                text: "Bạn chưa có tài khoản? ",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 16,
                                 ),
-                              ],
+                                children: [
+                                  TextSpan(
+                                    text: "Đăng ký",
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
