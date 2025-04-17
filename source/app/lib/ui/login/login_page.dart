@@ -143,25 +143,27 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _isLoading = true;
       _passwordError = null;
+      _emailError = null; // Reset lỗi trước khi kiểm tra
     });
 
-    if (_formKey.currentState!.validate()) {
-      if (_emailController.text.trim().isEmpty) {
-        setState(() {
-          _isLoading = false;
+    bool isEmailEmpty = _emailController.text.trim().isEmpty;
+    bool isPasswordEmpty = _passwordController.text.trim().isEmpty;
+
+    // Kiểm tra nếu cả hai trường đều trống
+    if (isEmailEmpty || isPasswordEmpty) {
+      setState(() {
+        _isLoading = false;
+        if (isEmailEmpty) {
           _emailError = "Vui lòng nhập email";
-        });
-        return;
-      }
-
-      if (_passwordController.text.trim().isEmpty) {
-        setState(() {
-          _isLoading = false;
+        }
+        if (isPasswordEmpty) {
           _passwordError = "Bạn chưa nhập mật khẩu";
-        });
-        return;
-      }
+        }
+      });
+      return;
+    }
 
+    if (_formKey.currentState!.validate()) {
       try {
         final request = LoginRequest(
           username: _emailController.text.trim(),
@@ -322,13 +324,14 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(15),
                           ),
                           errorText: _emailError,
+                          errorStyle: TextStyle(color: Colors.red),
                         ),
                         onTapOutside: (event) {
                           _emailFocusNode.unfocus();
                         },
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return "Vui lòng nhập email";
+                            return null; // Không hiển thị lỗi từ validator nữa, sẽ dùng _emailError
                           }
                           return _validateEmail(value.trim());
                         },
@@ -423,15 +426,11 @@ class _LoginPageState extends State<LoginPage> {
                         child: ElevatedButton(
                           onPressed: _handleLogin,
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 12,
-                            ), // Khớp với padding của nút "Mua hàng không cần đăng nhập"
+                            padding: EdgeInsets.symmetric(vertical: 12),
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                25,
-                              ), // Khớp với borderRadius của nút "Mua hàng không cần đăng nhập"
+                              borderRadius: BorderRadius.circular(25),
                             ),
                           ),
                           child:
@@ -448,7 +447,7 @@ class _LoginPageState extends State<LoginPage> {
                                     "Đăng Nhập",
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.04,
-                                    ), // Khớp với fontSize của nút "Mua hàng không cần đăng nhập"
+                                    ),
                                   ),
                         ),
                       ),

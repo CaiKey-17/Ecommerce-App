@@ -470,7 +470,21 @@ public class ProductService {
         productDTO.setName(product.getName());
         productDTO.setBrand(product.getFkBrand());
         productDTO.setCategory(product.getFkCategory());
-        productDTO.setDescription(product.getShortDescription());
+
+        if(product.getShortDescription()!=null){
+            productDTO.setDescription(product.getShortDescription());
+        }
+        else{
+            productDTO.setDescription("");
+        }
+
+        if(product.getDetail()!=null){
+            productDTO.setDetail(product.getDetail());
+        }
+        else{
+            productDTO.setDetail("");
+        }
+
 
         List<ImageDTO> imageDTOs = productImageRepository.findByFkImageProduct(product.getId()).stream()
                 .map(image -> {

@@ -1,8 +1,10 @@
 import 'package:app/providers/profile_image_picker.dart';
 import 'package:app/ui/login/change_password_page.dart';
+import 'package:app/ui/login/edit_profile_page.dart';
 import 'package:app/ui/login/login_page.dart';
 import 'package:app/ui/login/register_page.dart';
 import 'package:app/ui/profile/address_list_screen.dart';
+import 'package:app/ui/profile/edit_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
@@ -22,6 +24,7 @@ class _ProfilePageState extends State<ProfilePage> {
   bool check = false;
   String formattedPoints = "";
   String image_url = "";
+  String email = "";
 
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -30,6 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
       points = prefs.getInt('points') ?? 0;
       token = prefs.getString('token') ?? "";
       image_url = prefs.getString('image') ?? "";
+      email = prefs.getString('email') ?? "";
       if (token.isNotEmpty) {
         check = true;
       } else {
@@ -118,7 +122,6 @@ class _ProfilePageState extends State<ProfilePage> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-
           decoration: BoxDecoration(
             image: DecorationImage(
               image: AssetImage("assets/images/nenprofile.jpg"),
@@ -185,25 +188,41 @@ class _ProfilePageState extends State<ProfilePage> {
       _buildMenuItem(Icons.bar_chart, "Lịch sử điểm tích lũy", () {
         print("Nhấn vào Quản lý chi tiêu");
       }),
+
       _buildMenuItem(Icons.calendar_today, "Quản lý đơn hàng", () {
         print("Nhấn vào Kế hoạch di chuyển");
       }),
       SizedBox(height: 10),
+      _buildMenuItem(Icons.person, "Thay đổi thông tin cá nhân", () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => EditProfilePage(fullName: fullName, email: email),
+          ),
+        ).then((_) => _loadUserData());
+      }),
       _buildMenuItem(Icons.location_history_outlined, "Sổ địa chỉ", () {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => AddressListScreen()),
         );
-        ;
       }),
       _buildMenuItem(Icons.language, "Thay đổi ngôn ngữ", () {
         print("Nhấn vào Home PayLater");
+      }),
+      _buildMenuItem(Icons.password_rounded, "Thay đổi mật khẩu", () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChangePasswordScreen(token: token),
+          ),
+        );
       }),
       _buildMenuItem(Icons.security, "Chính sách và điều khoản", () {
         print("Nhấn vào Liên kết tài khoản");
       }),
       SizedBox(height: 10),
-
       check
           ? Column(
             children: [
@@ -230,12 +249,27 @@ class _ProfilePageState extends State<ProfilePage> {
 
     List<Widget> result = [];
     for (int i = 0; i < items.length; i++) {
-      result.add(items[i]);
+      if (items[i] is Column) {
+        Column column = items[i] as Column;
+        for (int j = 0; j < column.children.length; j++) {
+          result.add(column.children[j]);
+          if (j < column.children.length - 1) {
+            result.add(
+              const Divider(color: Colors.grey, thickness: 0.5, height: 0),
+            );
+          }
+        }
+      } else {
+        result.add(items[i]);
+      }
 
       if (i < items.length - 1 && items[i + 1] is! SizedBox) {
-        result.add(
-          const Divider(color: Colors.grey, thickness: 0.5, height: 0),
-        );
+        if (items[i] is! Column ||
+            (items[i] is Column && items[i + 1] is! Column)) {
+          result.add(
+            const Divider(color: Colors.grey, thickness: 0.5, height: 0),
+          );
+        }
       }
     }
     return result;
