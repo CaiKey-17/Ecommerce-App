@@ -40,7 +40,6 @@ public class OrderController {
     private OrderDetailService orderDetailService;
 
 
-
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -71,29 +70,32 @@ public class OrderController {
             @RequestParam String tempId,
             @RequestParam int id
     ) {
-        cartService.confirmToCart(orderId, address, couponTotal, email, fkCouponId, pointTotal, priceTotal, ship);
-        List<OrderDetailProjection> list = orderDetailService.getOrderDetailsByCustomerIdAndOrderId(id,"dangdat",orderId);
-        System.out.println(tempId);
+        System.out.println("ID: " + id);
 
-        for(OrderDetailProjection i : list){
-            System.out.println(i.getImage());
-            System.out.println(i.getNameVariant());
-            System.out.println(i.getColorName());
-            System.out.println(i.getPrice());
-            System.out.println(i.getQuantity());
+        Users u1 = userService.findById(id);
+        Users u2 = null;
+        try {
+            u2 = userService.findByEmail(email);
+        } catch (RuntimeException ex) {
+        }
 
-            BigDecimal result = i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity()));
+        if (u2 != null && !u2.getId().equals(u1.getId())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Email đã tồn tại"));
+        } else {
+            cartService.confirmToCart(orderId, address, couponTotal, email, fkCouponId, pointTotal, priceTotal, ship);
+            List<OrderDetailProjection> list = orderDetailService.getOrderDetailsByCustomerIdAndOrderId(id, "dangdat", orderId);
+            System.out.println(tempId);
 
-            System.out.println("Total: " + result);
+
+            String subject = "Xác nhận đơn hàng #" + orderId;
+            String htmlContent = generateOrderEmailHTML(orderId, address, list, priceTotal, couponTotal, pointTotal, ship);
+
+            sendHtmlEmail(email, subject, htmlContent);
+
+            return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
         }
 
 
-        String subject = "Xác nhận đơn hàng #" + orderId;
-        String htmlContent = generateOrderEmailHTML(orderId, address, list, priceTotal, couponTotal, pointTotal, ship);
-
-        sendHtmlEmail(email, subject, htmlContent);
-
-        return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
     }
 
     @PostMapping("/cancel")
@@ -107,14 +109,14 @@ public class OrderController {
 
     @GetMapping("/pending")
     public ResponseEntity<List<OrderSummaryDTO>> findPendingOrdersByCustomerId(@RequestHeader("Authorization") String token) {
-        int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) != null ? JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")):-1;
+        int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) != null ? JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) : -1;
 
         return ResponseEntity.ok(orderService.findPendingOrdersByCustomerId(userId));
     }
 
     @GetMapping("/delivering")
     public ResponseEntity<List<OrderSummaryDTO>> findDeliveringOrdersByCustomerId(@RequestHeader("Authorization") String token) {
-        int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) != null ? JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")):-1;
+        int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) != null ? JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) : -1;
         return ResponseEntity.ok(orderService.findDeliveringOrdersByCustomerId(userId));
     }
 
@@ -123,36 +125,36 @@ public class OrderController {
                                           double priceTotal, double couponTotal, double pointTotal, double ship) {
         StringBuilder tableBuilder = new StringBuilder();
         tableBuilder.append(String.format("""
-        <h2>🛒 Xác nhận đơn hàng #%d</h2>
-        <p>Cảm ơn bạn đã đặt hàng tại cửa hàng của chúng tôi!</p>
-        <p><strong>Địa chỉ giao hàng:</strong> %s</p>
-        <table style="border-collapse: collapse; width: 100%%; font-family: Arial, sans-serif;">
-            <thead>
-                <tr style="background-color: #f2f2f2;">
-                    <th style="border: 1px solid #ddd; padding: 8px;">Hình ảnh</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Sản phẩm</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Màu sắc</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Số lượng</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Giá</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Tổng</th>
-                </tr>
-            </thead>
-            <tbody>
-        """, orderId, address));
+                <h2>🛒 Xác nhận đơn hàng #%d</h2>
+                <p>Cảm ơn bạn đã đặt hàng tại cửa hàng của chúng tôi!</p>
+                <p><strong>Địa chỉ giao hàng:</strong> %s</p>
+                <table style="border-collapse: collapse; width: 100%%; font-family: Arial, sans-serif;">
+                    <thead>
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="border: 1px solid #ddd; padding: 8px;">Hình ảnh</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Sản phẩm</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Màu sắc</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Số lượng</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Giá</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">Tổng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                """, orderId, address));
 
         for (OrderDetailProjection item : list) {
             tableBuilder.append(String.format("""
-            <tr>
-                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
-                    <img src="%s" alt="product" width="80" />
-                </td>
-                <td style="border: 1px solid #ddd; padding: 8px;">%s</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">%s</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">%d</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">%,.0f VNĐ</td>
-                <td style="border: 1px solid #ddd; padding: 8px;">%,.0f VNĐ</td>
-            </tr>
-            """,
+                            <tr>
+                                <td style="border: 1px solid #ddd; padding: 8px; text-align: center;">
+                                    <img src="%s" alt="product" width="80" />
+                                </td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">%s</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">%s</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">%d</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">%,.0f VNĐ</td>
+                                <td style="border: 1px solid #ddd; padding: 8px;">%,.0f VNĐ</td>
+                            </tr>
+                            """,
                     item.getImage(),
                     item.getNameVariant(),
                     (item.getColorName() != null && !item.getColorName().isBlank()) ? item.getColorName() : "—",
@@ -162,20 +164,20 @@ public class OrderController {
             ));
         }
 
-        double totalPayment = priceTotal - couponTotal - pointTotal + ship+priceTotal*0.02;
+        double totalPayment = priceTotal - couponTotal - pointTotal + ship + priceTotal * 0.02;
 
         tableBuilder.append(String.format("""
-            </tbody>
-        </table>
-        <br/>
-        <p><strong>Tổng cộng:</strong> %,.0f VNĐ</p>
-        <p><strong>Giảm giá (Coupon):</strong> %,.0f VNĐ</p>
-        <p><strong>Điểm sử dụng:</strong> %,.0f VNĐ</p>
-        <p><strong>Phí vận chuyển:</strong> %,.0f VNĐ</p>
-        <p><strong>Phí thuế:</strong> %,.0f VNĐ</p>
-        <p><strong>Thành tiền:</strong> <span style="color: green; font-weight: bold;">%,.0f VNĐ</span></p>
-        <p style="margin-top: 30px;">🎉 Chúng tôi sẽ xử lý và giao hàng cho bạn sớm nhất!</p>
-        """, priceTotal, couponTotal, pointTotal, ship,priceTotal*0.02, totalPayment));
+                    </tbody>
+                </table>
+                <br/>
+                <p><strong>Tổng cộng:</strong> %,.0f VNĐ</p>
+                <p><strong>Giảm giá (Coupon):</strong> %,.0f VNĐ</p>
+                <p><strong>Điểm sử dụng:</strong> %,.0f VNĐ</p>
+                <p><strong>Phí vận chuyển:</strong> %,.0f VNĐ</p>
+                <p><strong>Phí thuế:</strong> %,.0f VNĐ</p>
+                <p><strong>Thành tiền:</strong> <span style="color: green; font-weight: bold;">%,.0f VNĐ</span></p>
+                <p style="margin-top: 30px;">🎉 Chúng tôi sẽ xử lý và giao hàng cho bạn sớm nhất!</p>
+                """, priceTotal, couponTotal, pointTotal, ship, priceTotal * 0.02, totalPayment));
 
         return tableBuilder.toString();
     }

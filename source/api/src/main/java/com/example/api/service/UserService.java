@@ -53,7 +53,13 @@ public class UserService {
     }
 
     public Users findByEmail(String email) {
-        return userRepository.findByEmail(email).get();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email không tồn tại: " + email));
+    }
+
+
+    public Users findById(int id) {
+        return userRepository.findById(id).get();
     }
 
     public boolean validateResetToken(String token) {
