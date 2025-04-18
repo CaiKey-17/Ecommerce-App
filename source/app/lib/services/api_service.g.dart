@@ -866,6 +866,8 @@ class _ApiService implements ApiService {
     pointTotal,
     priceTotal,
     ship,
+    tempId,
+    id,
   ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
@@ -877,6 +879,8 @@ class _ApiService implements ApiService {
       r'pointTotal': pointTotal,
       r'priceTotal': priceTotal,
       r'ship': ship,
+      r'tempId': tempId,
+      r'id': id,
     };
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;

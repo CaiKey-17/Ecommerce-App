@@ -22,6 +22,7 @@ class CartService {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     int? userID = prefs.getInt('userId') ?? -1;
+    String? tempID = prefs.getString('tempId') ?? "";
     String? authToken;
 
     if (token != null && token.isNotEmpty && token.split('.').length == 3) {
@@ -52,6 +53,10 @@ class CartService {
         if (response.containsKey("id")) {
           userID = response["id"];
           await prefs.setInt('userId', userID!);
+        }
+        if (response.containsKey("temp_id")) {
+          tempID = response["temp_id"];
+          await prefs.setString('tempId', tempID!);
         }
 
         Fluttertoast.showToast(

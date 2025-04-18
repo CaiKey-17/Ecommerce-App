@@ -143,13 +143,12 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _isLoading = true;
       _passwordError = null;
-      _emailError = null; // Reset lỗi trước khi kiểm tra
+      _emailError = null;
     });
 
     bool isEmailEmpty = _emailController.text.trim().isEmpty;
     bool isPasswordEmpty = _passwordController.text.trim().isEmpty;
 
-    // Kiểm tra nếu cả hai trường đều trống
     if (isEmailEmpty || isPasswordEmpty) {
       setState(() {
         _isLoading = false;
@@ -331,7 +330,7 @@ class _LoginPageState extends State<LoginPage> {
                         },
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return null; // Không hiển thị lỗi từ validator nữa, sẽ dùng _emailError
+                            return null;
                           }
                           return _validateEmail(value.trim());
                         },
