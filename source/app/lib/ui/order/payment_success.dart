@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class PaymentSuccessScreen extends StatefulWidget {
-  const PaymentSuccessScreen({super.key});
+  final double? total;
+  const PaymentSuccessScreen({super.key, this.total});
 
   @override
   State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
@@ -17,10 +18,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final total = args['total'];
-    String temp = ConvertMoney.currencyFormatter.format(total) + " đ";
+    String temp = ConvertMoney.currencyFormatter.format(widget.total) + " đ";
 
     return Scaffold(
       backgroundColor: Colors.white,

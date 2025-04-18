@@ -7,10 +7,12 @@ import 'package:app/models/cart_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/login/update_address_page.dart';
+import 'package:app/ui/order/payment_success.dart';
 import 'package:app/ui/product_details.dart';
 import 'package:app/ui/profile/add_address_screen.dart';
 import 'package:app/ui/profile/address_list_screen.dart';
 import 'package:dio/dio.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -366,13 +368,14 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         userId,
       );
 
-      Navigator.pushNamedAndRemoveUntil(context, "/success", (route) => false);
-      Navigator.pushNamedAndRemoveUntil(
+      Navigator.pushAndRemoveUntil(
         context,
-        "/success",
+        MaterialPageRoute(
+          builder: (context) => PaymentSuccessScreen(total: totalAmount),
+        ),
         (route) => false,
-        arguments: {'total': totalAmount},
       );
+
       setState(() {
         isLoadingPayment = false;
       });
@@ -380,9 +383,18 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       setState(() {
         isLoadingPayment = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Có lỗi xảy ra, vui lòng thử lại")),
-      );
+      if (e is DioException) {
+        if (e.response?.statusCode == 400) {
+          Fluttertoast.showToast(
+            msg: "Đã tồn tại email",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.black54,
+            textColor: Colors.white,
+            fontSize: 14.0,
+          );
+        }
+      }
     }
   }
 
@@ -872,7 +884,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     return ElevatedButton(
       onPressed: () {
         String email = _emailController.text.trim();
-        print(email);
 
         if (address == null || address == "Chưa có địa chỉ") {
           ScaffoldMessenger.of(context).showSnackBar(
