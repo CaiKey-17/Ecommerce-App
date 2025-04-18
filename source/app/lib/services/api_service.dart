@@ -196,6 +196,8 @@ abstract class ApiService {
     @Query("pointTotal") double pointTotal,
     @Query("priceTotal") double priceTotal,
     @Query("ship") double ship,
+    @Query("tempId") String tempId,
+    @Query("id") int id,
   );
 
   @POST("/order/cancel")

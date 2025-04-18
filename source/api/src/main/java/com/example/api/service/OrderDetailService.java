@@ -21,7 +21,11 @@ public class OrderDetailService {
         return orderDetailRepository.getQuantityByOrderAndProduct(orderId, productId);
     }
 
-    public List<OrderDetailProjection> getOrderDetailsByCustomerId(Integer customerId) {
-        return orderDetailRepository.findOrderDetailsByCustomerId(customerId);
+    public List<OrderDetailProjection> getOrderDetailsByCustomerId(Integer customerId,String process) {
+        return orderDetailRepository.findOrderDetailsByCustomerId(customerId,process);
+    }
+
+    public List<OrderDetailProjection> getOrderDetailsByCustomerIdAndOrderId(Integer customerId,String process,int orderId) {
+        return orderDetailRepository.findOrderDetailsByCustomerIdAndOrderId(customerId,process,orderId);
     }
 }

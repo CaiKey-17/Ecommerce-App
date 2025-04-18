@@ -152,7 +152,7 @@ public class CartController {
             }
         }
 
-        List<OrderDetailProjection> list = orderDetailService.getOrderDetailsByCustomerId(id);
+        List<OrderDetailProjection> list = orderDetailService.getOrderDetailsByCustomerId(id,"giohang");
 
         return ResponseEntity.ok(list);
     }

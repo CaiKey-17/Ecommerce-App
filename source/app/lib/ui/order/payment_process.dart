@@ -41,6 +41,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   String address = "";
   String code = "";
   String address_codes = "";
+  String? tempId;
   int points = 0;
   late ApiService apiService;
   bool isLoading = true;
@@ -323,6 +324,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       points = prefs.getInt('points') ?? 0;
       token = prefs.getString('token') ?? "";
       userId = prefs.getInt('userId') ?? 0;
+      tempId = prefs.getString('tempId') ?? "";
 
       List<String>? codes = prefs.getStringList('codes');
       if (codes != null && codes.isNotEmpty) {
@@ -345,7 +347,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     });
   }
 
-  void _handleOrder(String email) async {
+  void _handleOrder(String email, String tempId, int userId) async {
     setState(() {
       isLoadingPayment = true;
     });
@@ -360,11 +362,10 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         appliedMemberPoints,
         totalProductPrice,
         shippingFee,
+        tempId,
+        userId,
       );
 
-      setState(() {
-        isLoading = false;
-      });
       Navigator.pushNamedAndRemoveUntil(context, "/success", (route) => false);
       Navigator.pushNamedAndRemoveUntil(
         context,
@@ -372,9 +373,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         (route) => false,
         arguments: {'total': totalAmount},
       );
+      setState(() {
+        isLoadingPayment = false;
+      });
     } catch (e) {
       setState(() {
-        isLoading = false;
+        isLoadingPayment = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Có lỗi xảy ra, vui lòng thử lại")),
@@ -417,93 +421,115 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         centerTitle: true,
         elevation: 4,
       ),
-      body: Container(
-        color: Colors.white,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(right: 16, left: 16, bottom: 16),
-            child: Column(
-              children: [
-                _buildInfoEmailRow("Email: ", email, isBold: true),
+      body: Stack(
+        children: [
+          Container(
+            color: Colors.white,
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16, left: 16, bottom: 16),
+                child: Column(
+                  children: [
+                    _buildInfoEmailRow("Email: ", email, isBold: true),
 
-                _buildAddressRow(),
+                    _buildAddressRow(),
 
-                Divider(height: 30, thickness: 1),
+                    Divider(height: 30, thickness: 1),
 
-                _buildInfoRow(
-                  "Phương thức giao hàng:",
-                  "Phí giao tiêu chuẩn",
-                  isBold: true,
+                    _buildInfoRow(
+                      "Phương thức giao hàng:",
+                      "Phí giao tiêu chuẩn",
+                      isBold: true,
+                    ),
+                    _buildPriceRow(shippingFee, checkFreeShip),
+
+                    SizedBox(height: 16),
+
+                    _buildInfoRow(
+                      "Hình thức thanh toán:",
+                      "Thanh toán khi nhận hàng",
+                      isBold: true,
+                    ),
+
+                    Divider(height: 30, thickness: 1),
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Sản phẩm",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    _buildProductList(widget.cartItems),
+
+                    Divider(height: 30, thickness: 1),
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Khuyến mãi đơn hàng",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    _buildCouponInput(),
+
+                    if (points > 0) _buildMemberPointsSwitch(),
+
+                    Divider(height: 30, thickness: 1),
+
+                    _buildSummaryRow("Tổng tạm tính:", totalProductPrice),
+                    _buildSummaryRow("Phí vận chuyển:", shippingFee),
+                    _buildSummaryRow("Thuế (2%):", tax),
+                    if (-discount != 0)
+                      _buildSummaryRow("Giảm giá từ mã khuyến mãi:", -discount),
+                    if (isMemberPointsUsed && points != 0)
+                      _buildSummaryRow(
+                        "Giảm giá điểm thành viên:",
+                        isMemberPointsUsed ? -points.toDouble() : 0,
+                      ),
+
+                    if (totalDiscount > 0)
+                      _buildSummaryRow(
+                        "Tổng giảm giá:",
+                        -totalDiscount,
+                        isDiscountTotal: true,
+                      ),
+
+                    _buildSummaryRow(
+                      "Tổng thanh toán:",
+                      totalAmount,
+                      isTotal: true,
+                    ),
+
+                    SizedBox(height: 30),
+
+                    _buildPayButton(),
+                  ],
                 ),
-                _buildPriceRow(shippingFee, checkFreeShip),
-
-                SizedBox(height: 16),
-
-                _buildInfoRow(
-                  "Hình thức thanh toán:",
-                  "Thanh toán khi nhận hàng",
-                  isBold: true,
-                ),
-
-                Divider(height: 30, thickness: 1),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Sản phẩm",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(height: 10),
-                _buildProductList(widget.cartItems),
-
-                Divider(height: 30, thickness: 1),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Khuyến mãi đơn hàng",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                SizedBox(height: 10),
-                _buildCouponInput(),
-
-                if (points > 0) _buildMemberPointsSwitch(),
-
-                Divider(height: 30, thickness: 1),
-
-                _buildSummaryRow("Tổng tạm tính:", totalProductPrice),
-                _buildSummaryRow("Phí vận chuyển:", shippingFee),
-                _buildSummaryRow("Thuế (2%):", tax),
-                if (-discount != 0)
-                  _buildSummaryRow("Giảm giá từ mã khuyến mãi:", -discount),
-                if (isMemberPointsUsed && points != 0)
-                  _buildSummaryRow(
-                    "Giảm giá điểm thành viên:",
-                    isMemberPointsUsed ? -points.toDouble() : 0,
-                  ),
-
-                if (totalDiscount > 0)
-                  _buildSummaryRow(
-                    "Tổng giảm giá:",
-                    -totalDiscount,
-                    isDiscountTotal: true,
-                  ),
-
-                _buildSummaryRow(
-                  "Tổng thanh toán:",
-                  totalAmount,
-                  isTotal: true,
-                ),
-
-                SizedBox(height: 30),
-
-                _buildPayButton(),
-              ],
+              ),
             ),
           ),
-        ),
+          if (isLoadingPayment)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -843,58 +869,50 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
   }
 
   Widget _buildPayButton() {
-    return isLoadingPayment
-        ? SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-        )
-        : ElevatedButton(
-          onPressed: () {
-            String email = _emailController.text.trim();
-            print(email);
+    return ElevatedButton(
+      onPressed: () {
+        String email = _emailController.text.trim();
+        print(email);
 
-            if (address == null || address == "Chưa có địa chỉ") {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: Colors.red,
-                  content: Text(
-                    "Vui lòng nhập địa chỉ giao hàng",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              );
-              return;
-            } else if (email.isEmpty || !email.contains("@")) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: Colors.red,
-                  content: Text(
-                    "Vui lòng nhập email hợp lệ",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              );
-              return;
-            } else {
-              _handleOrder(email);
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.black,
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        if (address == null || address == "Chưa có địa chỉ") {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Vui lòng nhập địa chỉ giao hàng",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-            minimumSize: Size(double.infinity, 50),
-            elevation: 0,
-          ),
-          child: Text(
-            "Thanh toán",
-            style: TextStyle(fontSize: 16, color: Colors.white),
-          ),
-        );
+          );
+          return;
+        } else if (email.isEmpty || !email.contains("@")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                "Vui lòng nhập email hợp lệ",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          );
+          return;
+        } else {
+          _handleOrder(email, tempId!, userId!);
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.black,
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        minimumSize: Size(double.infinity, 50),
+        elevation: 0,
+      ),
+      child: Text(
+        "Thanh toán",
+        style: TextStyle(fontSize: 16, color: Colors.white),
+      ),
+    );
   }
 
   void _addNewAddress(AddressList newAddress) {
