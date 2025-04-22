@@ -206,137 +206,156 @@ class _UpdateAddressScreenState extends State<UpdateAddressScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            DropdownButtonFormField(
-              focusNode: _provinceFocusNode,
-              decoration: InputDecoration(
-                labelText: 'Chọn tỉnh/thành',
-                labelStyle: TextStyle(
-                  color:
-                      _provinceFocusNode.hasFocus ? Colors.blue : Colors.black,
-                ),
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: Colors.blue, width: 2),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: Colors.grey, width: 1),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
+            Theme(
+              data: Theme.of(context).copyWith(
+                canvasColor: Colors.white, // Đặt màu nền cho dropdown menu
               ),
-              value: selectedProvince,
-              items:
-                  provinces.map((province) {
-                    return DropdownMenuItem(
-                      value: province['ProvinceID'].toString(),
-                      child: Text(
-                        province['ProvinceName'],
-                        style: TextStyle(fontFamily: 'Roboto'),
-                      ),
-                    );
-                  }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedProvince = value.toString();
-                  fetchDistricts(int.parse(value.toString()));
-                });
-              },
-              validator: (value) {
-                if (value == null) {
-                  return 'Vui lòng chọn tỉnh/thành';
-                }
-                return null;
-              },
+              child: DropdownButtonFormField(
+                focusNode: _provinceFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Chọn tỉnh/thành',
+                  labelStyle: TextStyle(
+                    color:
+                        _provinceFocusNode.hasFocus
+                            ? Colors.blue
+                            : Colors.black,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                value: selectedProvince,
+                items:
+                    provinces.map((province) {
+                      return DropdownMenuItem(
+                        value: province['ProvinceID'].toString(),
+                        child: Text(
+                          province['ProvinceName'],
+                          style: TextStyle(fontFamily: 'Roboto'),
+                        ),
+                      );
+                    }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedProvince = value.toString();
+                    fetchDistricts(int.parse(value.toString()));
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Vui lòng chọn tỉnh/thành';
+                  }
+                  return null;
+                },
+              ),
             ),
             SizedBox(height: 16),
-            DropdownButtonFormField(
-              focusNode: _districtFocusNode,
-              decoration: InputDecoration(
-                labelText: 'Chọn quận/huyện',
-                labelStyle: TextStyle(
-                  color:
-                      _districtFocusNode.hasFocus ? Colors.blue : Colors.black,
-                ),
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: Colors.blue, width: 2),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: Colors.grey, width: 1),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
+            Theme(
+              data: Theme.of(context).copyWith(
+                canvasColor: Colors.white, // Đặt màu nền cho dropdown menu
               ),
-              value: selectedDistrict,
-              items:
-                  districts.map((district) {
-                    return DropdownMenuItem(
-                      value: district['DistrictID'].toString(),
-                      child: Text(
-                        district['DistrictName'],
-                        style: TextStyle(fontFamily: 'Roboto'),
-                      ),
-                    );
-                  }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedDistrict = value.toString();
-                  fetchWards(int.parse(value.toString()));
-                });
-              },
-              validator: (value) {
-                if (value == null) {
-                  return 'Vui lòng chọn quận/huyện';
-                }
-                return null;
-              },
+              child: DropdownButtonFormField(
+                focusNode: _districtFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Chọn quận/huyện',
+                  labelStyle: TextStyle(
+                    color:
+                        _districtFocusNode.hasFocus
+                            ? Colors.blue
+                            : Colors.black,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                value: selectedDistrict,
+                items:
+                    districts.map((district) {
+                      return DropdownMenuItem(
+                        value: district['DistrictID'].toString(),
+                        child: Text(
+                          district['DistrictName'],
+                          style: TextStyle(fontFamily: 'Roboto'),
+                        ),
+                      );
+                    }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedDistrict = value.toString();
+                    fetchWards(int.parse(value.toString()));
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Vui lòng chọn quận/huyện';
+                  }
+                  return null;
+                },
+              ),
             ),
             SizedBox(height: 16),
-            DropdownButtonFormField(
-              focusNode: _wardFocusNode,
-              decoration: InputDecoration(
-                labelText: 'Chọn phường/xã',
-                labelStyle: TextStyle(
-                  color: _wardFocusNode.hasFocus ? Colors.blue : Colors.black,
-                ),
-                floatingLabelBehavior: FloatingLabelBehavior.auto,
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: Colors.blue, width: 2),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: Colors.grey, width: 1),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
+            Theme(
+              data: Theme.of(context).copyWith(
+                canvasColor: Colors.white, // Đặt màu nền cho dropdown menu
               ),
-              value: selectedWard,
-              items:
-                  wards.map((ward) {
-                    return DropdownMenuItem(
-                      value: ward['WardCode'].toString(),
-                      child: Text(ward['WardName']),
-                    );
-                  }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedWard = value.toString();
-                });
-              },
-              validator: (value) {
-                if (value == null) {
-                  return 'Vui lòng chọn phường/xã';
-                }
-                return null;
-              },
+              child: DropdownButtonFormField(
+                focusNode: _wardFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Chọn phường/xã',
+                  labelStyle: TextStyle(
+                    color: _wardFocusNode.hasFocus ? Colors.blue : Colors.black,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.blue, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                value: selectedWard,
+                items:
+                    wards.map((ward) {
+                      return DropdownMenuItem(
+                        value: ward['WardCode'].toString(),
+                        child: Text(ward['WardName']),
+                      );
+                    }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedWard = value.toString();
+                  });
+                },
+                validator: (value) {
+                  if (value == null) {
+                    return 'Vui lòng chọn phường/xã';
+                  }
+                  return null;
+                },
+              ),
             ),
             SizedBox(height: 16),
             TextFormField(

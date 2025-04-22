@@ -22,11 +22,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   final TextEditingController _messageController = TextEditingController();
   late List<Message> messages;
   bool _isTyping = false;
-  bool _showEmojiPicker = false; // Trạng thái hiển thị emoji picker
-  bool _isRecording = false; // Trạng thái đang ghi âm
+  bool _showEmojiPicker = false; 
+  bool _isRecording = false; 
   final ImagePicker _picker = ImagePicker();
 
-  // Danh sách emoji để lựa chọn
   final List<String> emojis = [
     "😊",
     "😂",
@@ -117,7 +116,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
         ),
       );
       widget.onMessageSent("Đã nhận tin nhắn: $emoji", messages);
-      _showEmojiPicker = false; // Ẩn emoji picker sau khi gửi
+      _showEmojiPicker = false; 
     });
   }
 
@@ -308,7 +307,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 },
               ),
             ),
-            if (_showEmojiPicker) // Hiển thị emoji picker nếu được bật
+            if (_showEmojiPicker) 
               Container(
                 height: screenHeight * 0.2,
                 padding: EdgeInsets.all(screenWidth * 0.02),
@@ -348,7 +347,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                       color: Colors.blue,
                       size: screenWidth * 0.06,
                     ),
-                    onPressed: _pickImage, // Mở thư viện hình ảnh
+                    onPressed: _pickImage,
                   ),
                   IconButton(
                     icon: Icon(
@@ -359,7 +358,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     onPressed:
                         _isRecording
                             ? _stopRecording
-                            : _startRecording, // Bắt đầu hoặc dừng ghi âm
+                            : _startRecording,
                   ),
                   Expanded(
                     child:
@@ -429,7 +428,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                                   onPressed: () {
                                     setState(() {
                                       _showEmojiPicker =
-                                          !_showEmojiPicker; // Hiển thị/ẩn emoji picker
+                                          !_showEmojiPicker;
                                     });
                                   },
                                 ),
@@ -446,7 +445,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     onPressed:
                         _isTyping
                             ? _sendMessage
-                            : _sendLike, // Gửi like nếu không nhập
+                            : _sendLike, 
                   ),
                 ],
               ),

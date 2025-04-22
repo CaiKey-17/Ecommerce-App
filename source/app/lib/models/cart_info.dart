@@ -34,6 +34,7 @@ class CartInfo {
     required this.nameVariant,
     required this.productId,
     this.selected = false,
+    required int id,
   });
 
   factory CartInfo.fromJson(Map<String, dynamic> json) =>

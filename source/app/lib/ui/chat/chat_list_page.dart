@@ -111,15 +111,13 @@ class _ChatListPageState extends State<ChatListPage> {
                     borderSide: BorderSide(color: Colors.grey),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    // Viền khi focus
                     borderRadius: BorderRadius.circular(25),
                     borderSide: BorderSide(
                       color: Colors.blue,
                       width: 2,
-                    ), // Màu xanh biển khi focus
+                    ), 
                   ),
                   enabledBorder: OutlineInputBorder(
-                    // Viền khi không focus
                     borderRadius: BorderRadius.circular(25),
                     borderSide: BorderSide(color: Colors.grey),
                   ),

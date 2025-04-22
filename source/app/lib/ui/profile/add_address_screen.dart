@@ -184,7 +184,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       (element) => element['WardCode'].toString() == wardId,
       orElse: () => null,
     );
-    return ward != null ? ward['WardName'] : "Không tìm thấy xã";
+    return ward != null ? ward['Ward2664Name'] : "Không tìm thấy xã";
   }
 
   Future<void> fetchProvinces() async {
@@ -254,7 +254,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Đặt màu nền thành trắng
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_rounded),
@@ -272,7 +272,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         elevation: 1,
       ),
       body: Container(
-        color: Colors.white, // Giữ lại để đảm bảo tính nhất quán
+        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -302,6 +302,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
+                dropdownColor: Colors.white,
                 value: selectedProvince,
                 items:
                     provinces.map((province) {
@@ -350,6 +351,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
+                dropdownColor: Colors.white,
                 value: selectedDistrict,
                 items:
                     districts.map((district) {
@@ -395,6 +397,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
+                dropdownColor: Colors.white,
                 value: selectedWard,
                 items:
                     wards.map((ward) {
