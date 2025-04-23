@@ -459,7 +459,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
                     _buildInfoRow(
                       "Hình thức thanh toán:",
-                      "Thanh toán khi nhận hàng",
+                      "Khi nhận hàng",
                       isBold: true,
                     ),
 

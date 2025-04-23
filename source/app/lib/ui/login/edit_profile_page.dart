@@ -28,7 +28,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
 
-    // Tải dữ liệu người dùng từ tham số truyền vào
     _fullNameController.text = widget.fullName;
     _emailController.text = widget.email;
 
@@ -119,10 +118,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Color(0xFF1565C0),
+        backgroundColor: Colors.blue,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
