@@ -302,6 +302,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
+                dropdownColor: Colors.white,
                 value: selectedProvince,
                 items:
                     provinces.map((province) {
@@ -350,6 +351,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
+                dropdownColor: Colors.white,
                 value: selectedDistrict,
                 items:
                     districts.map((district) {
@@ -395,6 +397,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
+                dropdownColor: Colors.white,
                 value: selectedWard,
                 items:
                     wards.map((ward) {
