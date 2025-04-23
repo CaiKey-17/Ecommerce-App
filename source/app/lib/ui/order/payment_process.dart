@@ -328,6 +328,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       userId = prefs.getInt('userId') ?? 0;
       tempId = prefs.getString('tempId') ?? "";
 
+      print(tempId);
+
       List<String>? codes = prefs.getStringList('codes');
       if (codes != null && codes.isNotEmpty) {
         code = codes[0];
@@ -355,6 +357,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     });
 
     try {
+      print("Temp: " + tempId);
+
       final response = await apiService.confirmToCart(
         widget.orderId,
         address,

@@ -1,6 +1,7 @@
 import 'package:app/globals/convert_money.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PaymentSuccessScreen extends StatefulWidget {
   final double? total;
@@ -69,7 +70,10 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
               ),
               SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  prefs.clear();
                   Navigator.pushReplacementNamed(context, "/main");
                 },
                 style: ElevatedButton.styleFrom(

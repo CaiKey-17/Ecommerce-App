@@ -2,8 +2,10 @@ package com.example.api.controller.order;
 
 import com.example.api.dto.OrderDetailProjection;
 import com.example.api.dto.OrderSummaryDTO;
-import com.example.api.model.Brand;
-import com.example.api.model.Users;
+import com.example.api.model.*;
+import com.example.api.repository.CustomerRepository;
+import com.example.api.repository.RoleRepository;
+import com.example.api.repository.UsersRepository;
 import com.example.api.security.JwtTokenUtil;
 import com.example.api.service.*;
 import jakarta.mail.MessagingException;
@@ -14,11 +16,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
+import java.security.SecureRandom;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/order")
@@ -34,10 +38,24 @@ public class OrderController {
     private UserService userService;
 
     @Autowired
+    private UsersRepository usersRepository;
+
+
+    @Autowired
     private JavaMailSender mailSender;
+    @Autowired
+    RoleRepository roleRepository;
+
+    @Autowired
+    CustomerRepository customerRepository;
+
 
     @Autowired
     private OrderDetailService orderDetailService;
+    @Autowired
+
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
 
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
@@ -47,12 +65,12 @@ public class OrderController {
 
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(htmlContent, true); // true để bật HTML
+            helper.setText(htmlContent, true);
 
             mailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
-            // Log lỗi nếu cần
+
         }
     }
 
@@ -90,13 +108,57 @@ public class OrderController {
             String subject = "Xác nhận đơn hàng #" + orderId;
             String htmlContent = generateOrderEmailHTML(orderId, address, list, priceTotal, couponTotal, pointTotal, ship);
 
+            if (tempId != null && tempId.startsWith("T")) {
+                if (u2 == null) {
+                    Users tempUserOpt = usersRepository.findByTempId(tempId).orElse(null);
+                    tempUserOpt.setEmail(email);
+                    tempUserOpt.setTempId(null);
+                    tempUserOpt.setActive(1);
+                    String defaultPassword = generateRandomPassword();
+                    tempUserOpt.setPassword(passwordEncoder.encode(defaultPassword));
+                    userService.save(tempUserOpt);
+
+
+                    tempUserOpt.setFullName(defaultPassword);
+                    tempUserOpt.setCreatedAt(new Date());
+
+                    Role customerRole = roleRepository.findByRoleName("ROLE_CUSTOMER");
+                    if (customerRole == null) {
+                        throw new RuntimeException("ROLE_CUSTOMER không tồn tại");
+                    }
+                    tempUserOpt.setRoles(new HashSet<>(List.of(customerRole)));
+                    usersRepository.save(tempUserOpt);
+
+
+
+
+
+
+
+
+                    htmlContent += "<br><br><b>Đăng nhập vào ứng dụng với tài khoản sau để theo dõi đơn hàng của bạn:</b>"
+                            + "<br>Email: " + email
+                            + "<br>Mật khẩu: " + defaultPassword;
+                }
+            }
+
+            sendHtmlEmail(email, subject, htmlContent);
             sendHtmlEmail(email, subject, htmlContent);
 
             return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
         }
-
-
     }
+    private String generateRandomPassword() {
+        int length = 8;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
 
     @PostMapping("/cancel")
     public ResponseEntity<?> cancelToCart(

@@ -54,9 +54,14 @@ class CartService {
           userID = response["id"];
           await prefs.setInt('userId', userID!);
         }
+
         if (response.containsKey("temp_id")) {
           tempID = response["temp_id"];
-          await prefs.setString('tempId', tempID!);
+          final currentTempId = prefs.getString('tempId');
+
+          if (currentTempId == null || !currentTempId.startsWith('T')) {
+            await prefs.setString('tempId', tempID!);
+          }
         }
 
         Fluttertoast.showToast(
