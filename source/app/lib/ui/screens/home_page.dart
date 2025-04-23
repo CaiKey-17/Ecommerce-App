@@ -5,6 +5,7 @@ import 'package:app/data/banner.dart';
 import 'package:app/globals/convert_money.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/services/cart_service.dart';
+import 'package:app/ui/chat/chat_list_page.dart';
 import 'package:app/ui/main_category.dart';
 import 'package:app/ui/product_details.dart';
 import 'package:app/ui/search_page.dart';
@@ -547,10 +548,21 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         ),
                                     const SizedBox(width: 8),
-                                    const Icon(
-                                      Icons.support_agent_rounded,
-                                      color: Colors.white,
-                                      size: 24,
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => ChatListPage(),
+                                          ),
+                                        );
+                                      },
+                                      child: const Icon(
+                                        Icons.support_agent_rounded,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -564,9 +576,20 @@ class _HomePageState extends State<HomePage> {
                                 Expanded(child: _buildSearchBar()),
                                 if (isCollapsed) SizedBox(width: 8),
                                 if (isCollapsed)
-                                  Icon(
-                                    Icons.support_agent_rounded,
-                                    color: Colors.white,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ChatListPage(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Icon(
+                                      Icons.support_agent_rounded,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
                                   ),
                               ],
                             ),
@@ -783,7 +806,12 @@ class _HomePageState extends State<HomePage> {
                         height: 150,
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
-                          return Center(child: CircularProgressIndicator());
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.blue,
+                              padding: EdgeInsets.all(8),
+                            ),
+                          );
                         },
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset("assets/images/gaming.webp");
@@ -796,7 +824,7 @@ class _HomePageState extends State<HomePage> {
                     categories[index].name,
                     style: TextStyle(fontSize: 14, color: Colors.black54),
                     textAlign: TextAlign.center,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -1244,7 +1272,7 @@ class _HomePageState extends State<HomePage> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
                                       ),
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     SizedBox(height: 4),
@@ -1254,7 +1282,7 @@ class _HomePageState extends State<HomePage> {
                                         fontSize: 12,
                                         color: Colors.grey.shade700,
                                       ),
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     SizedBox(height: 8),
@@ -1604,7 +1632,7 @@ class _HomePageState extends State<HomePage> {
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 4),
@@ -1614,7 +1642,7 @@ class _HomePageState extends State<HomePage> {
                             fontSize: 12,
                             color: Colors.grey.shade700,
                           ),
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 8),
@@ -1840,7 +1868,7 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   product.description ?? '',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),

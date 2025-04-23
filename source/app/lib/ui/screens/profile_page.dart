@@ -57,11 +57,30 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text("Xác nhận đăng xuất"),
-            content: const Text("Bạn có chắc chắn muốn đăng xuất không?"),
+            backgroundColor: Colors.white, // Nền trắng
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16), // Bo góc hộp thoại
+            ),
+            title: const Text(
+              "Xác nhận đăng xuất",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            content: const Text(
+              "Bạn có chắc chắn muốn đăng xuất không?",
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+            actionsPadding: const EdgeInsets.only(bottom: 8, right: 8),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                  textStyle: const TextStyle(fontWeight: FontWeight.w500),
+                ),
                 child: const Text("Hủy"),
               ),
               TextButton(
@@ -69,10 +88,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   Navigator.pop(context);
                   _logout();
                 },
-                child: const Text(
-                  "Đăng xuất",
-                  style: TextStyle(color: Colors.red),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  textStyle: const TextStyle(fontWeight: FontWeight.w600),
                 ),
+                child: const Text("Đăng xuất"),
               ),
             ],
           ),

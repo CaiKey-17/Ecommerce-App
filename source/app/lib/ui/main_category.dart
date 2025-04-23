@@ -239,22 +239,18 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   Widget _buildGridViewShimmer() {
-    return Column(
-      children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(8),
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 250,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 0.6,
-          ),
-          itemCount: 4,
-          itemBuilder: (context, index) => _buildProductItemShimmer(),
-        ),
-      ],
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 250,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 0.6,
+      ),
+      itemCount: 4,
+      itemBuilder: (context, index) => _buildProductItemShimmer(),
     );
   }
 

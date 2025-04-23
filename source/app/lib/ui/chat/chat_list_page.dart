@@ -85,6 +85,10 @@ class _ChatListPageState extends State<ChatListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          onPressed: () => {Navigator.pop(context)},
+        ),
         title: Text("Đoạn chat", style: TextStyle(color: Colors.white)),
         centerTitle: true,
         backgroundColor: Colors.blue,
