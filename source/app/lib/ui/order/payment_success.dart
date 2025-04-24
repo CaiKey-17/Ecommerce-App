@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class PaymentSuccessScreen extends StatefulWidget {
   final double? total;
-  const PaymentSuccessScreen({super.key, this.total});
+  final String? tempId;
+
+  const PaymentSuccessScreen({super.key, this.total, this.tempId});
 
   @override
   State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
@@ -71,9 +73,11 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
               SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () async {
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  prefs.clear();
+                  if (widget.tempId!.startsWith('T')) {
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    await prefs.clear();
+                  }
                   Navigator.pushReplacementNamed(context, "/main");
                 },
                 style: ElevatedButton.styleFrom(

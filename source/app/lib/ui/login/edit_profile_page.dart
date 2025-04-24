@@ -1,4 +1,7 @@
+import 'package:app/services/api_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Thêm import cho SharedPreferences
 
 class EditProfilePage extends StatefulWidget {
@@ -19,6 +22,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   final _fullNameFocusNode = FocusNode();
   final _emailFocusNode = FocusNode();
+  String token = "";
+  String fullName = "";
+  late ApiService apiService;
 
   String? _fullNameError;
   String? _emailError;
@@ -27,6 +33,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+    apiService = ApiService(Dio());
 
     _fullNameController.text = widget.fullName;
     _emailController.text = widget.email;
@@ -69,10 +77,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void _handleSave() async {
     setState(() {
       _isLoading = true;
-      _fullNameError = null;
-      _emailError = null;
     });
-
+    print(_fullNameController.text.trim());
     bool isFullNameEmpty = _fullNameController.text.trim().isEmpty;
     bool isEmailEmpty = _emailController.text.trim().isEmpty;
 
@@ -90,26 +96,58 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     if (_formKey.currentState!.validate()) {
-      // Lưu thông tin vào SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('fullName', _fullNameController.text.trim());
-      await prefs.setString('email', _emailController.text.trim());
-
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Cập nhật thông tin thành công"),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pop(context);
+      fetchChangeName(_fullNameController.text.trim());
     } else {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> fetchChangeName(String name) async {
+    setState(() => _isLoading = true);
+
+    try {
+      if (token != null && token.isNotEmpty) {
+        await apiService.changeName(token, name);
+        print("✅ Gửi API thành công");
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('fullName', _fullNameController.text.trim());
+      } else {
+        print("⚠️ Token không tồn tại");
+      }
+      setState(() {
+        _isLoading = false;
+      });
+      Fluttertoast.showToast(
+        msg: "Cập nhật thông tin thành công",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black54,
+        textColor: Colors.white,
+        fontSize: 14.0,
+      );
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/main',
+        (Route<dynamic> route) => false,
+      );
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      fullName = prefs.getString('fullName') ?? "";
+      token = prefs.getString('token') ?? "";
+    });
   }
 
   @override
@@ -192,7 +230,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   },
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return null; // Đã xử lý lỗi qua _fullNameError
+                      return null;
                     }
                     return null;
                   },
@@ -201,6 +239,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 TextFormField(
                   controller: _emailController,
                   focusNode: _emailFocusNode,
+                  enabled: false,
                   decoration: InputDecoration(
                     prefixIcon: Icon(
                       Icons.email_outlined,

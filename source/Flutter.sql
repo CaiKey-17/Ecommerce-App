@@ -244,11 +244,7 @@ SET pc.quantity = pc.quantity + t.quantity_to_add;
         SET process  = 'dahuy'
         WHERE id = p_OrderId;
 
-        DELETE FROM bills 
-        WHERE fk_order_id = p_OrderId;
-        
-         DELETE FROM order_details 
-        WHERE fk_order_id = p_OrderId;
+       
         
 
     

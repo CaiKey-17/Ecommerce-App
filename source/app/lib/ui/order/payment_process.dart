@@ -375,7 +375,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => PaymentSuccessScreen(total: totalAmount),
+          builder:
+              (context) =>
+                  PaymentSuccessScreen(total: totalAmount, tempId: tempId),
         ),
         (route) => false,
       );

@@ -60,10 +60,9 @@ public class UserController {
             userInfo.put("addresses", addressList);
             userInfo.put("codes", addressCode);
             userInfo.put("points", customer.getPoints());
-            if(user.getImage()!=null){
+            if (user.getImage() != null) {
                 userInfo.put("image", user.getImage());
-            }
-            else{
+            } else {
                 userInfo.put("image", "");
 
             }
@@ -93,10 +92,40 @@ public class UserController {
 
             System.out.println("📸 Ảnh nhận được: " + image);
 
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+
+            return ResponseEntity.ok(Map.of(
                     "code", 200,
                     "message", "Lưu ảnh người dùng thành công!"
+
             ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "code", 500,
+                    "message", "Lỗi khi lấy thông tin người dùng"
+            ));
+        }
+    }
+
+    @PostMapping("/user-info/update-name")
+    public ResponseEntity<?> changeName(@RequestHeader("Authorization") String token, @RequestParam String name) {
+        try {
+            int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", ""));
+            Users user = userService.getUserById(userId);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                        "code", 404,
+                        "message", "Không tìm thấy người dùng"
+                ));
+            }
+            user.setFullName(name);
+            userService.updateUser(user);
+
+
+            return ResponseEntity.ok(Map.of(
+                    "code", 200,
+                    "message", "Đổi tên người dùng thành công!"
+            ));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "code", 500,

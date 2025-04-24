@@ -73,7 +73,7 @@ class _MainPageState extends State<MainPage> {
       const HomePage(),
       const CategoryPageList(),
       ShoppingCartPage(key: UniqueKey()),
-      const ActivityPage(),
+      ActivityPage(key: UniqueKey()),
       const ProfilePage(),
     ];
   }

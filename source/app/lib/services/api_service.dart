@@ -71,6 +71,11 @@ abstract class ApiService {
     @Query("image") String image,
   );
 
+  @POST("/auth/user-info/update-name")
+  Future<void> changeName(
+    @Header("Authorization") String token,
+    @Query("name") String name,
+  );
   @GET("/address")
   Future<List<AddressList>> getListAddress(
     @Header("Authorization") String token,
@@ -183,6 +188,10 @@ abstract class ApiService {
 
   @GET("/order/delivering")
   Future<List<Map<String, dynamic>>> findDeliveringOrdersByCustomer(
+    @Header("Authorization") String? token,
+  );
+  @GET("/order/delivered")
+  Future<List<Map<String, dynamic>>> findDeliveredOrdersByCustomer(
     @Header("Authorization") String? token,
   );
 
