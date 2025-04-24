@@ -1,5 +1,7 @@
 package com.example.api.service;
 
+import com.example.api.model.Order;
+import com.example.api.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.SqlParameter;
@@ -17,6 +19,9 @@ public class CartService {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     public Map<String, Object> addToCart(int customerID, int productID,int colorID, int quantity) {
         String sql = "{CALL AddToCart(?, ?, ?,?)}";
@@ -99,6 +104,17 @@ public class CartService {
             return null;
         });
     }
+
+    public void acceptOrder(int orderId) {
+        Order o = orderRepository.findById(orderId).orElse(null);
+        if (o != null) {
+            o.setProcess("danggiao");
+            orderRepository.save(o);
+        }
+
+    }
+
+
 
 
 

@@ -18,12 +18,22 @@ public class OrderService {
     }
 
     public List<OrderSummaryDTO> findPendingOrdersByCustomerId(Integer customerId) {
-        return orderRepository.findStatusOrdersByCustomerId(customerId,"dangdat","Chờ xác nhận");
+        List<String> processList = List.of("dangdat");
+        return orderRepository.findStatusOrdersByCustomerId(customerId,processList,"Chờ xác nhận");
     }
 
     public List<OrderSummaryDTO> findDeliveringOrdersByCustomerId(Integer customerId) {
-        return orderRepository.findStatusOrdersByCustomerId(customerId,"danggiao","Đã xác nhận");
+        List<String> processList = List.of("danggiao");
+
+        return orderRepository.findStatusOrdersByCustomerId(customerId,processList,"Đã xác nhận");
     }
+
+    public List<OrderSummaryDTO> findDeliveredOrdersByCustomerId(Integer customerId) {
+        List<String> processList = List.of("dahuy", "hoantat");
+        return orderRepository.findStatusOrdersByCustomerId(customerId,processList,"Hoàn tất");
+    }
+
+
 
 
 

@@ -20,6 +20,7 @@ class _ActivityPageState extends State<ActivityPage>
     with SingleTickerProviderStateMixin {
   List<Map<String, dynamic>> pendingOrders = [];
   List<Map<String, dynamic>> deliveringOrders = [];
+  List<Map<String, dynamic>> deliveredOrders = [];
 
   bool isLoading = false;
   String token = "";
@@ -41,11 +42,32 @@ class _ActivityPageState extends State<ActivityPage>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
 
-    _deliveredController.addPageRequestListener((pageKey) {
-      _fetchOrders(pageKey, _deliveredController, deliveredOrders);
-    });
     apiService = ApiService(Dio());
+
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        _refreshCurrentTab(_tabController.index);
+      }
+    });
+
     _loadUserData();
+  }
+
+  void _refreshCurrentTab(int index) {
+    switch (index) {
+      case 0:
+        fetchPendingOrders(token);
+        _pendingController.refresh();
+        break;
+      case 1:
+        fetchOrderingOrders(token);
+        _deliveringController.refresh();
+        break;
+      case 2:
+        fetchOrderedOrders(token);
+        _deliveredController.refresh();
+        break;
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -55,12 +77,17 @@ class _ActivityPageState extends State<ActivityPage>
     });
     fetchPendingOrders(token);
     fetchOrderingOrders(token);
+    fetchOrderedOrders(token);
 
     _pendingController.addPageRequestListener((pageKey) {
       _fetchOrders(pageKey, _pendingController, pendingOrders);
     });
     _deliveringController.addPageRequestListener((pageKey) {
       _fetchOrders(pageKey, _deliveringController, deliveringOrders);
+    });
+
+    _deliveredController.addPageRequestListener((pageKey) {
+      _fetchOrders(pageKey, _deliveredController, deliveredOrders);
     });
   }
 
@@ -94,6 +121,40 @@ class _ActivityPageState extends State<ActivityPage>
 
       setState(() {
         pendingOrders = transformed;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchOrderedOrders(String token) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.findDeliveredOrdersByCustomer(token);
+
+      final List<Map<String, dynamic>> transformed =
+          response.map((order) {
+            return {
+              "status": order["status"],
+              "image": order["firstProductImage"],
+              "name": order["firstProductName"],
+              "time": formatDate(order["createdAt"]),
+              "details": "",
+              "quantity": order["totalItems"],
+              "totalPrice": ConvertMoney.currencyFormatter.format(
+                order["total"],
+              ),
+            };
+          }).toList();
+
+      setState(() {
+        deliveredOrders = transformed;
         isLoading = false;
       });
     } catch (e) {
@@ -189,9 +250,6 @@ class _ActivityPageState extends State<ActivityPage>
     try {
       final response = await apiService.cancelToCart(orderId);
 
-      setState(() {
-        isLoading = false;
-      });
       Fluttertoast.showToast(
         msg: "Hủy đơn thành công!",
         toastLength: Toast.LENGTH_SHORT,
@@ -200,6 +258,17 @@ class _ActivityPageState extends State<ActivityPage>
         textColor: Colors.white,
         fontSize: 14.0,
       );
+      await fetchPendingOrders(token);
+      await fetchOrderingOrders(token);
+      await fetchOrderedOrders(token);
+
+      // Reset lại PagingController để load lại dữ liệu
+      _pendingController.refresh();
+      _deliveringController.refresh();
+      _deliveredController.refresh();
+      setState(() {
+        isLoading = false;
+      });
     } catch (e) {
       setState(() {
         isLoading = false;
@@ -209,19 +278,6 @@ class _ActivityPageState extends State<ActivityPage>
       );
     }
   }
-
-  final List<Map<String, dynamic>> deliveredOrders = [
-    {
-      "store": "Điện máy xanh",
-      "status": "Đã giao",
-      "image": "assets/images/dienthoai.webp",
-      "name": "Bàn phím cơ RGB gaming",
-      "time": "23/02/2025",
-      "details": "Công suất 200W, làm mát nhanh",
-      "quantity": 1,
-      "totalPrice": 1599000,
-    },
-  ];
 
   // Hàm lấy dữ liệu phân trang
   Future<void> _fetchOrders(

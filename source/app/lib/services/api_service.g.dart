@@ -184,6 +184,27 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<void> changeName(token, name) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'name': name};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    await _dio.fetch<void>(
+      _setStreamType<void>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/auth/user-info/update-name',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+  }
+
+  @override
   Future<List<AddressList>> getListAddress(token) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -844,6 +865,34 @@ class _ApiService implements ApiService {
             .compose(
               _dio.options,
               '/order/delivering',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+
+    return value;
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> findDeliveredOrdersByCustomer(
+    token,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<Map<String, dynamic>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/order/delivered',
               queryParameters: queryParameters,
               data: _data,
             )

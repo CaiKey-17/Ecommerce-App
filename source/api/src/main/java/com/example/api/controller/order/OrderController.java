@@ -57,7 +57,6 @@ public class OrderController {
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 
-
     private void sendHtmlEmail(String to, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -74,6 +73,15 @@ public class OrderController {
         }
     }
 
+
+    @PostMapping("/accept")
+    public ResponseEntity<?> acceptOrder(
+            @RequestParam int orderId) {
+
+        cartService.acceptOrder(orderId);
+        return ResponseEntity.ok(Map.of("message", "Đã chấp nhận đơn hàng thành công"));
+
+    }
 
     @PostMapping("/confirm")
     public ResponseEntity<?> confirmToCart(
@@ -130,12 +138,6 @@ public class OrderController {
                     usersRepository.save(tempUserOpt);
 
 
-
-
-
-
-
-
                     htmlContent += "<br><br><b>Đăng nhập vào ứng dụng với tài khoản sau để theo dõi đơn hàng của bạn:</b>"
                             + "<br>Email: " + email
                             + "<br>Mật khẩu: " + defaultPassword;
@@ -148,6 +150,7 @@ public class OrderController {
             return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
         }
     }
+
     private String generateRandomPassword() {
         int length = 8;
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -181,6 +184,13 @@ public class OrderController {
         int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) != null ? JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) : -1;
         return ResponseEntity.ok(orderService.findDeliveringOrdersByCustomerId(userId));
     }
+
+    @GetMapping("/delivered")
+    public ResponseEntity<List<OrderSummaryDTO>> findDeliveredOrdersByCustomerId(@RequestHeader("Authorization") String token) {
+        int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) != null ? JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) : -1;
+        return ResponseEntity.ok(orderService.findDeliveredOrdersByCustomerId(userId));
+    }
+
 
 
     private String generateOrderEmailHTML(int orderId, String address, List<OrderDetailProjection> list,
