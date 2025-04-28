@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="c7bd11d1-b514-4314-a080-27890a2699c4" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/api/src/main/java/com/example/api/websocket/WebSocketConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/java/com/example/api/websocket/WebSocketConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/lib/ui/chat/chat_detail_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/app/lib/ui/chat/chat_detail_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/lib/ui/chat/chat_list_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/app/lib/ui/chat/chat_list_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/lib/ui/chat/chat_model.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/lib/ui/screens/home_page.dart" beforeDir="false" afterPath="$PROJECT_DIR$/app/lib/ui/screens/home_page.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/app/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/app/pubspec.yaml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="2wL5OTNV9jBPdcSl1BD28jwvv7q" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "ky",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/nguyencaoky/Desktop/Project_flutter/Ecommerce-App/source",
+    "show.migrate.to.gradle.popup": "false"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c7bd11d1-b514-4314-a080-27890a2699c4" name="Changes" comment="" />
+      <created>1745807981814</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1745807981814</updated>
+    </task>
+    <servers />
+  </component>
+</project>
