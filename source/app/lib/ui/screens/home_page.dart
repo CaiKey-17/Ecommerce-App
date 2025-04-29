@@ -5,6 +5,7 @@ import 'package:app/data/banner.dart';
 import 'package:app/globals/convert_money.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/services/cart_service.dart';
+import 'package:app/services/chat_service.dart';
 import 'package:app/ui/chat/chat_list_page.dart';
 import 'package:app/ui/main_category.dart';
 import 'package:app/ui/product_details.dart';
@@ -48,6 +49,7 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   bool isCollapsed = false;
   String fullName = "";
+  int? userId;
   int points = 0;
   bool _isFetching = false;
   bool _isLoading = true;
@@ -99,6 +101,7 @@ class _HomePageState extends State<HomePage> {
       points = prefs.getInt('points') ?? 0;
       formattedPoints = NumberFormat("#,###", "de_DE").format(points);
       token = prefs.getString('token') ?? "";
+      userId = prefs.getInt('userId') ?? -1;
     });
   }
 
@@ -554,7 +557,8 @@ class _HomePageState extends State<HomePage> {
                                           context,
                                           MaterialPageRoute(
                                             builder:
-                                                (context) => ChatListPage(),
+                                                (context) =>
+                                                    ChatScreen(userId: userId!),
                                           ),
                                         );
                                       },
@@ -581,7 +585,9 @@ class _HomePageState extends State<HomePage> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ChatListPage(),
+                                          builder:
+                                              (context) =>
+                                                  ChatScreen(userId: userId!),
                                         ),
                                       );
                                     },

@@ -1,197 +1,233 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'chat_model.dart';
-import 'chat_detail_page.dart';
+import 'package:http/http.dart' as http;
+import 'package:stomp_dart_client/stomp.dart';
+import 'package:stomp_dart_client/stomp_config.dart';
+import 'package:stomp_dart_client/stomp_frame.dart';
 
-class ChatListPage extends StatefulWidget {
+class ChatScreen extends StatefulWidget {
+  final int userId; // 131 hoặc 139
+
+  ChatScreen({required this.userId});
+
   @override
-  _ChatListPageState createState() => _ChatListPageState();
+  _ChatScreenState createState() => _ChatScreenState();
 }
 
-class _ChatListPageState extends State<ChatListPage> {
-  final TextEditingController _searchController = TextEditingController();
-  List<Chat> chats = [
-    Chat(
-      userName: "Nguyễn Cao Kỳ",
-      lastMessage: "Chào! Có gì không?",
-      time: "16:02",
-      unreadCount: 0,
-      messages: [
-        Message(text: "Chào bạn!", isSentByMe: false, time: "10:00"),
-        Message(text: "Chào! Có gì không?", isSentByMe: true, time: "10:01"),
-      ],
-    ),
-    Chat(
-      userName: "Nguyễn Minh Luân",
-      lastMessage: "Hỏi Đáp: Ngoài lề một chút ạ",
-      time: "14:27",
-      unreadCount: 0,
-      messages: [
-        Message(
-          text: "Hỏi Đáp: Ngoài lề một chút ạ",
-          isSentByMe: false,
-          time: "14:27",
-        ),
-      ],
-    ),
-  ];
-
-  List<Chat> filteredChats = [];
+class _ChatScreenState extends State<ChatScreen> {
+  late StompClient _stompClient;
+  List<Map<String, dynamic>> _messages = [];
+  TextEditingController _messageController = TextEditingController();
+  late int _receiverId;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    filteredChats = chats;
-    _searchController.addListener(_filterChats);
+    _receiverId = widget.userId == 131 ? 139 : 131;
+    _connectWebSocket();
+    _loadMessages();
   }
 
-  void _filterChats() {
-    setState(() {
-      if (_searchController.text.isEmpty) {
-        filteredChats = chats;
-      } else {
-        filteredChats =
-            chats
-                .where(
-                  (chat) => chat.userName.toLowerCase().contains(
-                    _searchController.text.toLowerCase(),
-                  ),
-                )
-                .toList();
-      }
-    });
-  }
-
-  void _updateChat(
-    String userName,
-    String newMessage,
-    List<Message> updatedMessages,
-  ) {
-    setState(() {
-      final chatIndex = chats.indexWhere((chat) => chat.userName == userName);
-      if (chatIndex != -1) {
-        chats[chatIndex] = Chat(
-          userName: chats[chatIndex].userName,
-          lastMessage: newMessage,
-          time: TimeOfDay.now().format(context),
-          unreadCount: chats[chatIndex].unreadCount,
-          messages: updatedMessages,
-        );
-        _filterChats();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-          onPressed: () => {Navigator.pop(context)},
-        ),
-        title: Text("Đoạn chat", style: TextStyle(color: Colors.white)),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
+  void _connectWebSocket() {
+    _stompClient = StompClient(
+      config: StompConfig.SockJS(
+        url: 'http://172.20.10.3:8080/ws',
+        onConnect: _onConnect,
+        onWebSocketError: (error) => print('WebSocket Error: $error'),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: SizedBox(
-              height: 35,
-              child: TextField(
-                controller: _searchController,
-                style: TextStyle(fontSize: 12),
-                decoration: InputDecoration(
-                  hintText: "Tìm kiếm",
-                  hintStyle: TextStyle(fontSize: 12),
-                  prefixIcon: Icon(Icons.search, size: 18),
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: 0,
-                    horizontal: 10,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    // Viền khi focus
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                      width: 2,
-                    ), // Màu xanh biển khi focus
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    // Viền khi không focus
-                    borderRadius: BorderRadius.circular(25),
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
+    );
+
+    _stompClient.activate();
+  }
+
+  void _onConnect(StompFrame frame) {
+    print('Connected to WebSocket');
+    _stompClient.subscribe(
+      destination: '/topic/chat',
+      callback: (frame) {
+        if (frame.body != null) {
+          final received = jsonDecode(frame.body!);
+          setState(() {
+            _messages.add(received);
+          });
+          _scrollToBottom();
+        }
+      },
+    );
+  }
+
+  void _sendMessage() {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+
+    final now = DateTime.now().toIso8601String();
+    Map<String, dynamic> message = {
+      'sender_id': widget.userId,
+      'receiver_id': _receiverId,
+      'content': text,
+      'sentAt': now,
+    };
+
+    _stompClient.send(
+      destination: '/app/sendMessage',
+      body: jsonEncode(message),
+    );
+
+    _messageController.clear();
+  }
+
+  Future<void> _loadMessages() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'http://172.20.10.3:8080/api/chat/messages/${widget.userId}/$_receiverId',
+        ),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> messages = jsonDecode(response.body);
+        setState(() {
+          _messages = messages.map((e) => e as Map<String, dynamic>).toList();
+        });
+        _scrollToBottom();
+      } else {
+        print('Failed to load history: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error loading history: $e');
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  String _formatTime(String? isoTime) {
+    if (isoTime == null) return '';
+    try {
+      final dt = DateTime.parse(isoTime);
+      return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+    } catch (e) {
+      return '';
+    }
+  }
+
+  Widget _buildMessageBubble(Map<String, dynamic> msg) {
+    final isMe = msg['sender_id'] == widget.userId;
+    final content = msg['content'] ?? '';
+    final time = _formatTime(msg['sentAt']);
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.7,
+        ),
+        child: Container(
+          margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          decoration: BoxDecoration(
+            color: isMe ? Colors.blue[400] : Colors.grey[300],
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+              bottomLeft: isMe ? Radius.circular(12) : Radius.circular(0),
+              bottomRight: isMe ? Radius.circular(0) : Radius.circular(12),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment:
+                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              Text(
+                content,
+                style: TextStyle(
+                  color: isMe ? Colors.white : Colors.black87,
+                  fontSize: 16,
                 ),
               ),
-            ),
+              SizedBox(height: 4),
+              Text(
+                time,
+                style: TextStyle(
+                  color: isMe ? Colors.white70 : Colors.black54,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: filteredChats.length,
-              itemBuilder: (context, index) {
-                final chat = filteredChats[index];
-                return ListTile(
-                  leading: CircleAvatar(child: Text(chat.userName[0])),
-                  title: Text(chat.userName),
-                  subtitle: Text(chat.lastMessage),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(chat.time, style: TextStyle(color: Colors.grey)),
-                      if (chat.unreadCount > 0)
-                        Container(
-                          margin: EdgeInsets.only(top: 5),
-                          padding: EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            chat.unreadCount.toString(),
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => ChatDetailPage(
-                              userName: chat.userName,
-                              messages: chat.messages,
-                              onMessageSent: (newMessage, updatedMessages) {
-                                _updateChat(
-                                  chat.userName,
-                                  newMessage,
-                                  updatedMessages,
-                                );
-                              },
-                            ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _stompClient.deactivate();
+    _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Chat với $_receiverId')),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount: _messages.length,
+              itemBuilder: (ctx, i) => _buildMessageBubble(_messages[i]),
+            ),
+          ),
+          Divider(height: 1),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText: 'Nhập tin nhắn...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
+                      ),
+                      fillColor: Colors.grey[200],
+                      filled: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Colors.blue,
+                  child: IconButton(
+                    icon: Icon(Icons.send, color: Colors.white),
+                    onPressed: _sendMessage,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
