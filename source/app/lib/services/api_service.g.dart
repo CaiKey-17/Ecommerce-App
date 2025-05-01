@@ -163,6 +163,29 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<AdminInfo> getAdminInfo(token) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<AdminInfo>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/auth/admin-info',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = AdminInfo.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<void> changeImage(token, image) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'image': image};
@@ -844,7 +867,9 @@ class _ApiService implements ApiService {
       ),
     );
     var value =
-        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+        _result.data!
+            .map((dynamic i) => Map<String, dynamic>.from(i as Map))
+            .toList();
 
     return value;
   }
@@ -872,7 +897,9 @@ class _ApiService implements ApiService {
       ),
     );
     var value =
-        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+        _result.data!
+            .map((dynamic i) => Map<String, dynamic>.from(i as Map))
+            .toList();
 
     return value;
   }
@@ -900,7 +927,9 @@ class _ApiService implements ApiService {
       ),
     );
     var value =
-        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+        _result.data!
+            .map((dynamic i) => Map<String, dynamic>.from(i as Map))
+            .toList();
 
     return value;
   }

@@ -1,5 +1,6 @@
 import 'package:app/models/address.dart';
 import 'package:app/models/address_response.dart';
+import 'package:app/models/admin_info.dart';
 import 'package:app/models/category_info.dart';
 import 'package:app/models/coupon_info.dart';
 
@@ -64,6 +65,9 @@ abstract class ApiService {
 
   @GET("/auth/user-info")
   Future<UserInfo> getUserInfo(@Header("Authorization") String token);
+
+  @GET("/auth/admin-info")
+  Future<AdminInfo> getAdminInfo(@Header("Authorization") String token);
 
   @POST("/auth/user-info/change")
   Future<void> changeImage(

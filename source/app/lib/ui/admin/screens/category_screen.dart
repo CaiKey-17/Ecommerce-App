@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/sidebar.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
@@ -9,6 +10,21 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
+  String token = "";
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? "";
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
   List<Map<String, String>> users = List.generate(
     10,
     (index) => {
@@ -23,7 +39,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Quản lý loại sản phẩm")),
-      drawer: SideBar(),
+      drawer: SideBar(token: token),
       body: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16),
         child: Column(

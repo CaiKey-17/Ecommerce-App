@@ -32,7 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _connectWebSocket() {
     _stompClient = StompClient(
       config: StompConfig.SockJS(
-        url: 'http://172.20.10.3:8080/ws',
+        url: 'http://192.168.70.182:8080/ws',
         onConnect: _onConnect,
         onWebSocketError: (error) => print('WebSocket Error: $error'),
       ),
@@ -81,7 +81,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final response = await http.get(
         Uri.parse(
-          'http://172.20.10.3:8080/api/chat/messages/${widget.userId}/$_receiverId',
+          'http://192.168.70.182:8080/api/chat/messages/${widget.userId}/$_receiverId',
         ),
       );
       if (response.statusCode == 200) {

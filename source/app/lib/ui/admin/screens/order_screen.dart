@@ -1,5 +1,6 @@
 import 'package:app/ui/admin/screens/order_detail_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/sidebar.dart';
 import 'package:intl/intl.dart'; // Định dạng tiền VNĐ
 
@@ -9,6 +10,22 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
+  String token = "";
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? "";
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    _initializeOrders();
+  }
+
   List<Map<String, dynamic>> orders = [];
   int orderCounter = 1;
   List<String> orderStatuses = [
@@ -17,12 +34,6 @@ class _OrderScreenState extends State<OrderScreen> {
     "Đã hoàn thành",
     "Đã hủy",
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeOrders();
-  }
 
   void _initializeOrders() {
     for (int i = 1; i <= 10; i++) {
@@ -56,7 +67,7 @@ class _OrderScreenState extends State<OrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Quản lý đơn hàng")),
-      drawer: SideBar(),
+      drawer: SideBar(token: token),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -119,9 +130,7 @@ class _OrderScreenState extends State<OrderScreen> {
         if (isSelected == true) {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => OrderDetailsScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => OrderDetailsScreen()),
           );
         }
       },
