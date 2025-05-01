@@ -599,6 +599,77 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<List<Comment>> getCommentInProduct(id) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'id': id};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<Comment>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/comments',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!
+            .map((dynamic i) => Comment.fromJson(i as Map<String, dynamic>))
+            .toList();
+    return value;
+  }
+
+  @override
+  Future<Comment> postComment(comment) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(comment.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Comment>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/comments',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = Comment.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<Comment> replyToComment(commentId, reply) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(reply.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Comment>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/comments/${commentId}/reply',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = Comment.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<List<ProductInfo>> getProductsByBrand(fk_brand) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'fk_brand': fk_brand};

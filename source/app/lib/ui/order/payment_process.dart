@@ -8,7 +8,7 @@ import 'package:app/models/coupon_info.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/login/update_address_page.dart';
 import 'package:app/ui/order/payment_success.dart';
-import 'package:app/ui/product_details.dart';
+import 'package:app/ui/product/product_details.dart';
 import 'package:app/ui/profile/add_address_screen.dart';
 import 'package:app/ui/profile/address_list_screen.dart';
 import 'package:dio/dio.dart';

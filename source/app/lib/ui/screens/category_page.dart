@@ -1,7 +1,7 @@
 import 'package:app/models/category_info.dart';
-import 'package:app/ui/main_brand.dart';
-import 'package:app/ui/main_category.dart';
-import 'package:app/ui/search_page.dart';
+import 'package:app/ui/product/main_brand.dart';
+import 'package:app/ui/product/main_category.dart';
+import 'package:app/ui/product/search_page.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
