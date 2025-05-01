@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/sidebar.dart';
 import '../screens/user_detail_screen.dart';
@@ -10,6 +11,21 @@ class UserScreen extends StatefulWidget {
 }
 
 class _UserScreenState extends State<UserScreen> {
+  String token = "";
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? "";
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
   List<Map<String, String>> users = List.generate(
     10,
     (index) => {
@@ -18,7 +34,7 @@ class _UserScreenState extends State<UserScreen> {
       "email": "user$index@email.com",
       "phone": "1232481292",
       "address": "Địa chỉ $index",
-      "isBlocked": "false" // Thêm trạng thái block
+      "isBlocked": "false", // Thêm trạng thái block
     },
   );
 
@@ -32,7 +48,7 @@ class _UserScreenState extends State<UserScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Quản lý người dùng")),
-      drawer: SideBar(),
+      drawer: SideBar(token: token),
       body: Padding(
         padding: const EdgeInsets.only(left: 10, right: 10),
         child: Column(
@@ -126,16 +142,19 @@ class _UserScreenState extends State<UserScreen> {
                 onPressed: () {
                   setState(() {
                     users[index]["isBlocked"] =
-                        (users[index]["isBlocked"] == "true") ? "false" : "true";
+                        (users[index]["isBlocked"] == "true")
+                            ? "false"
+                            : "true";
                   });
                 },
                 icon: Icon(
                   users[index]["isBlocked"] == "true"
                       ? Icons.lock
                       : Icons.lock_open,
-                  color: users[index]["isBlocked"] == "true"
-                      ? Colors.red
-                      : Colors.green,
+                  color:
+                      users[index]["isBlocked"] == "true"
+                          ? Colors.red
+                          : Colors.green,
                 ),
               ),
               _buildPopupMenu(context, index),
@@ -186,19 +205,23 @@ class _UserScreenState extends State<UserScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  UserDetailsScreen(user: users[userIndex], orders: orders),
+              builder:
+                  (context) =>
+                      UserDetailsScreen(user: users[userIndex], orders: orders),
             ),
           );
         } else if (value == 'delete') {
           _confirmDeleteUser(context, userIndex);
         }
       },
-      itemBuilder: (context) => [
-        PopupMenuItem(value: 'view', child: Text('Xem thông tin')),
-        PopupMenuItem(
-            value: 'delete', child: Text('Xóa', style: TextStyle(color: Colors.red))),
-      ],
+      itemBuilder:
+          (context) => [
+            PopupMenuItem(value: 'view', child: Text('Xem thông tin')),
+            PopupMenuItem(
+              value: 'delete',
+              child: Text('Xóa', style: TextStyle(color: Colors.red)),
+            ),
+          ],
       icon: Icon(Icons.more_vert, color: Colors.grey[700]),
     );
   }
@@ -323,9 +346,7 @@ class _UserScreenState extends State<UserScreen> {
                   Navigator.of(context).pop();
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             ),
           ],
         );

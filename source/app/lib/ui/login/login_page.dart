@@ -106,25 +106,24 @@ class _LoginPageState extends State<LoginPage> {
 
   void onLoginSuccess(String token, String role) async {
     final authRepo = AuthRepository();
-    bool success = await authRepo.fetchUserInfo(token);
 
-    if (success) {
-      print("Lấy thông tin người dùng thành công!");
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
-      await prefs.setString('role', role);
-      if (role == 'ROLE_CUSTOMER') {
+    if (role == 'ROLE_CUSTOMER') {
+      bool success = await authRepo.fetchUserInfo(token, role);
+      if (success) {
+        print("Lấy thông tin người dùng thành công!");
         Navigator.pushNamedAndRemoveUntil(context, "/main", (route) => false);
       }
-      if (role == 'ROLE_ADMIN') {
+    }
+    if (role == 'ROLE_ADMIN') {
+      bool success = await authRepo.fetchAdminInfo(token, role);
+      if (success) {
+        print("Lấy thông tin admin thành công!");
         Navigator.pushNamedAndRemoveUntil(
           context,
           "/manager",
           (route) => false,
         );
       }
-    } else {
-      print("Không thể lấy thông tin người dùng.");
     }
   }
 

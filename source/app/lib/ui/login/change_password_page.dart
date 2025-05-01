@@ -46,22 +46,45 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       final response = await apiService.changePassword(token, oldPass, newPass);
 
       if (response.code == 200) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("✅ ${response.message}")));
+        Fluttertoast.showToast(
+          msg: response.message,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 14.0,
+        );
+
         Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("⚠️ ${response.message}")));
+        Fluttertoast.showToast(
+          msg: response.message,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 14.0,
+        );
       }
     } catch (e) {
       if (e is DioException) {
         Fluttertoast.showToast(
           msg: e.response?.data['message'] ?? "Lỗi server",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 14.0,
         );
       } else {
-        Fluttertoast.showToast(msg: "Lỗi kết nối đến server: $e");
+        Fluttertoast.showToast(
+          msg: "Lỗi kết nối đến server: $e",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.black54,
+          textColor: Colors.white,
+          fontSize: 14.0,
+        );
       }
     } finally {
       setState(() {

@@ -99,7 +99,7 @@ class _ProfileImagePickerState extends State<ProfileImagePicker> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (token != null && token.isNotEmpty) ? _pickImage : null,
+      onTap: (token != null) ? _pickImage : null,
       child: Container(
         width: 80,
         height: 80,
