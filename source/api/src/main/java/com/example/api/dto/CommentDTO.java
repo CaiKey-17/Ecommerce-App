@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class CommentDTO {
     private Integer id;
     private String username;
+    private String role;
     private String content;
     private Date createdAt;
     private List<CommentDTO> replies;
@@ -30,7 +31,7 @@ public class CommentDTO {
     }
 
     public CommentDTO(Integer id, Integer productId, String username, String content,
-                      Date createdAt, Integer parentCommentId, List<CommentDTO> replies) {
+                      Date createdAt, Integer parentCommentId, List<CommentDTO> replies,String role) {
         this.id = id;
         this.productId = productId;
         this.username = username;
@@ -38,11 +39,10 @@ public class CommentDTO {
         this.createdAt = createdAt;
         this.parentCommentId = parentCommentId;
         this.replies = replies;
+        this.role = role;
     }
 
-    public CommentDTO(Integer id, Integer productId, String username, String content, Date createdAt) {
-        this(id, productId, username, content, createdAt, null);
-    }
+
 
     public long getDaysAgo() {
         long diffMillis = new Date().getTime() - createdAt.getTime();
@@ -50,6 +50,24 @@ public class CommentDTO {
     }
 
     // Getters and Setters
+
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public Integer getParentCommentId() {
+        return parentCommentId;
+    }
+
+    public void setParentCommentId(Integer parentCommentId) {
+        this.parentCommentId = parentCommentId;
+    }
+
     public Integer getId() {
         return id;
     }

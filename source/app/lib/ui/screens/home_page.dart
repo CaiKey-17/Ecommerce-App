@@ -1311,8 +1311,10 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder:
-                                  (context) =>
-                                      ProductPage(productId: product.id),
+                                  (context) => ProductPage(
+                                    productId: product.id,
+                                    oldPrice: product.oldPrice,
+                                  ),
                             ),
                           );
                         },
@@ -1528,7 +1530,11 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProductPage(productId: product.id),
+                    builder:
+                        (context) => ProductPage(
+                          productId: product.id,
+                          oldPrice: product.oldPrice,
+                        ),
                   ),
                 );
               },
@@ -1694,7 +1700,11 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProductPage(productId: product.id),
+                  builder:
+                      (context) => ProductPage(
+                        productId: product.id,
+                        oldPrice: product.oldPrice,
+                      ),
                 ),
               );
             },

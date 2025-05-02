@@ -35,8 +35,13 @@ import 'package:stomp_dart_client/stomp_handler.dart';
 
 class ProductPage extends StatefulWidget {
   final int productId;
+  final double oldPrice;
 
-  const ProductPage({super.key, required this.productId});
+  const ProductPage({
+    super.key,
+    required this.productId,
+    required this.oldPrice,
+  });
 
   @override
   _ProductPageState createState() => _ProductPageState();
@@ -50,23 +55,15 @@ class _ProductPageState extends State<ProductPage> {
   int id_Variant = -1;
   String name = "";
   String fullName = "";
-
   double? price;
-
-  double basePrice = 1990000;
   int _currentIndex = 0;
-
   List<String> images = [];
-
   List<ColorOption> colors = [];
   List<Variant> versions = [];
   List<RatingInfo> ratings = [];
-  final List<double> priceModifiers = [0, 200000, 500000];
   List<Map<String, dynamic>> reviews = [];
   bool hasReviewed = false;
-
   List<Comment> commentsN = [];
-
   List<Map<String, dynamic>> comments = [];
 
   Future<void> fetchCommentByProduct(int productId) async {
@@ -99,6 +96,7 @@ class _ProductPageState extends State<ProductPage> {
   List<CartInfo> cartItems = [];
   int? userId;
   int orderId = -1;
+  String role = "";
 
   @override
   void initState() {
@@ -180,10 +178,14 @@ class _ProductPageState extends State<ProductPage> {
       token = prefs.getString('token') ?? "";
       userId = prefs.getInt('userId') ?? -1;
       fullName = prefs.getString('fullName') ?? "";
+      role = prefs.getString('role') ?? "";
     });
   }
 
   Future<void> fetchProductDetail() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       final response = await apiService.getProductDetail(widget.productId);
       setState(() {
@@ -227,6 +229,9 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Future<void> fetchProductsBrand(String brand) async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       final response = await apiService.getProductsByBrand(brand);
       setState(() {
@@ -246,6 +251,9 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Future<void> fetchRatingsByProduct(int producId) async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       final response = await apiService.getRatingsByProduct(producId);
       setState(() {
@@ -287,6 +295,9 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Future<void> fetchProductsCategory(String category) async {
+    setState(() {
+      isLoading = true;
+    });
     try {
       final response = await apiService.getProductsByCategory(category);
       setState(() {
@@ -308,6 +319,7 @@ class _ProductPageState extends State<ProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.blue,
         leading: IconButton(
@@ -338,7 +350,12 @@ class _ProductPageState extends State<ProductPage> {
       ),
       body:
           isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                ),
+              )
               : Container(
                 color: Colors.white,
                 child: SingleChildScrollView(
@@ -452,7 +469,7 @@ class _ProductPageState extends State<ProductPage> {
 
                                     const SizedBox(width: 4),
                                     Text(
-                                      '(200 Đánh giá)',
+                                      '( ${reviews.length} đánh giá )',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey,
@@ -603,16 +620,36 @@ class _ProductPageState extends State<ProductPage> {
                                   width: double.infinity,
                                   alignment: Alignment.center,
                                   color: Colors.grey[200],
-                                  child: Text(
-                                    "${ConvertMoney.currencyFormatter.format(price)} ₫",
-
-                                    style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromARGB(255, 16, 118, 201),
-                                    ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        "${ConvertMoney.currencyFormatter.format(price)} ₫",
+                                        style: const TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color.fromARGB(
+                                            255,
+                                            16,
+                                            118,
+                                            201,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "${ConvertMoney.currencyFormatter.format(widget.oldPrice)} ₫",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey,
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
+
                                 const SizedBox(height: 16),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -665,6 +702,7 @@ class _ProductPageState extends State<ProductPage> {
                                 ),
                                 const SizedBox(height: 10),
                                 CommentSectionWidget(
+                                  role: role,
                                   productId: widget.productId,
                                   fullName: fullName,
                                   comments: comments,
@@ -676,6 +714,7 @@ class _ProductPageState extends State<ProductPage> {
                                         username: fullName,
                                         content: _newCommentController.text,
                                         productId: widget.productId,
+                                        role: role,
                                       );
 
                                       try {
@@ -1833,21 +1872,7 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
                                               ? Colors.green
                                               : Colors.grey,
                                     ),
-                                    onPressed: () {
-                                      setState(() {
-                                        if (!review['liked']) {
-                                          if (review['disliked']) {
-                                            review['disliked'] = false;
-                                            review['badCount'] =
-                                                (review['badCount'] as int) - 1;
-                                          }
-                                          review['liked'] = true;
-                                          review['goodCount'] =
-                                              (review['goodCount'] as int) + 1;
-                                          widget.onUpdateReview(index, review);
-                                        }
-                                      });
-                                    },
+                                    onPressed: () {},
                                   ),
                                   const SizedBox(width: 8),
                                   IconButton(
@@ -1858,22 +1883,7 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
                                               ? Colors.red
                                               : Colors.grey,
                                     ),
-                                    onPressed: () {
-                                      setState(() {
-                                        if (!review['disliked']) {
-                                          if (review['liked']) {
-                                            review['liked'] = false;
-                                            review['goodCount'] =
-                                                (review['goodCount'] as int) -
-                                                1;
-                                          }
-                                          review['disliked'] = true;
-                                          review['badCount'] =
-                                              (review['badCount'] as int) + 1;
-                                          widget.onUpdateReview(index, review);
-                                        }
-                                      });
-                                    },
+                                    onPressed: () {},
                                   ),
                                 ],
                               ),
@@ -2207,12 +2217,14 @@ class CommentSectionWidget extends StatefulWidget {
   final int initialCommentCount;
   final String fullName;
   final int productId;
+  final String role;
   final TextEditingController controller;
   final VoidCallback onSend;
 
   const CommentSectionWidget({
     super.key,
     required this.comments,
+    required this.role,
     required this.initialCommentCount,
     required this.controller,
     required this.onSend,
@@ -2331,11 +2343,12 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
     });
   }
 
-  void onSendReply(int index, int commentId) async {
+  void onSendReply(int index, int commentId, String role) async {
     final replyRequest = CommentReplyRequest(
       username: widget.fullName,
       content: _replyController.text,
       commentId: commentId,
+      role: role,
     );
 
     try {
@@ -2429,22 +2442,56 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                         Row(
                           children: [
                             CircleAvatar(
-                              backgroundColor: Colors.grey[300],
+                              backgroundColor:
+                                  comment['role'] == "ROLE_ADMIN"
+                                      ? Colors.red[100]
+                                      : Colors.grey[300],
                               child: Text(
                                 comment['username'][0].toString().toUpperCase(),
-                                style: const TextStyle(color: Colors.black),
+                                style: TextStyle(
+                                  color:
+                                      comment['role'] == "ROLE_ADMIN"
+                                          ? Colors.red
+                                          : Colors.black,
+                                ),
                               ),
                             ),
+
                             const SizedBox(width: 8),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    comment['username'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        comment['username'],
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      if (comment['role'] == "ROLE_ADMIN")
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red[50],
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'qtv',
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                   Text(
                                     comment['content'],
@@ -2491,13 +2538,20 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                                       child: Row(
                                         children: [
                                           CircleAvatar(
-                                            backgroundColor: Colors.red[100],
+                                            backgroundColor:
+                                                reply['role'] == "ROLE_ADMIN"
+                                                    ? Colors.red[100]
+                                                    : Colors.grey[300],
                                             child: Text(
                                               reply['username'][0]
                                                   .toString()
                                                   .toUpperCase(),
-                                              style: const TextStyle(
-                                                color: Colors.red,
+                                              style: TextStyle(
+                                                color:
+                                                    reply['role'] ==
+                                                            "ROLE_ADMIN"
+                                                        ? Colors.red
+                                                        : Colors.black,
                                               ),
                                             ),
                                           ),
@@ -2517,27 +2571,29 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                                                       ),
                                                     ),
                                                     const SizedBox(width: 4),
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 6,
-                                                            vertical: 2,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.red[50],
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              10,
+                                                    if (reply['role'] ==
+                                                        "ROLE_ADMIN")
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 6,
+                                                              vertical: 2,
                                                             ),
-                                                      ),
-                                                      child: const Text(
-                                                        'qtv',
-                                                        style: TextStyle(
-                                                          color: Colors.red,
-                                                          fontSize: 10,
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.red[50],
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                10,
+                                                              ),
+                                                        ),
+                                                        child: Text(
+                                                          'qtv',
+                                                          style: TextStyle(
+                                                            color: Colors.red,
+                                                            fontSize: 10,
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
                                                   ],
                                                 ),
                                                 Text(
@@ -2589,7 +2645,11 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                                 const SizedBox(width: 8),
                                 ElevatedButton(
                                   onPressed:
-                                      () => onSendReply(index, comment['id']),
+                                      () => onSendReply(
+                                        index,
+                                        comment['id'],
+                                        widget.role,
+                                      ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,
                                     shape: RoundedRectangleBorder(

@@ -96,7 +96,6 @@ public class OrderController {
             @RequestParam String tempId,
             @RequestParam int id
     ) {
-        System.out.println("ID: " + id);
 
         Users u1 = userService.findById(id);
         Users u2 = null;
@@ -171,6 +170,18 @@ public class OrderController {
         return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
 
     }
+
+    @PostMapping("/received")
+    public ResponseEntity<?> receiveOrder(
+            @RequestParam int orderId) {
+
+        cartService.receiveOrder(orderId);
+        return ResponseEntity.ok(Map.of("message", "Đã hoàn tất đơn hàng thành công"));
+
+    }
+
+
+
 
     @GetMapping("/pending")
     public ResponseEntity<List<OrderSummaryDTO>> findPendingOrdersByCustomerId(@RequestHeader("Authorization") String token) {

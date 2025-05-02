@@ -23,6 +23,7 @@ public class Comment {
     private Date createdAt;
 
     private Integer productId;
+    private String role;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,6 +33,14 @@ public class Comment {
     @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Comment> replies = new ArrayList<>();
 
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 
     public Integer getId() {
         return id;

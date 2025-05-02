@@ -141,6 +141,7 @@ class _ActivityPageState extends State<ActivityPage>
       final List<Map<String, dynamic>> transformed =
           response.map((order) {
             return {
+              "id": order["orderId"],
               "status": order["status"],
               "image": order["firstProductImage"],
               "name": order["firstProductName"],
@@ -175,6 +176,7 @@ class _ActivityPageState extends State<ActivityPage>
       final List<Map<String, dynamic>> transformed =
           response.map((order) {
             return {
+              "id": order["orderId"],
               "status": order["status"],
               "image": order["firstProductImage"],
               "name": order["firstProductName"],
@@ -262,7 +264,42 @@ class _ActivityPageState extends State<ActivityPage>
       await fetchOrderingOrders(token);
       await fetchOrderedOrders(token);
 
-      // Reset lại PagingController để load lại dữ liệu
+      _pendingController.refresh();
+      _deliveringController.refresh();
+      _deliveredController.refresh();
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Có lỗi xảy ra, vui lòng thử lại")),
+      );
+    }
+  }
+
+  void _handleConfirmOrder(int orderId) async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await apiService.received(orderId);
+
+      Fluttertoast.showToast(
+        msg: "Chúng tôi xin chân thành cảm ơn bạn!",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.black54,
+        textColor: Colors.white,
+        fontSize: 14.0,
+      );
+      await fetchPendingOrders(token);
+      await fetchOrderingOrders(token);
+      await fetchOrderedOrders(token);
+
       _pendingController.refresh();
       _deliveringController.refresh();
       _deliveredController.refresh();
@@ -325,10 +362,8 @@ class _ActivityPageState extends State<ActivityPage>
         elevation: 0,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
-            color: Colors.blue, // 👈 Chỉ phần này có màu nền
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(0), // Có thể bo góc nếu thích
-            ),
+            color: Colors.blue,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(0)),
           ),
         ),
         centerTitle: true,
@@ -389,351 +424,352 @@ class _ActivityPageState extends State<ActivityPage>
     PagingController<int, Map<String, dynamic>> controller,
     List<Map<String, dynamic>> orders,
   ) {
-    return PagedListView<int, Map<String, dynamic>>(
-      pagingController: controller,
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 62),
-      builderDelegate: PagedChildBuilderDelegate<Map<String, dynamic>>(
-        itemBuilder: (context, order, index) {
-          Widget actionButton;
-          Widget? refundButton;
+    return Column(
+      children: [
+        Expanded(
+          child: PagedListView<int, Map<String, dynamic>>(
+            pagingController: controller,
+            padding: const EdgeInsets.all(16),
 
-          if (order["status"] == "Chờ xác nhận") {
-            actionButton = OutlinedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Dialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      backgroundColor: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 24,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.red,
-                              size: 48,
+            builderDelegate: PagedChildBuilderDelegate<Map<String, dynamic>>(
+              itemBuilder: (context, order, index) {
+                Widget? actionButton;
+                Widget? refundButton;
+
+                if (order["status"] == "Chờ xác nhận") {
+                  actionButton = ElevatedButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Xác nhận hủy đơn',
+                            backgroundColor: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 24,
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.warning_amber_rounded,
+                                    color: Colors.red,
+                                    size: 48,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Xác nhận hủy đơn',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Bạn có chắc chắn muốn hủy đơn hàng này không?',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      TextButton(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: Colors.grey[700],
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 10,
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('Không'),
+                                      ),
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 10,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          var order = pendingOrders[index];
+                                          int orderId = order["id"];
+
+                                          _handleOrder(orderId);
+                                          final itemList = controller.itemList;
+                                          if (itemList != null &&
+                                              index >= 0 &&
+                                              index < itemList.length) {
+                                            setState(() {
+                                              itemList.removeAt(index);
+                                              pendingOrders.removeAt(index);
+                                              controller.notifyListeners();
+                                            });
+                                          }
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('Hủy đơn'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+
+                    style: ElevatedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Hủy đơn hàng",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                } else if (order["status"] == "Đã xác nhận") {
+                  actionButton = ElevatedButton(
+                    onPressed: () {
+                      var order = deliveringOrders[index];
+                      int orderId = order["id"];
+                      _handleConfirmOrder(orderId);
+                      final itemList = controller.itemList;
+                      if (itemList != null &&
+                          index >= 0 &&
+                          index < itemList.length) {
+                        setState(() {
+                          itemList.removeAt(index);
+                          deliveringOrders.removeAt(index);
+                          controller.notifyListeners();
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      "Đã nhận được hàng",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                  refundButton = OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    onPressed: () {},
+                    child: const Text(
+                      "Trả hàng/Hoàn tiền",
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                } else {}
+
+                return Card(
+                  color: const Color.fromARGB(255, 247, 247, 247),
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              order["status"] ?? "Không xác định",
                               style: TextStyle(
-                                fontSize: 18,
+                                color:
+                                    order["status"] == "Chờ xác nhận"
+                                        ? Colors.red
+                                        : order["status"] == "Đã xác nhận"
+                                        ? Colors.green
+                                        : order["status"] == "Đã hủy"
+                                        ? Colors.red
+                                        : order["status"] == "Hoàn tất"
+                                        ? Colors.green
+                                        : Colors.grey,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Bạn có chắc chắn muốn hủy đơn hàng này không?',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16),
-                            ),
-                            const SizedBox(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.grey[700],
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 10,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('Không'),
-                                ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20,
-                                      vertical: 10,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    var order = pendingOrders[index];
-                                    int orderId = order["id"];
+                          ],
+                        ),
+                        const Divider(),
+                        Row(
+                          children: [
+                            Container(
+                              width: 70,
+                              height: 70,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image:
+                                      order["image"] != null &&
+                                              order["image"]
+                                                  .toString()
+                                                  .startsWith('http')
+                                          ? NetworkImage(order["image"])
+                                              as ImageProvider
+                                          : const AssetImage(
+                                            "assets/images/dienthoai.webp",
+                                          ),
 
-                                    _handleOrder(orderId);
-                                    final itemList = controller.itemList;
-                                    if (itemList != null &&
-                                        index >= 0 &&
-                                        index < itemList.length) {
-                                      setState(() {
-                                        itemList.removeAt(index);
-                                        pendingOrders.removeAt(index);
-                                        controller.notifyListeners();
-                                      });
-                                    }
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('Hủy đơn'),
+                                  fit: BoxFit.cover,
                                 ),
-                              ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    order["name"] ?? "Sản phẩm không có tên",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    order["time"] ?? "Không có thời gian",
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    "và ${order["quantity"] ?? 0} sản phẩm khác",
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 13,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  },
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Tổng số tiền:",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            Text(
+                              "${order["totalPrice"]?.toString() ?? 'N/A'} ₫",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment:
+                              refundButton != null
+                                  ? MainAxisAlignment.spaceEvenly
+                                  : MainAxisAlignment.end,
+
+                          children: [
+                            if (refundButton != null) refundButton,
+                            const SizedBox(width: 10),
+                            if (actionButton != null) actionButton!,
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
 
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.red),
-                foregroundColor: Colors.red,
-              ),
-              child: const Text("Hủy đơn hàng"),
-            );
-          } else if (order["status"] == "Đã xác nhận") {
-            actionButton = ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-              child: const Text(
-                "Đã nhận được hàng",
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-            refundButton = OutlinedButton(
-              onPressed: () {},
-              child: const Text("Trả hàng/Hoàn tiền"),
-            );
-          } else {
-            actionButton = ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-              child: const Text(
-                "Đánh giá",
-                style: TextStyle(color: Colors.white),
-              ),
-            );
-          }
-
-          return Card(
-            color: const Color.fromARGB(255, 247, 247, 247),
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        order["status"] ?? "Không xác định",
-                        style: TextStyle(
-                          color:
-                              order["status"] == "Chờ xác nhận"
-                                  ? Colors.orange
-                                  : order["status"] == "Đã xác nhận"
-                                  ? Colors.green
-                                  : order["status"] == "Lịch sử"
-                                  ? Colors.red
-                                  : Colors.grey,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  Row(
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image:
-                                order["image"] != null &&
-                                        order["image"].toString().startsWith(
-                                          'http',
-                                        )
-                                    ? NetworkImage(order["image"])
-                                        as ImageProvider
-                                    : const AssetImage(
-                                      "assets/images/dienthoai.webp",
-                                    ),
-
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              order["name"] ?? "Sản phẩm không có tên",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              order["time"] ?? "Không có thời gian",
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              "và ${order["quantity"] ?? 0} sản phẩm khác",
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 13,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Tổng số tiền:",
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      Text(
-                        "${order["totalPrice"]?.toString() ?? 'N/A'} ₫",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (refundButton != null) refundButton,
-                      const SizedBox(width: 10),
-                      actionButton,
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-        firstPageProgressIndicatorBuilder:
-            (context) => SizedBox(
-              height: MediaQuery.of(context).size.height * 0.5,
-              child: Shimmer.fromColors(
-                baseColor: Colors.grey.shade300,
-                highlightColor: Colors.grey.shade100,
-                period: const Duration(seconds: 1),
-                child: ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.shade300,
-                            blurRadius: 5,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
+              firstPageProgressIndicatorBuilder:
+                  (context) => SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    child: Shimmer.fromColors(
+                      baseColor: Colors.grey.shade300,
+                      highlightColor: Colors.grey.shade100,
+                      period: const Duration(seconds: 1),
+                      child: ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: 5,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.shade300,
+                                  blurRadius: 5,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                            const Divider(),
-                            Row(
-                              children: [
-                                Container(
-                                  width: 70,
-                                  height: 70,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Container(
-                                        width: double.infinity,
+                                        width: 100,
                                         height: 20,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade200,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Container(
-                                        width: 150,
-                                        height: 16,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade200,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Container(
-                                        width: 120,
-                                        height: 15,
                                         decoration: BoxDecoration(
                                           color: Colors.grey.shade200,
                                           borderRadius: BorderRadius.circular(
@@ -743,85 +779,148 @@ class _ActivityPageState extends State<ActivityPage>
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  width: 80,
-                                  height: 16,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(4),
+                                  const Divider(),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 70,
+                                        height: 70,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              width: double.infinity,
+                                              height: 20,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade200,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Container(
+                                              width: 150,
+                                              height: 16,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade200,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Container(
+                                              width: 120,
+                                              height: 15,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade200,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                Container(
-                                  width: 60,
-                                  height: 18,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(4),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        width: 80,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 60,
+                                        height: 18,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(4),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        width: 100,
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-        newPageProgressIndicatorBuilder:
-            (context) => const Padding(
-              padding: EdgeInsets.only(top: 8, bottom: 58),
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                          );
+                        },
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      "Đang tải thêm ...",
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+              newPageProgressIndicatorBuilder:
+                  (context) => const Padding(
+                    padding: EdgeInsets.only(top: 8, bottom: 58),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.grey,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            "Đang tải thêm ...",
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+              noItemsFoundIndicatorBuilder:
+                  (context) => const Center(
+                    child: Text(
+                      "Không có đơn hàng nào!",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
             ),
-        noItemsFoundIndicatorBuilder:
-            (context) => const Center(
-              child: Text(
-                "Không có đơn hàng nào!",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-      ),
+          ),
+        ),
+        const SizedBox(height: 60),
+      ],
     );
   }
 }
