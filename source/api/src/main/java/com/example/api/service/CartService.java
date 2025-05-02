@@ -1,6 +1,8 @@
 package com.example.api.service;
 
+import com.example.api.model.Bill;
 import com.example.api.model.Order;
+import com.example.api.repository.BillRepository;
 import com.example.api.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -8,10 +10,7 @@ import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Service;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Types;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
 @Service
@@ -22,6 +21,9 @@ public class CartService {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private BillRepository billRepository;
 
     public Map<String, Object> addToCart(int customerID, int productID,int colorID, int quantity) {
         String sql = "{CALL AddToCart(?, ?, ?,?)}";
@@ -105,13 +107,26 @@ public class CartService {
         });
     }
 
+    public void receiveOrder(int orderId) {
+        Order o = orderRepository.findById(orderId).orElse(null);
+        if (o != null) {
+            o.setProcess("hoantat");
+            orderRepository.save(o);
+        }
+        Bill b = billRepository.findByFkOrderId(orderId);
+        if (b != null) {
+            b.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+            b.setStatusOrder("dathanhtoan");
+            billRepository.save(b);
+        }
+    }
+
     public void acceptOrder(int orderId) {
         Order o = orderRepository.findById(orderId).orElse(null);
         if (o != null) {
             o.setProcess("danggiao");
             orderRepository.save(o);
         }
-
     }
 
 

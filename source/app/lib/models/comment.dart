@@ -5,6 +5,7 @@ class Comment {
   final DateTime createdAt;
   final List<Comment> replies;
   final int productId;
+  final String role;
   final int parentCommentId;
   final int daysAgo;
 
@@ -13,6 +14,7 @@ class Comment {
     required this.username,
     required this.content,
     required this.createdAt,
+    required this.role,
     required this.replies,
     required this.parentCommentId,
     required this.productId,
@@ -24,6 +26,7 @@ class Comment {
       id: json['id'],
       username: json['username'],
       content: json['content'],
+      role: json['role'],
       createdAt: DateTime.parse(json['createdAt']),
       replies:
           (json['replies'] as List).map((e) => Comment.fromJson(e)).toList(),
@@ -41,6 +44,7 @@ class Comment {
       'createdAt': createdAt.toIso8601String(),
       'replies': replies.map((e) => e.toJson()).toList(),
       'productId': productId,
+      'role': role,
       'parentCommentId': parentCommentId,
       'daysAgo': daysAgo,
     };

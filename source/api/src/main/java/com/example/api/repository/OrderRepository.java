@@ -41,8 +41,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
            ) AS firstProductName,
            CASE
              WHEN 'dahuy' IN (:processList) AND o.process = 'dahuy' THEN 'Đã hủy'
+              WHEN 'danggiao' IN (:processList) AND o.process = 'danggiao' THEN 'Đã xác nhận'
              WHEN 'hoantat' IN (:processList) AND o.process = 'hoantat' THEN 'Hoàn tất'
-             ELSE 'Chưa hoàn tất'
+             ELSE 'Chờ xác nhận'
            END AS status
          FROM orders o
          JOIN order_details d ON o.id = d.fk_order_id
@@ -50,6 +51,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
          JOIN product p ON v.fk_variant_product = p.id
          WHERE o.id_fk_customer = :customerId AND o.process IN (:processList)
          GROUP BY o.id, o.created_at, o.total
+         ORDER BY o.created_at DESC;
         """, nativeQuery = true)
     List<OrderSummaryDTO> findStatusOrdersByCustomerId(@Param("customerId") Integer customerId,@Param("processList") List<String> processList,@Param("status") String status );
 

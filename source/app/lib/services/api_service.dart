@@ -231,4 +231,7 @@ abstract class ApiService {
 
   @POST("/order/cancel")
   Future<Map<String, dynamic>> cancelToCart(@Query("orderId") int orderId);
+
+  @POST("/order/received")
+  Future<Map<String, dynamic>> received(@Query("orderId") int orderId);
 }
