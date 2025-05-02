@@ -76,6 +76,36 @@ public class UserController {
         }
     }
 
+    @GetMapping("/admin-info")
+    public ResponseEntity<?> getAdminInfo(@RequestHeader("Authorization") String token) {
+        try {
+            int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", ""));
+            Users user = userService.getUserById(userId);
+
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id", user.getId());
+            userInfo.put("email", user.getEmail());
+            userInfo.put("fullName", user.getFullName());
+            userInfo.put("active", user.getActive());
+            userInfo.put("role", userService.getUserRole(user.getEmail()));
+            if (user.getImage() != null) {
+                userInfo.put("image", user.getImage());
+            } else {
+                userInfo.put("image", "");
+
+            }
+
+            return ResponseEntity.ok(userInfo);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "code", 500,
+                    "message", "Lỗi khi lấy thông tin người dùng"
+            ));
+        }
+    }
+
+
     @PostMapping("/user-info/change")
     public ResponseEntity<?> changeImage(@RequestHeader("Authorization") String token, @RequestParam String image) {
         try {

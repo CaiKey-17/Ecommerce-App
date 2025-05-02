@@ -1,3 +1,4 @@
+import 'package:app/globals/logout.dart';
 import 'package:app/providers/profile_image_picker.dart';
 import 'package:app/ui/login/change_password_page.dart';
 import 'package:app/ui/login/edit_profile_page.dart';
@@ -45,45 +46,10 @@ class _ProfilePageState extends State<ProfilePage> {
       image_url = prefs.getString('image') ?? "";
       email = prefs.getString('email') ?? "";
       check = token.isNotEmpty;
+
       formattedPoints = NumberFormat("#,###", "de_DE").format(points);
       _isLoading = false;
     });
-  }
-
-  void _logout() async {
-    setState(() {
-      check = false;
-    });
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    Navigator.pushReplacementNamed(context, '/login');
-  }
-
-  void _confirmLogout() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text("Xác nhận đăng xuất"),
-            content: const Text("Bạn có chắc chắn muốn đăng xuất không?"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Hủy"),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _logout();
-                },
-                child: const Text(
-                  "Đăng xuất",
-                  style: TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-    );
   }
 
   @override
@@ -249,6 +215,9 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }),
       _buildMenuItem(Icons.language, "Thay đổi ngôn ngữ", () {}),
+
+      _buildMenuItem(Icons.security, "Chính sách và điều khoản", () {}),
+
       _buildMenuItem(Icons.password_rounded, "Thay đổi mật khẩu", () {
         Navigator.push(
           context,
@@ -257,13 +226,11 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         );
       }),
-      _buildMenuItem(Icons.security, "Chính sách và điều khoản", () {}),
-      const SizedBox(height: 10),
       check
           ? Column(
             children: [
               _buildMenuItem(Icons.logout, "Đăng xuất", () {
-                _confirmLogout();
+                LogoutHelper.confirmLogout(context, () {});
               }),
             ],
           )

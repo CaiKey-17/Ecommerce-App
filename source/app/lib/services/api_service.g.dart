@@ -10,7 +10,7 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://172.20.10.3:8080/api';
+    baseUrl ??= 'http://192.168.70.182:8080/api';
   }
 
   final Dio _dio;
@@ -159,6 +159,29 @@ class _ApiService implements ApiService {
       ),
     );
     final value = UserInfo.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<AdminInfo> getAdminInfo(token) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Authorization': token};
+    _headers.removeWhere((k, v) => v == null);
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<AdminInfo>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/auth/admin-info',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = AdminInfo.fromJson(_result.data!);
     return value;
   }
 
@@ -576,6 +599,77 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<List<Comment>> getCommentInProduct(id) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'id': id};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<List<dynamic>>(
+      _setStreamType<List<Comment>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/comments',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    var value =
+        _result.data!
+            .map((dynamic i) => Comment.fromJson(i as Map<String, dynamic>))
+            .toList();
+    return value;
+  }
+
+  @override
+  Future<Comment> postComment(comment) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(comment.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Comment>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/comments',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = Comment.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<Comment> replyToComment(commentId, reply) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(reply.toJson());
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<Comment>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/comments/${commentId}/reply',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = Comment.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<List<ProductInfo>> getProductsByBrand(fk_brand) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'fk_brand': fk_brand};
@@ -844,7 +938,9 @@ class _ApiService implements ApiService {
       ),
     );
     var value =
-        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+        _result.data!
+            .map((dynamic i) => Map<String, dynamic>.from(i as Map))
+            .toList();
 
     return value;
   }
@@ -872,7 +968,9 @@ class _ApiService implements ApiService {
       ),
     );
     var value =
-        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+        _result.data!
+            .map((dynamic i) => Map<String, dynamic>.from(i as Map))
+            .toList();
 
     return value;
   }
@@ -900,7 +998,9 @@ class _ApiService implements ApiService {
       ),
     );
     var value =
-        _result.data!.map((dynamic i) => i as Map<String, dynamic>).toList();
+        _result.data!
+            .map((dynamic i) => Map<String, dynamic>.from(i as Map))
+            .toList();
 
     return value;
   }

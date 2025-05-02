@@ -1,8 +1,13 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:app/globals/convert_money.dart';
 import 'package:app/models/cart_info.dart';
 import 'package:app/models/color_model.dart';
+import 'package:app/models/comment.dart';
+import 'package:app/models/comment_info.dart';
+import 'package:app/models/comment_reply_request.dart';
+import 'package:app/models/comment_request.dart';
 import 'package:app/models/image_model.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/models/product_info_detail.dart';
@@ -14,8 +19,8 @@ import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/api_service_sentiment.dart';
 import 'package:app/services/cart_service.dart';
-import 'package:app/ui/main_brand.dart';
-import 'package:app/ui/main_category.dart';
+import 'package:app/ui/product/main_brand.dart';
+import 'package:app/ui/product/main_category.dart';
 import 'package:app/ui/main_page.dart';
 import 'package:app/ui/order/payment_process.dart';
 import 'package:app/ui/screens/shopping_page.dart';
@@ -23,6 +28,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stomp_dart_client/stomp.dart';
+import 'package:stomp_dart_client/stomp_config.dart';
+import 'package:stomp_dart_client/stomp_frame.dart';
+import 'package:stomp_dart_client/stomp_handler.dart';
 
 class ProductPage extends StatefulWidget {
   final int productId;
@@ -40,6 +49,7 @@ class _ProductPageState extends State<ProductPage> {
   int id_Color = -1;
   int id_Variant = -1;
   String name = "";
+  String fullName = "";
 
   double? price;
 
@@ -54,89 +64,32 @@ class _ProductPageState extends State<ProductPage> {
   final List<double> priceModifiers = [0, 200000, 500000];
   List<Map<String, dynamic>> reviews = [];
   bool hasReviewed = false;
-  final List<Map<String, dynamic>> comments = [
-    {
-      'username': 'Undefined',
-      'content': 'Mẫu này hiện tại đang có bao nhiêu tài nguyên năm ?',
-      'daysAgo': 2,
-      'replies': [
-        {
-          'username': 'Quản Trị Viên',
-          'content':
-              'CellphonesS Xin Chào Anh !\nĐa con MAN HINH GAMING VIEWSONIC VX2758A-2K-PRO-2 27(2K/IPS/185HZ/1MS) giá tốt điện hiện tại 5.190.000đ\nNếu phù hợp nam học quản trị nên tìm shop có ghi hàng trong 24 giờ để mình đặt',
-          'daysAgo': 2,
-        },
-      ],
-    },
-    {
-      'username': 'User1',
-      'content': 'Sản phẩm này có bền không?',
-      'daysAgo': 3,
-      'replies': [
-        {
-          'username': 'Quản Trị Viên',
-          'content':
-              'Chào bạn! Sản phẩm rất bền, được bảo hành chính hãng 24 tháng.',
-          'daysAgo': 3,
-        },
-      ],
-    },
 
-    {
-      'username': 'User2',
-      'content': 'Có giao hàng nhanh không?',
-      'daysAgo': 4,
-      'replies': [],
-    },
-    {
-      'username': 'User3',
-      'content': 'Màu sắc sản phẩm có đúng như hình không?',
-      'daysAgo': 5,
-      'replies': [],
-    },
-    {
-      'username': 'User4',
-      'content': 'Sản phẩm này có bảo hành không?',
-      'daysAgo': 6,
-      'replies': [],
-    },
-    {
-      'username': 'User5',
-      'content': 'Giá có giảm thêm được không?',
-      'daysAgo': 7,
-      'replies': [],
-    },
-    {
-      'username': 'User6',
-      'content': 'Có hỗ trợ trả góp không?',
-      'daysAgo': 8,
-      'replies': [],
-    },
-    {
-      'username': 'User7',
-      'content': 'Sản phẩm này có hàng sẵn không?',
-      'daysAgo': 9,
-      'replies': [],
-    },
-    {
-      'username': 'User8',
-      'content': 'Chất lượng sản phẩm thế nào?',
-      'daysAgo': 10,
-      'replies': [],
-    },
-    {
-      'username': 'User9',
-      'content': 'Có giao hàng tận nơi không?',
-      'daysAgo': 11,
-      'replies': [],
-    },
-    {
-      'username': 'User10',
-      'content': 'Sản phẩm này có dễ sử dụng không?',
-      'daysAgo': 12,
-      'replies': [],
-    },
-  ];
+  List<Comment> commentsN = [];
+
+  List<Map<String, dynamic>> comments = [];
+
+  Future<void> fetchCommentByProduct(int productId) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getCommentInProduct(productId);
+      setState(() {
+        commentsN = response;
+        print(commentsN.length);
+        comments =
+            commentsN.map((commentInfo) => commentInfo.toJson()).toList();
+
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   int displayedCommentCount = 5;
   final TextEditingController _newCommentController = TextEditingController();
@@ -226,6 +179,7 @@ class _ProductPageState extends State<ProductPage> {
     setState(() {
       token = prefs.getString('token') ?? "";
       userId = prefs.getInt('userId') ?? -1;
+      fullName = prefs.getString('fullName') ?? "";
     });
   }
 
@@ -258,6 +212,8 @@ class _ProductPageState extends State<ProductPage> {
         fetchProductsBrand(product!.brand);
         fetchProductsCategory(product!.category);
         fetchRatingsByProduct(widget.productId);
+        fetchCommentByProduct(widget.productId);
+
         setState(() {
           isLoading = false;
         });
@@ -472,7 +428,6 @@ class _ProductPageState extends State<ProductPage> {
                                     Row(
                                       children: List.generate(5, (index) {
                                         if (index < product!.rating.floor()) {
-                                          // Sao đầy
                                           return const Icon(
                                             Icons.star,
                                             color: Colors.amber,
@@ -480,14 +435,12 @@ class _ProductPageState extends State<ProductPage> {
                                           );
                                         } else if (index < product!.rating &&
                                             (product!.rating - index) >= 0.5) {
-                                          // Sao nửa
                                           return const Icon(
                                             Icons.star_half,
                                             color: Colors.amber,
                                             size: 16,
                                           );
                                         } else {
-                                          // Sao trống
                                           return const Icon(
                                             Icons.star_border,
                                             color: Colors.amber,
@@ -695,9 +648,7 @@ class _ProductPageState extends State<ProductPage> {
                                       reviews: reviews,
                                       images: images,
                                       onViewMoreReviews: () {
-                                        setState(() {
-                                          // Hiển thị tất cả đánh giá
-                                        });
+                                        setState(() {});
                                       },
                                       onWriteReview:
                                           () => print('Viết đánh giá'),
@@ -714,20 +665,28 @@ class _ProductPageState extends State<ProductPage> {
                                 ),
                                 const SizedBox(height: 10),
                                 CommentSectionWidget(
+                                  productId: widget.productId,
+                                  fullName: fullName,
                                   comments: comments,
                                   initialCommentCount: 5,
                                   controller: _newCommentController,
-                                  onSend: () {
+                                  onSend: () async {
                                     if (_newCommentController.text.isNotEmpty) {
-                                      setState(() {
-                                        comments.insert(0, {
-                                          'username': 'Người dùng mới',
-                                          'content': _newCommentController.text,
-                                          'daysAgo': 0,
-                                          'replies': [],
+                                      final replyRequest = CommentRequest(
+                                        username: fullName,
+                                        content: _newCommentController.text,
+                                        productId: widget.productId,
+                                      );
+
+                                      try {
+                                        final newReply = await apiService
+                                            .postComment(replyRequest);
+                                        setState(() {
+                                          _newCommentController.clear();
                                         });
-                                        _newCommentController.clear();
-                                      });
+                                      } catch (e) {
+                                        print('Lỗi khi gửi phản hồi: $e');
+                                      }
                                     }
                                   },
                                 ),
@@ -1586,15 +1545,7 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
                     ],
                   ),
                   const Divider(color: Colors.grey, thickness: 1),
-                  // Column(
-                  //   crossAxisAlignment: CrossAxisAlignment.start,
-                  //   children: [
-                  //     const Text(
-                  //       'Đánh giá sản phẩm ',
-                  //       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  //     ),
-                  //   ],
-                  // ),
+
                   Stack(
                     children: [
                       Column(
@@ -1893,7 +1844,6 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
                                           review['liked'] = true;
                                           review['goodCount'] =
                                               (review['goodCount'] as int) + 1;
-                                          // Update the parent widget
                                           widget.onUpdateReview(index, review);
                                         }
                                       });
@@ -1920,7 +1870,6 @@ class _AllReviewsDialogState extends State<AllReviewsDialog> {
                                           review['disliked'] = true;
                                           review['badCount'] =
                                               (review['badCount'] as int) + 1;
-                                          // Update the parent widget
                                           widget.onUpdateReview(index, review);
                                         }
                                       });
@@ -2256,6 +2205,8 @@ Widget _buildTitle(String title, VoidCallback onViewMore) {
 class CommentSectionWidget extends StatefulWidget {
   final List<Map<String, dynamic>> comments;
   final int initialCommentCount;
+  final String fullName;
+  final int productId;
   final TextEditingController controller;
   final VoidCallback onSend;
 
@@ -2265,6 +2216,8 @@ class CommentSectionWidget extends StatefulWidget {
     required this.initialCommentCount,
     required this.controller,
     required this.onSend,
+    required this.productId,
+    required this.fullName,
   });
 
   @override
@@ -2272,15 +2225,87 @@ class CommentSectionWidget extends StatefulWidget {
 }
 
 class _CommentSectionWidgetState extends State<CommentSectionWidget> {
+  late StompClient stompClient;
   late int displayedCommentCount;
   int? replyingToIndex;
   final TextEditingController _replyController = TextEditingController();
+  late ApiService apiService;
+  final Map<int, StompUnsubscribe> replySubscriptions = {};
+
+  void connectToWebSocket() {
+    stompClient = StompClient(
+      config: StompConfig.SockJS(
+        url: 'http://192.168.70.182:8080/ws',
+        onConnect: onStompConnected,
+        onWebSocketError: (dynamic error) => print('Lỗi WS: $error'),
+      ),
+    );
+
+    stompClient.activate();
+  }
+
+  void onStompConnected(StompFrame frame) {
+    stompClient.subscribe(
+      destination: '/topic/comments/${widget.productId}',
+      callback: (frame) {
+        if (frame.body != null) {
+          final data = jsonDecode(frame.body!);
+          setState(() {
+            widget.comments.insert(0, data);
+
+            subscribeToReplies(data['id']);
+          });
+        }
+      },
+    );
+
+    for (var comment in widget.comments) {
+      if (comment['id'] != null) {
+        subscribeToReplies(comment['id']);
+      }
+    }
+  }
+
+  void subscribeToReplies(int commentId) {
+    if (replySubscriptions.containsKey(commentId)) return;
+
+    final subscription = stompClient.subscribe(
+      destination: '/topic/replies/$commentId',
+      callback: (frame) {
+        if (frame.body != null) {
+          final data = jsonDecode(frame.body!);
+          setState(() {
+            final index = widget.comments.indexWhere(
+              (c) => c['id'] == commentId,
+            );
+            if (index != -1) {
+              widget.comments[index]['replies'] ??= [];
+              widget.comments[index]['replies'].add(data);
+            }
+          });
+        }
+      },
+    );
+
+    replySubscriptions[commentId] = subscription;
+  }
 
   @override
   void initState() {
     super.initState();
 
+    apiService = ApiService(Dio());
+    connectToWebSocket();
     displayedCommentCount = widget.initialCommentCount;
+  }
+
+  @override
+  void dispose() {
+    for (final sub in replySubscriptions.values) {
+      sub();
+    }
+    stompClient.deactivate();
+    super.dispose();
   }
 
   void toggleComments() {
@@ -2296,7 +2321,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
     });
   }
 
-  void onReply(int index) {
+  void onReply(int index, int commentId) {
     setState(() {
       if (replyingToIndex == index) {
         replyingToIndex = null;
@@ -2306,17 +2331,21 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
     });
   }
 
-  void onSendReply(int index) {
-    if (_replyController.text.isNotEmpty) {
+  void onSendReply(int index, int commentId) async {
+    final replyRequest = CommentReplyRequest(
+      username: widget.fullName,
+      content: _replyController.text,
+      commentId: commentId,
+    );
+
+    try {
+      final newReply = await apiService.replyToComment(commentId, replyRequest);
       setState(() {
-        widget.comments[index]['replies'].add({
-          'username': 'Người dùng mới',
-          'content': _replyController.text,
-          'daysAgo': 0,
-        });
         _replyController.clear();
         replyingToIndex = null;
       });
+    } catch (e) {
+      print('Lỗi khi gửi phản hồi: $e');
     }
   }
 
@@ -2433,7 +2462,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                             ),
                             const SizedBox(width: 8),
                             GestureDetector(
-                              onTap: () => onReply(index),
+                              onTap: () => onReply(index, comment['id']),
                               child: Text(
                                 'Trả lời',
                                 style: TextStyle(
@@ -2445,7 +2474,6 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                             ),
                           ],
                         ),
-                        // Replies (if any)
                         if (comment['replies'] != null &&
                             comment['replies'].isNotEmpty)
                           Padding(
@@ -2560,7 +2588,8 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                                 ),
                                 const SizedBox(width: 8),
                                 ElevatedButton(
-                                  onPressed: () => onSendReply(index),
+                                  onPressed:
+                                      () => onSendReply(index, comment['id']),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,
                                     shape: RoundedRectangleBorder(

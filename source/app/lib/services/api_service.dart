@@ -1,6 +1,11 @@
 import 'package:app/models/address.dart';
 import 'package:app/models/address_response.dart';
+import 'package:app/models/admin_info.dart';
 import 'package:app/models/category_info.dart';
+import 'package:app/models/comment.dart';
+import 'package:app/models/comment_info.dart';
+import 'package:app/models/comment_reply_request.dart';
+import 'package:app/models/comment_request.dart';
 import 'package:app/models/coupon_info.dart';
 
 import 'package:app/models/product_info.dart';
@@ -39,7 +44,7 @@ class ApiResponse<T> {
   }
 }
 
-@RestApi(baseUrl: "http://172.20.10.3:8080/api")
+@RestApi(baseUrl: "http://192.168.70.182:8080/api")
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -64,6 +69,9 @@ abstract class ApiService {
 
   @GET("/auth/user-info")
   Future<UserInfo> getUserInfo(@Header("Authorization") String token);
+
+  @GET("/auth/admin-info")
+  Future<AdminInfo> getAdminInfo(@Header("Authorization") String token);
 
   @POST("/auth/user-info/change")
   Future<void> changeImage(
@@ -126,6 +134,18 @@ abstract class ApiService {
 
   @GET("/products/detail")
   Future<Product> getProductDetail(@Query("id") int id);
+
+  @GET("/comments")
+  Future<List<Comment>> getCommentInProduct(@Query("id") int id);
+
+  @POST("/comments")
+  Future<Comment> postComment(@Body() CommentRequest comment);
+
+  @POST("/comments/{commentId}/reply")
+  Future<Comment> replyToComment(
+    @Path("commentId") int commentId,
+    @Body() CommentReplyRequest reply,
+  );
 
   @GET("/products/brand")
   Future<List<ProductInfo>> getProductsByBrand(

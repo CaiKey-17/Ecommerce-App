@@ -3,7 +3,7 @@ import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
 import 'package:app/ui/screens/shopping_page.dart';
-import 'package:app/ui/search_page.dart';
+import 'package:app/ui/product/search_page.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
@@ -12,31 +12,31 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
-class MainCategory extends StatefulWidget {
+class Mainbrand extends StatefulWidget {
   @override
-  State<MainCategory> createState() => _MainCategoryState();
+  State<Mainbrand> createState() => _MainBrandState();
 }
 
-class _MainCategoryState extends State<MainCategory> {
+class _MainBrandState extends State<Mainbrand> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: CategoryPage(selectedCategory: ""),
+      home: BrandPage(selectedBrand: ""),
     );
   }
 }
 
-class CategoryPage extends StatefulWidget {
-  final String selectedCategory;
+class BrandPage extends StatefulWidget {
+  final String selectedBrand;
 
-  const CategoryPage({super.key, required this.selectedCategory});
+  const BrandPage({super.key, required this.selectedBrand});
 
   @override
-  State<CategoryPage> createState() => _CategoryPageState();
+  State<BrandPage> createState() => _BrandPageState();
 }
 
-class _CategoryPageState extends State<CategoryPage> {
+class _BrandPageState extends State<BrandPage> {
   late ApiService apiService;
   late CartRepository cartRepository;
   late CartService cartService;
@@ -74,8 +74,8 @@ class _CategoryPageState extends State<CategoryPage> {
 
   Future<void> fetchProducts() async {
     try {
-      final response = await apiService.getProductsByCategory(
-        widget.selectedCategory,
+      final response = await apiService.getProductsByBrand(
+        widget.selectedBrand,
       );
       setState(() {
         products = response;
@@ -249,7 +249,7 @@ class _CategoryPageState extends State<CategoryPage> {
         crossAxisSpacing: 8,
         childAspectRatio: 0.6,
       ),
-      itemCount: 4,
+      itemCount: 4, // Số lượng item giả lập (có thể thay đổi)
       itemBuilder: (context, index) => _buildProductItemShimmer(),
     );
   }
@@ -369,7 +369,7 @@ class _CategoryPageState extends State<CategoryPage> {
               child: Icon(Icons.search, color: Colors.grey, size: 19),
             ),
             Text(
-              "Tìm kiếm ${widget.selectedCategory}",
+              "Tìm kiếm ${widget.selectedBrand}",
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ],
