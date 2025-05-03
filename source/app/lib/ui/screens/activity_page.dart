@@ -1,4 +1,5 @@
 import 'package:app/globals/convert_money.dart';
+import 'package:app/providers/user_points_provider.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
 import 'package:dio/dio.dart';
@@ -8,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:provider/provider.dart';
 
 class ActivityPage extends StatefulWidget {
   const ActivityPage({super.key});
@@ -252,6 +254,18 @@ class _ActivityPageState extends State<ActivityPage>
     try {
       final response = await apiService.cancelToCart(orderId);
 
+      if (response.data != null && response.data is int) {
+        if (response.data > 0) {
+          Provider.of<UserPointsProvider>(context, listen: false).points =
+              response.data;
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('points', response.data);
+        }
+      } else {
+        print("Invalid response data");
+      }
+
       Fluttertoast.showToast(
         msg: "Hủy đơn thành công!",
         toastLength: Toast.LENGTH_SHORT,
@@ -287,7 +301,22 @@ class _ActivityPageState extends State<ActivityPage>
 
     try {
       final response = await apiService.received(orderId);
+      if (response.data != null && response.data is int) {
+        if (response.data > 0) {
+          int currentPoints =
+              Provider.of<UserPointsProvider>(context, listen: false).points;
 
+          int newPoints = currentPoints + response.data as int;
+
+          Provider.of<UserPointsProvider>(context, listen: false).points =
+              newPoints;
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setInt('points', newPoints);
+        }
+      } else {
+        print("Invalid response data");
+      }
       Fluttertoast.showToast(
         msg: "Chúng tôi xin chân thành cảm ơn bạn!",
         toastLength: Toast.LENGTH_SHORT,
@@ -642,16 +671,15 @@ class _ActivityPageState extends State<ActivityPage>
                               decoration: BoxDecoration(
                                 image: DecorationImage(
                                   image:
-                                      order["image"] != null &&
+                                      (order["image"] != null &&
                                               order["image"]
                                                   .toString()
-                                                  .startsWith('http')
+                                                  .isNotEmpty)
                                           ? NetworkImage(order["image"])
-                                              as ImageProvider
-                                          : const AssetImage(
-                                            "assets/images/dienthoai.webp",
-                                          ),
-
+                                          : AssetImage(
+                                                'assets/images/default.jpg',
+                                              )
+                                              as ImageProvider,
                                   fit: BoxFit.cover,
                                 ),
                               ),

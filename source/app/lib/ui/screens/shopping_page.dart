@@ -354,10 +354,18 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(5),
                                   child: Image.network(
-                                    item.image,
+                                    item.image ?? '',
                                     fit: BoxFit.cover,
                                     width: double.infinity,
                                     height: 150,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Image.asset(
+                                        'assets/images/default.jpg',
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: 150,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),

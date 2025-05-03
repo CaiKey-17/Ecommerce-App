@@ -166,8 +166,8 @@ public class OrderController {
     public ResponseEntity<?> cancelToCart(
             @RequestParam int orderId) {
 
-        cartService.cancelToCart(orderId);
-        return ResponseEntity.ok(Map.of("message", "Đã hủy đơn hàng thành công"));
+        int result = cartService.cancelToCart(orderId);
+        return ResponseEntity.ok(Map.of("code",200,"data", result,"message", "Đã hủy đơn hàng thành công"));
 
     }
 
@@ -175,12 +175,10 @@ public class OrderController {
     public ResponseEntity<?> receiveOrder(
             @RequestParam int orderId) {
 
-        cartService.receiveOrder(orderId);
-        return ResponseEntity.ok(Map.of("message", "Đã hoàn tất đơn hàng thành công"));
+        int result = cartService.receiveOrder(orderId);
+        return ResponseEntity.ok(Map.of("code",200,"data", result, "message", "Đã hoàn tất đơn hàng thành công"));
 
     }
-
-
 
 
     @GetMapping("/pending")
@@ -201,7 +199,6 @@ public class OrderController {
         int userId = JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) != null ? JwtTokenUtil.getIdFromToken(token.replace("Bearer ", "")) : -1;
         return ResponseEntity.ok(orderService.findDeliveredOrdersByCustomerId(userId));
     }
-
 
 
     private String generateOrderEmailHTML(int orderId, String address, List<OrderDetailProjection> list,

@@ -1050,13 +1050,13 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<Map<String, dynamic>> cancelToCart(orderId) async {
+  Future<ApiResponse<dynamic>> cancelToCart(orderId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'orderId': orderId};
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
-      _setStreamType<Map<String, dynamic>>(
+      _setStreamType<ApiResponse<dynamic>>(
         Options(method: 'POST', headers: _headers, extra: _extra)
             .compose(
               _dio.options,
@@ -1067,18 +1067,18 @@ class _ApiService implements ApiService {
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
       ),
     );
-    var value = Map<String, dynamic>.from(_result.data!);
+    final value = ApiResponse<dynamic>.fromJson(_result.data!);
     return value;
   }
 
   @override
-  Future<Map<String, dynamic>> received(orderId) async {
+  Future<ApiResponse<dynamic>> received(orderId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'orderId': orderId};
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
-      _setStreamType<Map<String, dynamic>>(
+      _setStreamType<ApiResponse<dynamic>>(
         Options(method: 'POST', headers: _headers, extra: _extra)
             .compose(
               _dio.options,
@@ -1089,7 +1089,7 @@ class _ApiService implements ApiService {
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
       ),
     );
-    var value = Map<String, dynamic>.from(_result.data!);
+    final value = ApiResponse<dynamic>.fromJson(_result.data!);
     return value;
   }
 
