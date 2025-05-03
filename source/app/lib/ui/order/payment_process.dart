@@ -372,6 +372,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         userId,
       );
 
+      if (appliedMemberPoints > 0) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('points', 0);
+      }
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
