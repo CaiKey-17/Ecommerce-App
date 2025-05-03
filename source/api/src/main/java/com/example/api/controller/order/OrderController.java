@@ -167,7 +167,7 @@ public class OrderController {
             @RequestParam int orderId) {
 
         cartService.cancelToCart(orderId);
-        return ResponseEntity.ok(Map.of("message", "Đã đặt đơn hàng thành công"));
+        return ResponseEntity.ok(Map.of("message", "Đã hủy đơn hàng thành công"));
 
     }
 

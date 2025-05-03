@@ -35,13 +35,8 @@ import 'package:stomp_dart_client/stomp_handler.dart';
 
 class ProductPage extends StatefulWidget {
   final int productId;
-  final double oldPrice;
 
-  const ProductPage({
-    super.key,
-    required this.productId,
-    required this.oldPrice,
-  });
+  const ProductPage({super.key, required this.productId});
 
   @override
   _ProductPageState createState() => _ProductPageState();
@@ -56,6 +51,7 @@ class _ProductPageState extends State<ProductPage> {
   String name = "";
   String fullName = "";
   double? price;
+  double priceO = 0.0;
   int _currentIndex = 0;
   List<String> images = [];
   List<ColorOption> colors = [];
@@ -197,6 +193,7 @@ class _ProductPageState extends State<ProductPage> {
         if (versions.isNotEmpty) {
           selectedVersionIndex = 0;
           name = versions[0].name;
+          priceO = versions[0].oldPrice;
           colors = versions[0].colors;
           id_Variant = versions[0].id;
           if (colors.isNotEmpty) {
@@ -209,6 +206,7 @@ class _ProductPageState extends State<ProductPage> {
           } else {
             selectedColorIndex = -1;
             price = versions[0].price;
+            priceO = versions[0].oldPrice;
           }
         }
         fetchProductsBrand(product!.brand);
@@ -489,6 +487,8 @@ class _ProductPageState extends State<ProductPage> {
                                           setState(() {
                                             selectedVersionIndex = index;
                                             name = versions[index].name;
+                                            priceO = versions[index].oldPrice;
+
                                             colors = versions[index].colors;
                                             id_Variant = versions[index].id;
                                             if (colors.isNotEmpty) {
@@ -638,7 +638,7 @@ class _ProductPageState extends State<ProductPage> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        "${ConvertMoney.currencyFormatter.format(widget.oldPrice)} ₫",
+                                        "${ConvertMoney.currencyFormatter.format(priceO)} ₫",
                                         style: const TextStyle(
                                           fontSize: 16,
                                           color: Colors.grey,
