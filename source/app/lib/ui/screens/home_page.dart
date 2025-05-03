@@ -30,6 +30,7 @@ import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/user_points_provider.dart';
 import '../../repositories/cart_repository.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -60,7 +61,6 @@ class _HomePageState extends State<HomePage> {
   bool _isFetching = false;
   bool _isLoading = true;
   int _currentIndex = 0;
-  String formattedPoints = "";
   String token = "";
   List<CategoryInfo> categories = [];
   List<ProductInfo> productsPromotion = [];
@@ -107,8 +107,6 @@ class _HomePageState extends State<HomePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       fullName = prefs.getString('fullName') ?? "";
-      points = prefs.getInt('points') ?? 0;
-      formattedPoints = NumberFormat("#,###", "de_DE").format(points);
       token = prefs.getString('token') ?? "";
       userId = prefs.getInt('userId') ?? -1;
     });
@@ -397,6 +395,10 @@ class _HomePageState extends State<HomePage> {
     _scrollController = ScrollController();
     _scrollController1 = ScrollController();
     _scrollController.addListener(_onScroll);
+    Provider.of<UserPointsProvider>(
+      context,
+      listen: false,
+    ).loadPointsFromPrefs();
     _loadUserData();
     remainingTime = const Duration(hours: 32, minutes: 40, seconds: 32);
 
@@ -644,7 +646,7 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           ),
                                           child: Text(
-                                            '🪙 ${formattedPoints}',
+                                            '🪙 ${context.watch<UserPointsProvider>().formattedPoints}',
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
