@@ -1,8 +1,10 @@
+import 'package:app/luan/models/brand_info.dart';
+import 'package:app/providers/brand_image_picker.dart';
+import 'package:app/services/api_admin_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/sidebar.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 
 class BrandScreen extends StatefulWidget {
   @override
@@ -11,6 +13,35 @@ class BrandScreen extends StatefulWidget {
 
 class _BrandScreenState extends State<BrandScreen> {
   String token = "";
+  bool isLoading = false;
+  List<BrandInfo> brands = [];
+
+  late ApiAdminService apiAdminService;
+
+  Future<void> fetchBrandsManager() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final brandsData = await apiAdminService.getAllBrands();
+      setState(() {
+        brands = brandsData;
+        isLoading = false;
+      });
+      // In ra để kiểm tra
+      for (var brand in brands) {
+        print("Brand name: ${brand.name}, image: ${brand.image}");
+      }
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi khi lấy danh sách thương hiệu: $e")),
+      );
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -22,31 +53,26 @@ class _BrandScreenState extends State<BrandScreen> {
   @override
   void initState() {
     super.initState();
+    apiAdminService = ApiAdminService(Dio());
     _loadUserData();
+    fetchBrandsManager();
   }
-
-  List<Map<String, String>> users = List.generate(
-    10,
-    (index) => {
-      "id": "#U00$index",
-      "name": "Loại $index",
-      "image":
-          "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg",
-    },
-  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Quản lý lthương hiệu")),
+      appBar: AppBar(title: Text("Quản lý thương hiệu")),
       drawer: SideBar(token: token),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Expanded(child: _buildUserList(context))],
-        ),
-      ),
+      body:
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [Expanded(child: _buildBrandList(context))],
+                ),
+              ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.blue,
         icon: Icon(Icons.add, color: Colors.white),
@@ -58,17 +84,18 @@ class _BrandScreenState extends State<BrandScreen> {
             color: Colors.white,
           ),
         ),
-        onPressed: () => _showUserDialog(context, isEdit: false),
+        onPressed: () => _showBrandDialog(context, isEdit: false),
       ),
     );
   }
 
-  Widget _buildUserList(BuildContext context) {
+  Widget _buildBrandList(BuildContext context) {
     return ListView.builder(
       physics: BouncingScrollPhysics(),
-      itemCount: users.length,
+      itemCount: brands.length,
       itemBuilder: (context, index) {
-        final user = users[index];
+        final brand = brands[index];
+        // print("👉 brand.image tại index $index: ${brand.image}");
         return Container(
           margin: EdgeInsets.symmetric(vertical: 6),
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -83,11 +110,13 @@ class _BrandScreenState extends State<BrandScreen> {
               ),
             ],
           ),
+          
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(user["image"]!),
-                radius: 20,
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: BrandImagePicker(imageUrl: brand.image),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -95,12 +124,7 @@ class _BrandScreenState extends State<BrandScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user["id"]!,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      user["name"]!,
+                      brand.name ?? 'Không có tên',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -117,13 +141,13 @@ class _BrandScreenState extends State<BrandScreen> {
     );
   }
 
-  Widget _buildPopupMenu(BuildContext context, int userIndex) {
+  Widget _buildPopupMenu(BuildContext context, int brandIndex) {
     return PopupMenuButton<String>(
       onSelected: (value) {
         if (value == 'edit') {
-          _showUserDialog(context, isEdit: true, userIndex: userIndex);
+          _showBrandDialog(context, isEdit: true, brandIndex: brandIndex);
         } else if (value == 'delete') {
-          _confirmDeleteUser(context, userIndex);
+          _confirmDeleteBrand(context, brandIndex);
         }
       },
       itemBuilder:
@@ -138,20 +162,16 @@ class _BrandScreenState extends State<BrandScreen> {
     );
   }
 
-  void _showUserDialog(
+  void _showBrandDialog(
     BuildContext context, {
     required bool isEdit,
-    int? userIndex,
+    int? brandIndex,
   }) {
-    String id = isEdit ? users[userIndex!]["id"]! : "#U00${users.length}";
+    final brand = isEdit ? brands[brandIndex!] : null;
     TextEditingController nameController = TextEditingController(
-      text: isEdit ? users[userIndex!]["name"] : "",
+      text: isEdit ? brand!.name ?? '' : '',
     );
-    String imageUrl =
-        isEdit
-            ? users[userIndex!]["image"]!
-            : "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg";
-    File? selectedImage; // Biến để lưu ảnh được chọn từ thiết bị
+    String? imageUrl = isEdit ? brand!.image : null;
 
     showDialog(
       context: context,
@@ -171,44 +191,13 @@ class _BrandScreenState extends State<BrandScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    GestureDetector(
-                      onTap: () async {
-                        final picker = ImagePicker();
-                        final pickedFile = await picker.pickImage(
-                          source: ImageSource.gallery,
-                        );
-                        if (pickedFile != null) {
-                          setDialogState(() {
-                            selectedImage = File(pickedFile.path);
-                          });
-                        }
+                    BrandImagePicker(
+                      imageUrl: imageUrl,
+                      onImageChanged: (newImageUrl) {
+                        setDialogState(() {
+                          imageUrl = newImageUrl;
+                        });
                       },
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child:
-                            selectedImage != null
-                                ? Image.file(selectedImage!, fit: BoxFit.cover)
-                                : Image.network(imageUrl, fit: BoxFit.cover),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: "ID thương hiệu",
-                        labelStyle: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black54,
-                        ),
-                        border: OutlineInputBorder(),
-                      ),
-                      controller: TextEditingController(text: id),
-                      style: TextStyle(fontSize: 16, color: Colors.black),
-                      enabled: false,
                     ),
                     SizedBox(height: 10),
                     TextField(
@@ -235,26 +224,44 @@ class _BrandScreenState extends State<BrandScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    if (nameController.text.isNotEmpty) {
-                      setState(() {
-                        if (isEdit) {
-                          users[userIndex!]["name"] = nameController.text;
-                          if (selectedImage != null) {
-                            users[userIndex]["image"] = selectedImage!.path;
-                          }
-                        } else {
-                          users.add({
-                            "id": id,
-                            "name": nameController.text,
-                            "image":
-                                selectedImage != null
-                                    ? selectedImage!.path
-                                    : "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg",
-                          });
+                  onPressed: () async {
+                    if (nameController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Vui lòng nhập tên thương hiệu"),
+                        ),
+                      );
+                      return;
+                    }
+                    try {
+                      if (isEdit) {
+                        final oldName = brand!.name ?? '';
+                        if (oldName.isEmpty) {
+                          throw Exception("Tên thương hiệu cũ không hợp lệ");
                         }
-                      });
+                        await apiAdminService.updateBrand(oldName, imageUrl!);
+                        print("Đường dẫn ảnh mới: $imageUrl");
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Cập nhật thương hiệu thành công"),
+                          ),
+                        );
+                      } else {
+                        await apiAdminService.createBrand(
+                          nameController.text.trim(),
+                          imageUrl!,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Tạo thương hiệu thành công")),
+                        );
+                      }
+                      await fetchBrandsManager();
                       Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
                     }
                   },
                   child: Text(
@@ -270,14 +277,14 @@ class _BrandScreenState extends State<BrandScreen> {
     );
   }
 
-  void _confirmDeleteUser(BuildContext context, int userIndex) {
+  void _confirmDeleteBrand(BuildContext context, int brandIndex) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text("Xác nhận xóa"),
           content: Text(
-            "Bạn có chắc muốn xóa ${users[userIndex]["name"]} không?",
+            "Bạn có chắc muốn xóa ${brands[brandIndex].name} không?",
           ),
           actions: [
             TextButton(
@@ -285,11 +292,19 @@ class _BrandScreenState extends State<BrandScreen> {
               child: Text("Hủy"),
             ),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  users.removeAt(userIndex);
-                });
-                Navigator.pop(context);
+              onPressed: () async {
+                try {
+                  await apiAdminService.deleteBrand(brands[brandIndex].name!);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Xóa thương hiệu thành công")),
+                  );
+                  await fetchBrandsManager();
+                  Navigator.pop(context);
+                } catch (e) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Lỗi khi xóa: $e")));
+                }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: Text("Xóa", style: TextStyle(color: Colors.white)),
