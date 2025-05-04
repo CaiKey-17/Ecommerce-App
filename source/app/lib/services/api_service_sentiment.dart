@@ -22,7 +22,7 @@ import '../models/cart_info.dart';
 
 part 'api_service_sentiment.g.dart';
 
-@RestApi(baseUrl: "http://192.168.70.182:5001")
+@RestApi(baseUrl: "http://172.16.10.26:5001")
 abstract class ApiServiceSentiment {
   factory ApiServiceSentiment(Dio dio, {String baseUrl}) = _ApiServiceSentiment;
 

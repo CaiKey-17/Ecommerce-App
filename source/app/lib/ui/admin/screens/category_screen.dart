@@ -1,8 +1,10 @@
+import 'package:app/luan/models/category_info.dart';
+import 'package:app/providers/brand_image_picker.dart';
+import 'package:app/services/api_admin_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/sidebar.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 
 class CategoryScreen extends StatefulWidget {
   @override
@@ -11,6 +13,31 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   String token = "";
+  bool isLoading = false;
+  List<CategoryInfo> categories = [];
+
+  late ApiAdminService apiAdminService;
+
+  Future<void> fetchCategoriesManager() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final categoriesData = await apiAdminService.getAllCategories();
+      setState(() {
+        categories = categoriesData;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi khi lấy danh sách loại sản phẩm: $e")),
+      );
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -22,31 +49,26 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
     super.initState();
+    apiAdminService = ApiAdminService(Dio());
     _loadUserData();
+    fetchCategoriesManager();
   }
-
-  List<Map<String, String>> users = List.generate(
-    10,
-    (index) => {
-      "id": "#U00$index",
-      "name": "Loại $index",
-      "image":
-          "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg",
-    },
-  );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Quản lý loại sản phẩm")),
       drawer: SideBar(token: token),
-      body: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [Expanded(child: _buildUserList(context))],
-        ),
-      ),
+      body:
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [Expanded(child: _buildCategoryList(context))],
+                ),
+              ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.blue,
         icon: Icon(Icons.add, color: Colors.white),
@@ -58,17 +80,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
             color: Colors.white,
           ),
         ),
-        onPressed: () => _showUserDialog(context, isEdit: false),
+        onPressed: () => _showCategoryDialog(context, isEdit: false),
       ),
     );
   }
 
-  Widget _buildUserList(BuildContext context) {
+  Widget _buildCategoryList(BuildContext context) {
     return ListView.builder(
       physics: BouncingScrollPhysics(),
-      itemCount: users.length,
+      itemCount: categories.length,
       itemBuilder: (context, index) {
-        final user = users[index];
+        final category = categories[index];
         return Container(
           margin: EdgeInsets.symmetric(vertical: 6),
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -85,9 +107,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
           ),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(user["image"]!),
-                radius: 20,
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: BrandImagePicker(imageUrl: category.image),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -95,12 +118,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user["id"]!,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      user["name"]!,
+                      category.name ?? 'Không có tên',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -117,13 +135,17 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  Widget _buildPopupMenu(BuildContext context, int userIndex) {
+  Widget _buildPopupMenu(BuildContext context, int categoryIndex) {
     return PopupMenuButton<String>(
       onSelected: (value) {
         if (value == 'edit') {
-          _showUserDialog(context, isEdit: true, userIndex: userIndex);
+          _showCategoryDialog(
+            context,
+            isEdit: true,
+            categoryIndex: categoryIndex,
+          );
         } else if (value == 'delete') {
-          _confirmDeleteUser(context, userIndex);
+          _confirmDeleteUser(context, categoryIndex);
         }
       },
       itemBuilder:
@@ -138,20 +160,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  void _showUserDialog(
+  void _showCategoryDialog(
     BuildContext context, {
     required bool isEdit,
-    int? userIndex,
+    int? categoryIndex,
   }) {
-    String id = isEdit ? users[userIndex!]["id"]! : "#U00${users.length}";
+    final category = isEdit ? categories[categoryIndex!] : null;
     TextEditingController nameController = TextEditingController(
-      text: isEdit ? users[userIndex!]["name"] : "",
+      text: isEdit ? category!.name ?? '' : '',
     );
-    String imageUrl =
-        isEdit
-            ? users[userIndex!]["image"]!
-            : "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg";
-    File? selectedImage;
+    String? imageUrl = isEdit ? category!.image : null;
 
     showDialog(
       context: context,
@@ -171,48 +189,18 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    GestureDetector(
-                      onTap: () async {
-                        final picker = ImagePicker();
-                        final pickedFile = await picker.pickImage(
-                          source: ImageSource.gallery,
-                        );
-                        if (pickedFile != null) {
-                          setDialogState(() {
-                            selectedImage = File(pickedFile.path);
-                          });
-                        }
+                    BrandImagePicker(
+                      imageUrl: imageUrl,
+                      onImageChanged: (newImageUrl) {
+                        setDialogState(() {
+                          imageUrl = newImageUrl;
+                        });
                       },
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child:
-                            selectedImage != null
-                                ? Image.file(selectedImage!, fit: BoxFit.cover)
-                                : Image.network(imageUrl, fit: BoxFit.cover),
-                      ),
-                    ),
-                    SizedBox(height: 10),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: "ID loại",
-                        labelStyle: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black54,
-                        ),
-                        border: OutlineInputBorder(),
-                      ),
-                      controller: TextEditingController(text: id),
-                      style: TextStyle(fontSize: 16, color: Colors.black),
-                      enabled: false,
                     ),
                     SizedBox(height: 10),
                     TextField(
                       controller: nameController,
+                      enabled: !isEdit,
                       decoration: InputDecoration(
                         labelText: "Tên tloại",
                         labelStyle: TextStyle(
@@ -235,26 +223,47 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    if (nameController.text.isNotEmpty) {
-                      setState(() {
-                        if (isEdit) {
-                          users[userIndex!]["name"] = nameController.text;
-                          if (selectedImage != null) {
-                            users[userIndex]["image"] = selectedImage!.path;
-                          }
-                        } else {
-                          users.add({
-                            "id": id,
-                            "name": nameController.text,
-                            "image":
-                                selectedImage != null
-                                    ? selectedImage!.path
-                                    : "https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg",
-                          });
+                  onPressed: () async {
+                    if (nameController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Vui lòng nhập loại sản phẩm")),
+                      );
+                      return;
+                    }
+                    try {
+                      if (isEdit) {
+                        final oldName = category!.name ?? '';
+                        if (oldName.isEmpty) {
+                          throw Exception("Tên thương hiệu cũ không hợp lệ");
                         }
-                      });
+                        await apiAdminService.updateCategory(
+                          oldName,
+                          imageUrl!,
+                        );
+                        print("Đường dẫn ảnh mới: $imageUrl");
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Cập nhật loại sản phẩm thành công"),
+                          ),
+                        );
+                      } else {
+                        await apiAdminService.createCategory(
+                          nameController.text.trim(),
+                          imageUrl!,
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Tạo loại sản phẩm thành công"),
+                          ),
+                        );
+                      }
+                      await fetchCategoriesManager();
                       Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text("Lỗi: $e")));
                     }
                   },
                   child: Text(
@@ -270,14 +279,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  void _confirmDeleteUser(BuildContext context, int userIndex) {
+  void _confirmDeleteUser(BuildContext context, int categoryIndex) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text("Xác nhận xóa"),
           content: Text(
-            "Bạn có chắc muốn xóa ${users[userIndex]["name"]} không?",
+            "Bạn có chắc muốn xóa ${categories[categoryIndex].name} không?",
           ),
           actions: [
             TextButton(
@@ -285,11 +294,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
               child: Text("Hủy"),
             ),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  users.removeAt(userIndex);
-                });
-                Navigator.pop(context);
+              onPressed: () async {
+                try {
+                  await apiAdminService.deleteCategory(
+                    categories[categoryIndex].name!,
+                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Xóa loại sản phẩm thành công")));
+                  await fetchCategoriesManager();
+                  Navigator.pop(context);
+                } catch (e) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text("Lỗi khi xóa: $e")));
+                }
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: Text("Xóa", style: TextStyle(color: Colors.white)),

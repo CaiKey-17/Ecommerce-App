@@ -30,4 +30,59 @@ public class Rating {
     @Column(name = "id_fk_product",  nullable = true)
     private Integer id_fk_product;
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getRating() {
+        return rating;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public Integer getSentiment() {
+        return sentiment;
+    }
+
+    public void setSentiment(Integer sentiment) {
+        this.sentiment = sentiment;
+    }
+
+    public Integer getId_fk_customer() {
+        return id_fk_customer;
+    }
+
+    public void setId_fk_customer(Integer id_fk_customer) {
+        this.id_fk_customer = id_fk_customer;
+    }
+
+    public Integer getId_fk_product() {
+        return id_fk_product;
+    }
+
+    public void setId_fk_product(Integer id_fk_product) {
+        this.id_fk_product = id_fk_product;
+    }
 }
