@@ -28,10 +28,6 @@ class _BrandScreenState extends State<BrandScreen> {
         brands = brandsData;
         isLoading = false;
       });
-      // In ra để kiểm tra
-      for (var brand in brands) {
-        print("Brand name: ${brand.name}, image: ${brand.image}");
-      }
     } catch (e) {
       print("Lỗi khi gọi API: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,7 +91,6 @@ class _BrandScreenState extends State<BrandScreen> {
       itemCount: brands.length,
       itemBuilder: (context, index) {
         final brand = brands[index];
-        // print("👉 brand.image tại index $index: ${brand.image}");
         return Container(
           margin: EdgeInsets.symmetric(vertical: 6),
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -202,6 +197,7 @@ class _BrandScreenState extends State<BrandScreen> {
                     SizedBox(height: 10),
                     TextField(
                       controller: nameController,
+                      enabled: !isEdit,
                       decoration: InputDecoration(
                         labelText: "Tên thương hiệu",
                         labelStyle: TextStyle(

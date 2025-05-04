@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/brands")
+@RequestMapping("/api/admin/brand")
 public class BrandAdminController {
 
     @Autowired
@@ -26,10 +26,6 @@ public class BrandAdminController {
     @GetMapping("/list")
     public ResponseEntity<List<?>> getAllBrands() {
         List<Brand> brands = brandService.getAll();
-        for (Brand brand : brands) {
-            System.out.println("Brand Name: " + brand.getName());
-            System.out.println("Brand Image: " + brand.getImages());
-        }
         return ResponseEntity.ok(brands);
     }
 

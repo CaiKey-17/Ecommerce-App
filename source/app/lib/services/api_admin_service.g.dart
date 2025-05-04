@@ -34,7 +34,7 @@ class _ApiAdminService implements ApiAdminService {
     )
             .compose(
               _dio.options,
-              '/admin/brands/list',
+              '/admin/brand/list',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -65,7 +65,7 @@ class _ApiAdminService implements ApiAdminService {
     )
             .compose(
               _dio.options,
-              '/admin/brands/add',
+              '/admin/brand/add',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -91,7 +91,7 @@ class _ApiAdminService implements ApiAdminService {
     )
             .compose(
               _dio.options,
-              '/admin/brands/${name}',
+              '/admin/brand/${name}',
               queryParameters: queryParameters,
               data: _data,
             )
@@ -113,7 +113,107 @@ class _ApiAdminService implements ApiAdminService {
     )
         .compose(
           _dio.options,
-          '/admin/brands/${name}',
+          '/admin/brand/${name}',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+  }
+
+  @override
+  Future<List<CategoryInfo>> getAllCategories() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio
+        .fetch<List<dynamic>>(_setStreamType<List<CategoryInfo>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/admin/category/list',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    var value = _result.data!
+        .map((dynamic i) => CategoryInfo.fromJson(i as Map<String, dynamic>))
+        .toList();
+    return value;
+  }
+
+  @override
+  Future<CategoryInfo> createCategory(
+    name,
+    image,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'name': name,
+      r'image': image,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<CategoryInfo>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/admin/category/add',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = CategoryInfo.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<CategoryInfo> updateCategory(
+    name,
+    image,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'image': image};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio
+        .fetch<Map<String, dynamic>>(_setStreamType<CategoryInfo>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+            .compose(
+              _dio.options,
+              '/admin/category/${name}',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    final value = CategoryInfo.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<void> deleteCategory(name) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    await _dio.fetch<void>(_setStreamType<void>(Options(
+      method: 'DELETE',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          '/admin/category/${name}',
           queryParameters: queryParameters,
           data: _data,
         )
