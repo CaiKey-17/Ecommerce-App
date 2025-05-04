@@ -132,6 +132,18 @@ abstract class ApiService {
     @Query("fk_category") String fk_category,
   );
 
+  @GET("/products/search")
+  Future<List<ProductInfo>> getProductsBySearch(@Query("name") String name);
+
+  @GET("/products/search-advance")
+  Future<List<ProductInfo>> getProductsBySearchAdvance(
+    @Query("name") String name,
+    @Query("brand") String? brand,
+    @Query("minPrice") double? minPrice,
+    @Query("maxPrice") double? maxPrice,
+    @Query("rating") double? rating,
+  );
+
   @GET("/products/detail")
   Future<Product> getProductDetail(@Query("id") int id);
 
@@ -230,5 +242,8 @@ abstract class ApiService {
   );
 
   @POST("/order/cancel")
-  Future<Map<String, dynamic>> cancelToCart(@Query("orderId") int orderId);
+  Future<ApiResponse> cancelToCart(@Query("orderId") int orderId);
+
+  @POST("/order/received")
+  Future<ApiResponse> received(@Query("orderId") int orderId);
 }

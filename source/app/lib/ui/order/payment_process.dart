@@ -5,6 +5,7 @@ import 'package:app/keys/shipping.dart';
 import 'package:app/models/address.dart';
 import 'package:app/models/cart_info.dart';
 import 'package:app/models/coupon_info.dart';
+import 'package:app/providers/user_points_provider.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/login/update_address_page.dart';
 import 'package:app/ui/order/payment_success.dart';
@@ -18,6 +19,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/productTest.dart';
 
@@ -213,7 +215,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
   double get totalDiscount {
     appliedDiscount = isCouponApplied ? discount : 0;
-    appliedMemberPoints = isMemberPointsUsed ? points.toDouble() : 0;
+    appliedMemberPoints = isMemberPointsUsed ? (points.toDouble() * 1000) : 0;
     return appliedDiscount + appliedMemberPoints;
   }
 
@@ -323,12 +325,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       email = prefs.getString('email') ?? "";
-      points = prefs.getInt('points') ?? 0;
+      setState(() {
+        points = Provider.of<UserPointsProvider>(context, listen: false).points;
+      });
       token = prefs.getString('token') ?? "";
       userId = prefs.getInt('userId') ?? 0;
       tempId = prefs.getString('tempId') ?? "";
-
-      print(tempId);
 
       List<String>? codes = prefs.getStringList('codes');
       if (codes != null && codes.isNotEmpty) {
@@ -371,6 +373,12 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         tempId,
         userId,
       );
+
+      if (appliedMemberPoints > 0) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('points', 0);
+        Provider.of<UserPointsProvider>(context, listen: false).points = 0;
+      }
 
       Navigator.pushAndRemoveUntil(
         context,
@@ -511,7 +519,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                     if (isMemberPointsUsed && points != 0)
                       _buildSummaryRow(
                         "Giảm giá điểm thành viên:",
-                        isMemberPointsUsed ? -points.toDouble() : 0,
+                        isMemberPointsUsed ? -(points.toDouble() * 1000) : 0,
                       ),
 
                     if (totalDiscount > 0)

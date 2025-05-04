@@ -6,7 +6,7 @@ class LogoutHelper {
     BuildContext context,
     VoidCallback onLogout,
   ) async {
-    onLogout(); // Gọi callback để cập nhật state nếu cần
+    onLogout();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     Navigator.pushReplacementNamed(context, '/login');

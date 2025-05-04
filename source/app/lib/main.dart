@@ -1,3 +1,4 @@
+import 'package:app/providers/user_points_provider.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/admin/screens/dashboard_screen.dart';
 import 'package:app/ui/order/payment_success.dart';
@@ -29,8 +30,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => CartProvider(apiService: apiService),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => CartProvider(apiService: apiService),
+        ),
+        ChangeNotifierProvider(create: (_) => UserPointsProvider()),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Ecommerce App',

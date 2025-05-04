@@ -1,5 +1,6 @@
 import 'package:app/globals/logout.dart';
 import 'package:app/providers/profile_image_picker.dart';
+import 'package:app/providers/user_points_provider.dart';
 import 'package:app/ui/login/change_password_page.dart';
 import 'package:app/ui/login/edit_profile_page.dart';
 import 'package:app/ui/login/login_page.dart';
@@ -10,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -32,6 +34,10 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _loadUserData();
+    Provider.of<UserPointsProvider>(
+      context,
+      listen: false,
+    ).loadPointsFromPrefs();
   }
 
   Future<void> _loadUserData() async {
@@ -41,7 +47,6 @@ class _ProfilePageState extends State<ProfilePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       fullName = prefs.getString('fullName') ?? "";
-      points = prefs.getInt('points') ?? 0;
       token = prefs.getString('token') ?? "";
       image_url = prefs.getString('image') ?? "";
       email = prefs.getString('email') ?? "";
@@ -136,7 +141,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                "🪙 $formattedPoints",
+                                '🪙 ${context.watch<UserPointsProvider>().formattedPoints}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
@@ -197,8 +202,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   List<Widget> _buildMenuItems() {
     List<Widget> items = [
-      _buildMenuItem(Icons.bar_chart, "Lịch sử điểm tích lũy", () {}),
-      _buildMenuItem(Icons.calendar_today, "Quản lý đơn hàng", () {}),
       _buildMenuItem(Icons.person, "Thay đổi thông tin cá nhân", () {
         Navigator.push(
           context,

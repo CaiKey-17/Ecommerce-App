@@ -101,6 +101,27 @@ public class ProductController {
         return new ResponseEntity<>(product, HttpStatus.OK);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductDTO>> getProductsSearch(@RequestParam String name) {
+        List<ProductDTO> products = productService.getAllProductsBySearch(name);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+
+
+    @GetMapping("/search-advance")
+    public ResponseEntity<List<ProductDTO>> getProductsSearchAdvance(
+            @RequestParam String name,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double rating) {
+
+        List<ProductDTO> products = productService.getAllProductsBySearchAdvance(name, brand, minPrice, maxPrice, rating);
+        return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+
 
 //    @GetMapping("/cart")
 //    public ResponseEntity<?> getProductsInCart(@RequestHeader("Authorization") String token) {

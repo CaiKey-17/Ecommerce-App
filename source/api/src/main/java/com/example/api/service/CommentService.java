@@ -49,7 +49,8 @@ public class CommentService {
                 comment.getContent(),
                 comment.getCreatedAt(),
                 comment.getParentComment() != null ? comment.getParentComment().getId() : null,
-                replyDTOs
+                replyDTOs,
+                comment.getRole()
         );
     }
 

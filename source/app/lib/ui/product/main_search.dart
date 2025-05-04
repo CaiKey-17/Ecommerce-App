@@ -17,31 +17,35 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:provider/provider.dart';
 
-class BrandPage extends StatefulWidget {
-  final String selectedBrand;
+class SearchByNamePage extends StatefulWidget {
+  final String name;
 
-  const BrandPage({super.key, required this.selectedBrand});
+  const SearchByNamePage({super.key, required this.name});
 
   @override
-  State<BrandPage> createState() => _BrandPageState();
+  State<SearchByNamePage> createState() => _SearchByNamePageState();
 }
 
-class _BrandPageState extends State<BrandPage> {
+class _SearchByNamePageState extends State<SearchByNamePage> {
   late ApiService apiService;
   late CartRepository cartRepository;
   late CartService cartService;
   List<ProductInfo> products = [];
+  List<CategoryInfo> brands = [];
+  String? selectedBrand;
+
+  double? minPrice;
+  double? maxPrice;
 
   String token = "";
   int? userId;
-
   String selectedSort = "";
   String selectPrice = "Sắp xếp";
   late ScrollController _scrollController;
   bool isCollapsed = false;
   double lastOffset = 0;
 
-  bool _isLoading = true;
+  bool _isLoading = false;
 
   static const _pageSize = 10;
   bool _isFetching = false;
@@ -68,6 +72,116 @@ class _BrandPageState extends State<BrandPage> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  void showFilterBottomSheet(
+    BuildContext context,
+    List<CategoryInfo> brands,
+  ) async {
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => _FilterBottomSheet(brands: brands),
+    );
+
+    if (result != null) {
+      setState(() {
+        minPrice = result['minPrice'];
+        maxPrice = result['maxPrice'];
+        if (result['brands'] != null) {
+          selectedBrand = null;
+        }
+      });
+
+      _reloadDataWithFilter();
+    }
+  }
+
+  Future<void> _applyAdvancedFilter(double? minPrice, double? maxPrice) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    await prefs.setDouble('minPrice', minPrice ?? 10000);
+    await prefs.setDouble('maxPrice', maxPrice ?? 30000000);
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await apiService.getProductsBySearchAdvance(
+        widget.name,
+        null,
+        minPrice,
+        maxPrice,
+        null,
+      );
+
+      setState(() {
+        products = response;
+        _pagingController.refresh();
+        _fetchPage(0, products);
+      });
+    } catch (e) {
+      print("Lỗi lọc nâng cao: $e");
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchProducts() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final response = await apiService.getProductsBySearch(widget.name);
+      setState(() {
+        products = response;
+        _isLoading = false;
+      });
+      for (ProductInfo i in products) {
+        print(i.name);
+      }
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchBrands() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final response = await apiService.getListBrand();
+      setState(() {
+        brands = response;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+    apiService = ApiService(Dio());
+    cartRepository = CartRepository(apiService);
+    cartService = CartService(cartRepository: cartRepository);
+    _loadData();
   }
 
   void applySorting() {
@@ -98,42 +212,12 @@ class _BrandPageState extends State<BrandPage> {
     _fetchPage(0, sortedProducts);
   }
 
-  Future<void> fetchProducts() async {
-    try {
-      final response = await apiService.getProductsByBrand(
-        widget.selectedBrand,
-      );
-      setState(() {
-        products = response;
-        _isLoading = false;
-      });
-      for (ProductInfo i in products) {
-        print(i.name);
-      }
-    } catch (e) {
-      print("Lỗi khi gọi API: $e");
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-    _scrollController = ScrollController();
-    _scrollController.addListener(_onScroll);
-    apiService = ApiService(Dio());
-    cartRepository = CartRepository(apiService);
-    cartService = CartService(cartRepository: cartRepository);
-    _loadData();
-  }
-
   Future<void> _loadData() async {
     try {
       await fetchProducts();
+      applySorting();
 
+      await fetchBrands();
       _fetchPage(0, products);
     } catch (e) {
       print("Lỗi khi tải dữ liệu: $e");
@@ -238,8 +322,7 @@ class _BrandPageState extends State<BrandPage> {
               child: badges.Badge(
                 badgeContent: Text(
                   cartProvider.cartItemCount.toString(),
-
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(fontSize: 12, color: Colors.white),
                 ),
                 child: Icon(Icons.card_travel_outlined),
               ),
@@ -251,6 +334,11 @@ class _BrandPageState extends State<BrandPage> {
         children: [
           const SizedBox(height: 8),
 
+          AnimatedContainer(
+            duration: Duration(milliseconds: 200),
+            height: isCollapsed ? 0 : 50,
+            child: isCollapsed ? SizedBox.shrink() : _buildFilterBar(brands),
+          ),
           AnimatedContainer(
             duration: Duration(milliseconds: 200),
             height: isCollapsed ? 0 : 40,
@@ -406,13 +494,115 @@ class _BrandPageState extends State<BrandPage> {
               child: Icon(Icons.search, color: Colors.grey, size: 19),
             ),
             Text(
-              "Tìm kiếm ${widget.selectedBrand}",
+              "Tìm kiếm ${widget.name}",
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildFilterBar(List<CategoryInfo> brands) {
+    return Container(
+      height: 50,
+      color: Colors.white,
+      padding: EdgeInsets.only(left: 10),
+      child: Row(
+        children: [
+          ElevatedButton.icon(
+            onPressed: () => showFilterBottomSheet(context, brands),
+            icon: Icon(Icons.filter_list, color: Colors.blue),
+            label: Text(
+              "Lọc",
+              style: TextStyle(color: Colors.blue, fontSize: 12),
+            ),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.blue,
+              backgroundColor: Colors.white,
+              side: BorderSide(color: Colors.blue),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children:
+                  brands.map((brand) => _buildFilterChip(brand.name)).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label) {
+    final isSelected = label == selectedBrand;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 5),
+      child: ChoiceChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isSelected ? Colors.white : Colors.black,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        selected: isSelected,
+        backgroundColor: Colors.white,
+        selectedColor: Colors.blue,
+        checkmarkColor: Colors.white,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: isSelected ? Colors.blue : Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        elevation: 2,
+        pressElevation: 5,
+        onSelected: (_) {
+          setState(() {
+            selectedBrand = isSelected ? null : label;
+          });
+          _reloadDataWithFilter();
+        },
+      ),
+    );
+  }
+
+  Future<void> _reloadDataWithFilter() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await apiService.getProductsBySearchAdvance(
+        widget.name,
+        selectedBrand,
+        minPrice,
+        maxPrice,
+        null,
+      );
+
+      setState(() {
+        products = response;
+      });
+
+      applySorting();
+      _pagingController.refresh();
+      _fetchPage(0, response);
+    } catch (e) {
+      print("Lỗi khi lọc: $e");
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Widget _buildGridView() {
@@ -540,7 +730,6 @@ class _BrandPageState extends State<BrandPage> {
                 const SizedBox(height: 8),
                 Text(
                   "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
-
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -600,6 +789,304 @@ class _BrandPageState extends State<BrandPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FilterBottomSheet extends StatefulWidget {
+  final List<CategoryInfo> brands;
+
+  const _FilterBottomSheet({super.key, required this.brands});
+
+  @override
+  _FilterBottomSheetState createState() => _FilterBottomSheetState();
+}
+
+class _FilterBottomSheetState extends State<_FilterBottomSheet> {
+  double _minPrice = 10000;
+  double _maxPrice = 30000000;
+  RangeValues _currentRange = RangeValues(1000000, 5000000);
+  final NumberFormat currencyFormat = NumberFormat.currency(
+    locale: 'vi_VN',
+    symbol: 'đ',
+  );
+
+  Set<String> names = {};
+
+  List<String> priceRanges = [
+    "Dưới 1 triệu",
+    "1 triệu - 2 triệu",
+    "2 triệu - 5 triệu",
+    "5 triệu - 10 triệu",
+    "Trên 10 triệu",
+  ];
+  String? selectedPriceRange;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFilterSettings();
+  }
+
+  Future<void> _loadFilterSettings() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    double minPrice = prefs.getDouble('minPrice') ?? 10000;
+    double maxPrice = prefs.getDouble('maxPrice') ?? 30000000;
+    List<String> selectedBrands = prefs.getStringList('selectedBrands') ?? [];
+    String? savedPriceRange = prefs.getString('selectedPriceRange');
+
+    setState(() {
+      _currentRange = RangeValues(minPrice, maxPrice);
+      names = selectedBrands.toSet();
+      selectedPriceRange = savedPriceRange;
+
+      if (savedPriceRange != null) {
+        switch (savedPriceRange) {
+          case "Dưới 1 triệu":
+            _currentRange = RangeValues(10000, 1000000);
+            break;
+          case "1 triệu - 2 triệu":
+            _currentRange = RangeValues(1000000, 2000000);
+            break;
+          case "2 triệu - 5 triệu":
+            _currentRange = RangeValues(2000000, 5000000);
+            break;
+          case "5 triệu - 10 triệu":
+            _currentRange = RangeValues(5000000, 10000000);
+            break;
+          case "Trên 10 triệu":
+            _currentRange = RangeValues(10000000, 30000000);
+            break;
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.6,
+      child: Container(
+        color: Colors.white,
+
+        child: Column(
+          children: [
+            AppBar(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: Text(
+                "Bộ lọc",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              centerTitle: true,
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      names.clear();
+                      selectedPriceRange = null;
+                      _currentRange = RangeValues(_minPrice, _maxPrice);
+                    });
+                  },
+                  child: Text(
+                    "Thiết lập lại",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Khoảng giá",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    Wrap(
+                      spacing: 10,
+                      children: List.generate(priceRanges.length, (index) {
+                        String price = priceRanges[index];
+                        bool isSelected = selectedPriceRange == price;
+                        return FilterChip(
+                          label: Text(
+                            price,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : Colors.blue,
+                            ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (bool selected) {
+                            setState(() {
+                              if (selected) {
+                                selectedPriceRange = price;
+                                switch (price) {
+                                  case "Dưới 1 triệu":
+                                    _currentRange = RangeValues(10000, 1000000);
+                                    break;
+                                  case "1 triệu - 2 triệu":
+                                    _currentRange = RangeValues(
+                                      1000000,
+                                      2000000,
+                                    );
+                                    break;
+                                  case "2 triệu - 5 triệu":
+                                    _currentRange = RangeValues(
+                                      2000000,
+                                      5000000,
+                                    );
+                                    break;
+                                  case "5 triệu - 10 triệu":
+                                    _currentRange = RangeValues(
+                                      5000000,
+                                      10000000,
+                                    );
+                                    break;
+                                  case "Trên 10 triệu":
+                                    _currentRange = RangeValues(
+                                      10000000,
+                                      30000000,
+                                    );
+                                    break;
+                                }
+                              } else {
+                                selectedPriceRange = null;
+                                _currentRange = RangeValues(
+                                  _minPrice,
+                                  _maxPrice,
+                                );
+                              }
+                            });
+                          },
+                          selectedColor: Colors.blue.withOpacity(0.7),
+                          backgroundColor: Colors.blue.withOpacity(0.1),
+                          checkmarkColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          elevation: 4,
+                        );
+                      }),
+                    ),
+                    SizedBox(height: 10),
+
+                    Text(
+                      "Chọn khoảng giá (VNĐ)",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    SizedBox(height: 10),
+
+                    Row(
+                      children: [
+                        _buildPriceBox(_currentRange.start),
+                        Expanded(
+                          child: Container(height: 2, color: Colors.grey),
+                        ),
+                        _buildPriceBox(_currentRange.end),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 4,
+                        activeTrackColor: Colors.blue.shade200,
+                        inactiveTrackColor: Colors.grey.shade300,
+                        thumbColor: Colors.blue,
+                        overlayColor: Colors.blue.withOpacity(0.2),
+                      ),
+                      child: RangeSlider(
+                        values: _currentRange,
+                        min: _minPrice,
+                        max: _maxPrice,
+                        divisions: 100,
+                        onChanged: (RangeValues values) {
+                          setState(() {
+                            _currentRange = values;
+                            selectedPriceRange = null;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    await prefs.setDouble('minPrice', _currentRange.start);
+                    await prefs.setDouble('maxPrice', _currentRange.end);
+                    await prefs.setStringList('selectedBrands', names.toList());
+
+                    if (selectedPriceRange != null) {
+                      await prefs.setString(
+                        'selectedPriceRange',
+                        selectedPriceRange!,
+                      );
+                    } else {
+                      await prefs.remove('selectedPriceRange');
+                    }
+
+                    Navigator.pop(context, {
+                      'minPrice': _currentRange.start,
+                      'maxPrice': _currentRange.end,
+                      'brands': names.toList(),
+                    });
+                  },
+
+                  child: Text("Áp dụng", style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPriceBox(double value) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        currencyFormat.format(value),
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.blue,
+        ),
       ),
     );
   }

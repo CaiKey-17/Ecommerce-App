@@ -1,7 +1,12 @@
+import 'package:app/globals/convert_money.dart';
+import 'package:app/globals/sort_options_widget.dart';
+import 'package:app/models/category_info.dart';
 import 'package:app/models/product_info.dart';
+import 'package:app/providers/cart_provider.dart';
 import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
+import 'package:app/ui/product/main_brand.dart';
 import 'package:app/ui/screens/shopping_page.dart';
 import 'package:app/ui/product/search_page.dart';
 import 'package:dio/dio.dart';
@@ -11,21 +16,7 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
-
-class MainCategory extends StatefulWidget {
-  @override
-  State<MainCategory> createState() => _MainCategoryState();
-}
-
-class _MainCategoryState extends State<MainCategory> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: CategoryPage(selectedCategory: ""),
-    );
-  }
-}
+import 'package:provider/provider.dart';
 
 class CategoryPage extends StatefulWidget {
   final String selectedCategory;
@@ -41,6 +32,9 @@ class _CategoryPageState extends State<CategoryPage> {
   late CartRepository cartRepository;
   late CartService cartService;
   List<ProductInfo> products = [];
+  List<CategoryInfo> brands = [];
+  String? selectedBrand;
+
   String token = "";
 
   String selectedSort = "";
@@ -48,7 +42,7 @@ class _CategoryPageState extends State<CategoryPage> {
   late ScrollController _scrollController;
   bool isCollapsed = false;
   double lastOffset = 0;
-
+  int? userId;
   bool _isLoading = true;
 
   static const _pageSize = 10;
@@ -62,7 +56,31 @@ class _CategoryPageState extends State<CategoryPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token') ?? "";
+      userId = prefs.getInt('userId') ?? -1;
     });
+
+    Future.microtask(() {
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+      cartProvider.fetchCartFromApi(userId);
+    });
+  }
+
+  Future<void> fetchBrands() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final response = await apiService.getListBrand();
+      setState(() {
+        brands = response;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -70,6 +88,34 @@ class _CategoryPageState extends State<CategoryPage> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  void applySorting() {
+    List<ProductInfo> sortedProducts = List.from(products);
+
+    switch (selectPrice) {
+      case "Giá thấp - cao":
+        sortedProducts.sort((a, b) => a.price.compareTo(b.price));
+        break;
+      case "Giá cao - thấp":
+        sortedProducts.sort((a, b) => b.price.compareTo(a.price));
+        break;
+      case "A - Z":
+        sortedProducts.sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
+        break;
+      case "Z - A":
+        sortedProducts.sort(
+          (a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()),
+        );
+        break;
+      default:
+        break;
+    }
+
+    _pagingController.refresh();
+    _fetchPage(0, sortedProducts);
   }
 
   Future<void> fetchProducts() async {
@@ -107,6 +153,9 @@ class _CategoryPageState extends State<CategoryPage> {
   Future<void> _loadData() async {
     try {
       await fetchProducts();
+      applySorting();
+
+      await fetchBrands();
       _fetchPage(0, products);
     } catch (e) {
       print("Lỗi khi tải dữ liệu: $e");
@@ -180,21 +229,22 @@ class _CategoryPageState extends State<CategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = Provider.of<CartProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.grey),
+          icon: Icon(Icons.arrow_back_ios_rounded),
           onPressed: () => {Navigator.pop(context)},
         ),
         title: _buildSearchBar(),
         centerTitle: true,
         titleSpacing: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         elevation: 0,
-        flexibleSpace: FlexibleSpaceBar(
-          background: Container(color: Colors.white),
-        ),
+
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16, left: 10),
@@ -209,10 +259,11 @@ class _CategoryPageState extends State<CategoryPage> {
               },
               child: badges.Badge(
                 badgeContent: Text(
-                  '3',
+                  cartProvider.cartItemCount.toString(),
+
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
-                child: Icon(Icons.card_travel_outlined, color: Colors.grey),
+                child: Icon(Icons.card_travel_outlined),
               ),
             ),
           ),
@@ -220,15 +271,28 @@ class _CategoryPageState extends State<CategoryPage> {
       ),
       body: Column(
         children: [
+          const SizedBox(height: 8),
+
           AnimatedContainer(
             duration: Duration(milliseconds: 200),
             height: isCollapsed ? 0 : 50,
-            child: isCollapsed ? SizedBox.shrink() : _buildFilterBar(),
+            child: isCollapsed ? SizedBox.shrink() : _buildFilterBar(brands),
           ),
           AnimatedContainer(
             duration: Duration(milliseconds: 200),
             height: isCollapsed ? 0 : 40,
-            child: isCollapsed ? SizedBox.shrink() : _buildSortOptions(),
+            child:
+                isCollapsed
+                    ? SizedBox.shrink()
+                    : SortOptionsWidget(
+                      selectPrice: selectPrice,
+                      onSortChanged: (newValue) {
+                        setState(() {
+                          selectPrice = newValue;
+                          applySorting();
+                        });
+                      },
+                    ),
           ),
           Expanded(
             child: _isLoading ? _buildGridViewShimmer() : _buildGridView(),
@@ -378,7 +442,7 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  Widget _buildFilterBar() {
+  Widget _buildFilterBar(List<CategoryInfo> brands) {
     return Container(
       height: 50,
       color: Colors.white,
@@ -386,7 +450,7 @@ class _CategoryPageState extends State<CategoryPage> {
       child: Row(
         children: [
           ElevatedButton.icon(
-            onPressed: () => showFilterBottomSheet(context),
+            onPressed: () => showFilterBottomSheet(context, brands),
             icon: Icon(Icons.filter_list, color: Colors.blue),
             label: Text(
               "Lọc",
@@ -405,15 +469,8 @@ class _CategoryPageState extends State<CategoryPage> {
           Expanded(
             child: ListView(
               scrollDirection: Axis.horizontal,
-              children: [
-                _buildFilterChip("ASUS"),
-                _buildFilterChip("HP"),
-                _buildFilterChip("Dell"),
-                _buildFilterChip("Acer"),
-                _buildFilterChip("Acer"),
-                _buildFilterChip("Acer"),
-                _buildFilterChip("Acer"),
-              ],
+              children:
+                  brands.map((brand) => _buildFilterChip(brand.name)).toList(),
             ),
           ),
         ],
@@ -421,100 +478,70 @@ class _CategoryPageState extends State<CategoryPage> {
     );
   }
 
-  Widget _buildSortOptions() {
-    return Container(
-      height: 40,
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildSortItem("Bán chạy"),
-          _buildDot(),
-          _buildSortItem("Giảm giá"),
-          _buildDot(),
-          _buildSortItem("Mới"),
-          _buildDot(),
-          _buildSortDropDown(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDot() {
-    return Text("·", style: TextStyle(fontSize: 14, color: Colors.grey));
-  }
-
-  Widget _buildSortItem(String title) {
-    return TextButton(
-      onPressed: () {
-        setState(() {
-          selectedSort = title;
-        });
-      },
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 12,
-          color: selectedSort == title ? Colors.blue : Colors.grey,
-          fontWeight:
-              selectedSort == title ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSortDropDown() {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        value: selectPrice,
-        onChanged: (String? newValue) {
-          setState(() {
-            selectPrice = newValue!;
-          });
-        },
-        items:
-            <String>[
-              "Sắp xếp",
-              "Giá thấp - cao",
-              "Giá cao - thấp",
-              "Tên từ A - Z",
-              "Tên từ Z - A",
-            ].map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Center(
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color:
-                          (selectPrice == "Sắp xếp")
-                              ? Colors.grey
-                              : (selectPrice == value
-                                  ? Colors.blue
-                                  : Colors.grey),
-                      fontWeight:
-                          selectPrice == value
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-        alignment: Alignment.center,
-      ),
-    );
-  }
-
   Widget _buildFilterChip(String label) {
+    final isSelected = label == selectedBrand;
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5),
-      child: Chip(
-        label: Text(label, style: TextStyle(fontSize: 12)),
-        backgroundColor: Colors.grey[200],
+      child: ChoiceChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isSelected ? Colors.white : Colors.black,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        selected: isSelected,
+        backgroundColor: Colors.white,
+        selectedColor: Colors.blue,
+        checkmarkColor: Colors.white,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: isSelected ? Colors.blue : Colors.grey.shade300,
+            width: 1,
+          ),
+        ),
+        elevation: 2,
+        pressElevation: 5,
+        onSelected: (_) {
+          setState(() {
+            selectedBrand = isSelected ? null : label;
+          });
+          _reloadDataWithFilter();
+        },
       ),
     );
+  }
+
+  Future<void> _reloadDataWithFilter() async {
+    // setState(() {
+    //   _isLoading = true;
+    // });
+
+    // try {
+    //   final response = await apiService.getProductsBySearchAdvance(
+    //     widget.name,
+    //     selectedBrand,
+    //     minPrice,
+    //     maxPrice,
+    //     null,
+    //   );
+
+    //   setState(() {
+    //     products = response;
+    //   });
+
+    //   applySorting();
+    //   _pagingController.refresh();
+    //   _fetchPage(0, response);
+    // } catch (e) {
+    //   print("Lỗi khi lọc: $e");
+    // } finally {
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    // }
   }
 
   Widget _buildGridView() {
@@ -641,7 +668,8 @@ class _CategoryPageState extends State<CategoryPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  product.price.toString() ?? "",
+                  "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
+
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -706,7 +734,9 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 }
 
-void showFilterBottomSheet(BuildContext context) {
+void showFilterBottomSheet(BuildContext context, List<CategoryInfo> brands) {
+  print("HI");
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -714,12 +744,15 @@ void showFilterBottomSheet(BuildContext context) {
       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
     ),
     builder: (context) {
-      return _FilterBottomSheet();
+      return _FilterBottomSheet(brands: brands);
     },
   );
 }
 
 class _FilterBottomSheet extends StatefulWidget {
+  final List<CategoryInfo> brands;
+
+  const _FilterBottomSheet({super.key, required this.brands});
   @override
   _FilterBottomSheetState createState() => _FilterBottomSheetState();
 }
@@ -733,7 +766,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     symbol: 'đ',
   );
 
-  List<String> brands = ["Apple", "Asus", "Dell", "HP", "Lenovo", "Acer"];
   Set<String> selectedBrands = {};
 
   List<String> priceRanges = [
@@ -856,8 +888,8 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                   ),
                   Wrap(
                     spacing: 10,
-                    children: List.generate(brands.length, (index) {
-                      String brand = brands[index];
+                    children: List.generate(widget.brands.length, (index) {
+                      String brand = widget.brands[index].name;
                       bool isSelected = selectedBrands.contains(brand);
                       return FilterChip(
                         label: Text(brand),

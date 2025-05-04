@@ -213,7 +213,7 @@ CREATE PROCEDURE `Cancel` (IN `p_OrderId` INT)   BEGIN
         WHERE id = v_couponId;
 
         UPDATE customer
-        SET points = points+ v_points
+        SET points = points+ v_points/1000
         WHERE id = v_customerId;
 
         
@@ -243,6 +243,10 @@ SET pc.quantity = pc.quantity + t.quantity_to_add;
         UPDATE orders
         SET process  = 'dahuy'
         WHERE id = p_OrderId;
+
+
+
+        SELECT v_points/1000 as points;
 
        
         
