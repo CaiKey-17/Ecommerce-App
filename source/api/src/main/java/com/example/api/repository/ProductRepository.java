@@ -13,6 +13,10 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findByFkCategory(String fk_category);
     List<Product> findByFkBrand(String fk_brand);
 
+    List<Product> findByNameContainingIgnoreCase(String name);
+
+
+
     List<Product> findTop20ByOrderByCreatedAtDesc();
 
     @Query(value = """

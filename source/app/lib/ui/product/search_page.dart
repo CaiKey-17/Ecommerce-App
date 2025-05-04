@@ -1,11 +1,7 @@
+import 'package:app/ui/ai/detect_image.dart';
+import 'package:app/ui/product/main_search.dart';
 import 'package:flutter/material.dart';
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: SearchPage());
-  }
-}
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -17,34 +13,71 @@ class _SearchPageState extends State<SearchPage> {
   FocusNode _focusNode = FocusNode();
   List<String> recentSearches = [];
   bool showAllRecent = false;
+  int? userId;
 
   List<String> popularSearches = [
-    "ca",
+    "laptop",
     "tai nghe",
-    "màn hình",
+    "iphone",
     "loq",
-    "asus",
+    "dell",
     "trưng bày",
     "máy",
-    "ssd",
+    "màn hình",
     "chuột",
   ];
+
+  Future<void> _saveRecentSearches() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (userId != null) {
+      await prefs.setStringList('recentSearches_$userId', recentSearches);
+    }
+  }
+
+  Future<void> _loadRecentSearches() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (userId != null) {
+      List<String>? savedSearches = prefs.getStringList(
+        'recentSearches_$userId',
+      );
+      if (savedSearches != null) {
+        setState(() {
+          recentSearches = savedSearches;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int id = prefs.getInt('userId') ?? -1;
+    setState(() {
+      userId = id;
+    });
+    await _loadRecentSearches();
+  }
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
     });
   }
 
-  void _addToRecentSearches(String query) {
+  void _addToRecentSearches(String query) async {
     if (query.isNotEmpty && !recentSearches.contains(query)) {
       setState(() {
         recentSearches.insert(0, query);
-        print("Số lượng tìm kiếm gần đây: ${recentSearches.length}");
       });
+      await _saveRecentSearches();
     }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SearchByNamePage(name: query)),
+    );
     _searchController.clear();
   }
 
@@ -53,7 +86,7 @@ class _SearchPageState extends State<SearchPage> {
       height: 37,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 237, 243, 248),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey, width: 0.3),
       ),
@@ -93,37 +126,46 @@ class _SearchPageState extends State<SearchPage> {
                 child: Icon(Icons.clear, color: Colors.grey, size: 18),
               ),
             ),
-          // 📷 Thêm icon camera vào cuối
-          
-           IconButton(
-              icon: Icon(Icons.camera_alt_outlined, color: Colors.grey, size: 20),
-              onPressed: () {
-                print("Camera pressed");
-              },
-            ),
+
+          IconButton(
+            icon: Icon(Icons.camera_alt_outlined, color: Colors.grey, size: 20),
+            onPressed: () {
+              ImageUploader(
+                context: context,
+                onResult: (result) {
+                  setState(() {});
+                },
+              ).pickImageAndUpload();
+            },
+          ),
         ],
       ),
     );
   }
 
-
   Widget _buildRecentSearches() {
     int displayCount = showAllRecent ? recentSearches.length : 5;
     bool shouldShowExpandButton = recentSearches.length > 5;
-
-    print("Hiển thị: $displayCount / Tổng: ${recentSearches.length}");
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text("TÌM KIẾM GẦN ĐÂY", style: TextStyle(fontWeight: FontWeight.bold)),
-        SizedBox(height: 10),
+
         ...recentSearches
             .take(displayCount)
             .map(
               (search) => ListTile(
                 leading: Icon(Icons.history, size: 20),
                 title: Text(search, style: TextStyle(fontSize: 14)),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchByNamePage(name: search),
+                    ),
+                  );
+                },
               ),
             ),
         if (shouldShowExpandButton)
@@ -131,18 +173,22 @@ class _SearchPageState extends State<SearchPage> {
             onPressed: () {
               setState(() {
                 showAllRecent = !showAllRecent;
-                print("Nhấn vào: ${showAllRecent ? 'Xem thêm' : 'Thu gọn'}");
               });
             },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(showAllRecent ? "Thu gọn" : "Xem thêm"),
-                Icon(showAllRecent ? Icons.expand_less : Icons.expand_more),
+                Text(
+                  showAllRecent ? "Thu gọn" : "Xem thêm",
+                  style: TextStyle(color: Colors.blue),
+                ),
+                Icon(
+                  showAllRecent ? Icons.expand_less : Icons.expand_more,
+                  color: Colors.blue,
+                ),
               ],
             ),
           ),
-        Divider(),
       ],
     );
   }
@@ -150,11 +196,13 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: Colors.grey),
+          icon: Icon(Icons.arrow_back_ios_rounded),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -180,10 +228,35 @@ class _SearchPageState extends State<SearchPage> {
               SizedBox(height: 10),
               Wrap(
                 spacing: 8.0,
+                runSpacing: 8.0,
                 children:
-                    popularSearches
-                        .map((search) => Chip(label: Text(search)))
-                        .toList(),
+                    popularSearches.map((search) {
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => SearchByNamePage(name: search),
+                            ),
+                          );
+                        },
+                        child: Chip(
+                          label: Text(
+                            search,
+                            style: TextStyle(color: Colors.black87),
+                          ),
+                          backgroundColor: Colors.white,
+                          shape: StadiumBorder(
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                        ),
+                      );
+                    }).toList(),
               ),
             ],
           ),
