@@ -202,8 +202,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   List<Widget> _buildMenuItems() {
     List<Widget> items = [
-      _buildMenuItem(Icons.bar_chart, "Lịch sử điểm tích lũy", () {}),
-      _buildMenuItem(Icons.calendar_today, "Quản lý đơn hàng", () {}),
       _buildMenuItem(Icons.person, "Thay đổi thông tin cá nhân", () {
         Navigator.push(
           context,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'package:app/ui/ai/detect_image.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -286,99 +287,6 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         isLoading = false;
       });
-    }
-  }
-
-  Future<void> pickImageAndUpload() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-    );
-
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
-
-      await uploadImage();
-    }
-  }
-
-  Future<void> uploadImage() async {
-    if (_image == null) return;
-
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse("http://192.168.70.182:5002/detect/"),
-    );
-    request.files.add(await http.MultipartFile.fromPath('file', _image!.path));
-
-    try {
-      var res = await request.send();
-      var response = await http.Response.fromStream(res);
-
-      if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(response.body);
-        List<dynamic> objects = jsonResponse["objects"];
-
-        Map<String, String> translationMap = {
-          "laptop": "Laptop",
-          "cell phone": "Điện thoại",
-          "keyboard": "Bàn phím",
-          "mouse": "Chuột",
-          "tv": "Tivi",
-          "monitor": "Màn hình",
-          "computer": "PC - Máy tính",
-        };
-
-        String filteredResult = objects
-            .where((obj) => obj["confidence"] > 0.7)
-            .map((obj) => translationMap[obj["label"]] ?? obj["label"])
-            .join(", ");
-
-        if (filteredResult.isNotEmpty) {
-          _result = "$filteredResult";
-          setState(() {});
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CategoryPage(selectedCategory: _result),
-            ),
-          );
-        } else {
-          _result = "Không có thiết bị nào nhận diện được !";
-          setState(() {});
-          Fluttertoast.showToast(
-            msg: _result,
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.black54,
-            textColor: Colors.white,
-            fontSize: 14.0,
-          );
-        }
-      } else {
-        _result = "Lỗi nhận diện!";
-        setState(() {});
-        Fluttertoast.showToast(
-          msg: _result,
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.black54,
-          textColor: Colors.white,
-          fontSize: 14.0,
-        );
-      }
-    } catch (e) {
-      _result = "Đã xảy ra lỗi kết nối!";
-      setState(() {});
-      Fluttertoast.showToast(
-        msg: _result,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.black54,
-        textColor: Colors.white,
-        fontSize: 14.0,
-      );
     }
   }
 
@@ -840,7 +748,10 @@ class _HomePageState extends State<HomePage> {
                       size: 20,
                     ),
                     onPressed: () {
-                      pickImageAndUpload();
+                      ImageUploader(
+                        context: context,
+                        onResult: (result) {},
+                      ).pickImageAndUpload();
                     },
                   ),
                 ),
