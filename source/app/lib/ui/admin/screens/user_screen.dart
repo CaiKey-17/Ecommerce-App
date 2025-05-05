@@ -1,3 +1,6 @@
+import 'package:app/luan/models/user_info.dart';
+import 'package:app/services/api_admin_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +16,33 @@ class UserScreen extends StatefulWidget {
 class _UserScreenState extends State<UserScreen> {
   String token = "";
 
+  bool isLoading = false;
+  List<UserInfo> users = [];
+  late ApiAdminService apiAdminService;
+
+  Future<void> fetchUsersManager() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final usersData = await apiAdminService.getAllUsers();
+
+       print("API response: ${usersData.toString()}");
+      setState(() {
+        users = usersData;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi khi lấy danh sách người dùng: $e")),
+      );
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -23,20 +53,10 @@ class _UserScreenState extends State<UserScreen> {
   @override
   void initState() {
     super.initState();
+    apiAdminService = ApiAdminService(Dio());
     _loadUserData();
+    fetchUsersManager();
   }
-
-  List<Map<String, String>> users = List.generate(
-    10,
-    (index) => {
-      "id": "#U00$index",
-      "name": "Người dùng $index",
-      "email": "user$index@email.com",
-      "phone": "1232481292",
-      "address": "Địa chỉ $index",
-      "isBlocked": "false", // Thêm trạng thái block
-    },
-  );
 
   final _formKey = GlobalKey<FormState>();
   String _fullName = '';
@@ -98,10 +118,15 @@ class _UserScreenState extends State<UserScreen> {
             children: [
               CircleAvatar(
                 backgroundColor: Colors.blue,
-                child: Text(
-                  user["id"]!.substring(3),
-                  style: TextStyle(color: Colors.white),
-                ),
+                backgroundImage: user.image.isNotEmpty
+                    ? NetworkImage(user.image)  
+                    : null,  
+                child: user.image.isEmpty
+                    ? Text(
+                        user.id.toString(),
+                        style: TextStyle(color: Colors.white),
+                      )
+                    : null,  
               ),
               SizedBox(width: 12),
               Expanded(
@@ -109,7 +134,7 @@ class _UserScreenState extends State<UserScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user["name"]!,
+                      user.fullName,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -117,46 +142,34 @@ class _UserScreenState extends State<UserScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      user["email"]!,
+                      user.email,
                       style: TextStyle(color: Colors.grey[700]),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      user["phone"]!,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
+                    
                   ],
                 ),
               ),
               IconButton(
-                onPressed: () {
-                  if (user["phone"] != null) {
-                    _makePhoneCall(user["phone"]!);
-                  } else {
-                    print("Số điện thoại không tồn tại");
+                onPressed: () async {
+                  try {
+                    await apiAdminService.toggleUserActive(user.id);
+                    await fetchUsersManager(); 
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Đã cập nhật trạng thái người dùng")),
+                    );
+                  } catch (e) {
+                    print("Lỗi khi cập nhật trạng thái: $e");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Lỗi khi cập nhật trạng thái người dùng")),
+                    );
                   }
                 },
-                icon: Icon(Icons.call, color: Colors.blue),
-              ),
-              IconButton(
-                onPressed: () {
-                  setState(() {
-                    users[index]["isBlocked"] =
-                        (users[index]["isBlocked"] == "true")
-                            ? "false"
-                            : "true";
-                  });
-                },
                 icon: Icon(
-                  users[index]["isBlocked"] == "true"
-                      ? Icons.lock
-                      : Icons.lock_open,
-                  color:
-                      users[index]["isBlocked"] == "true"
-                          ? Colors.red
-                          : Colors.green,
+                  user.active  != 1 ? Icons.lock : Icons.lock_open,
+                  color: user.active != 1 ? Colors.red : Colors.green,
                 ),
               ),
+
               _buildPopupMenu(context, index),
             ],
           ),
@@ -165,49 +178,16 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  void _makePhoneCall(String phoneNumber) async {
-    final Uri phoneUri = Uri.parse('tel:$phoneNumber');
-
-    var status = await Permission.phone.status;
-    if (!status.isGranted) {
-      status = await Permission.phone.request();
-    }
-
-    if (status.isGranted) {
-      if (await canLaunchUrl(phoneUri)) {
-        await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
-      } else {
-        print('Không thể mở URL: $phoneUri');
-      }
-    } else {
-      print("Quyền gọi điện bị từ chối.");
-    }
-  }
-
   Widget _buildPopupMenu(BuildContext context, int userIndex) {
     return PopupMenuButton<String>(
       onSelected: (value) {
         if (value == 'view') {
-          List<Map<String, dynamic>> orders = List.generate(
-            5,
-            (index) => {
-              "id": "#O00$index",
-              "name": "Đơn hàng $index",
-              "address": "Địa chỉ $index",
-              "quantity": index + 1,
-              "price": (index + 1) * 10000,
-              "ship": 20000,
-              "total": (index + 1) * 10000 + 20000,
-              "status": "Chấp nhận",
-            },
-          );
-
           Navigator.push(
             context,
             MaterialPageRoute(
               builder:
                   (context) =>
-                      UserDetailsScreen(user: users[userIndex], orders: orders),
+                      UserDetailsScreen(user: users[userIndex]),
             ),
           );
         } else if (value == 'delete') {
@@ -233,7 +213,7 @@ class _UserScreenState extends State<UserScreen> {
         return AlertDialog(
           title: Text("Xác nhận xóa"),
           content: Text(
-            "Bạn có chắc muốn xóa ${users[userIndex]["name"]} không?",
+            "Bạn có chắc muốn xóa ${users[userIndex].fullName} không?",
           ),
           actions: [
             TextButton(
@@ -241,12 +221,23 @@ class _UserScreenState extends State<UserScreen> {
               child: Text("Hủy"),
             ),
             ElevatedButton(
-              onPressed: () {
+            onPressed: () async {
+              try {
+                await apiAdminService.deleteUser(users[userIndex].id);
                 setState(() {
                   users.removeAt(userIndex);
                 });
                 Navigator.pop(context);
-              },
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Xóa người dùng thành công")),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Lỗi khi xóa người dùng: $e")),
+                );
+                Navigator.pop(context);
+              }
+            },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: Text("Xóa", style: TextStyle(color: Colors.white)),
             ),
@@ -328,26 +319,26 @@ class _UserScreenState extends State<UserScreen> {
                 Navigator.of(context).pop();
               },
             ),
-            ElevatedButton(
-              child: Text('Xong', style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  _formKey.currentState!.save();
-                  setState(() {
-                    users.add({
-                      "id": "#U00${users.length}",
-                      "name": _fullName,
-                      "email": _email,
-                      "phone": "Chưa có",
-                      "address": _address,
-                      "isBlocked": "false",
-                    });
-                  });
-                  Navigator.of(context).pop();
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            ),
+            // ElevatedButton(
+            //   child: Text('Xong', style: TextStyle(color: Colors.white)),
+            //   onPressed: () {
+            //     if (_formKey.currentState!.validate()) {
+            //       _formKey.currentState!.save();
+            //       setState(() {
+            //         users.add({
+            //           "id": "#U00${users.length}",
+            //           "name": _fullName,
+            //           "email": _email,
+            //           "phone": "Chưa có",
+            //           "address": _address,
+            //           "isBlocked": "false",
+            //         });
+            //       });
+            //       Navigator.of(context).pop();
+            //     }
+            //   },
+            //   style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            // ),
           ],
         );
       },

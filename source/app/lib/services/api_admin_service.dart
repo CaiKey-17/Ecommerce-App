@@ -1,5 +1,8 @@
 import 'package:app/luan/models/brand_info.dart';
 import 'package:app/luan/models/category_info.dart';
+import 'package:app/luan/models/order_info.dart';
+import 'package:app/luan/models/user_info.dart';
+import 'package:app/luan/models/product_info.dart';
 
 import 'package:dio/dio.dart';
 import 'package:retrofit/http.dart';
@@ -62,5 +65,35 @@ abstract class ApiAdminService {
   @DELETE("/admin/category/{name}")
   Future<void> deleteCategory(
     @Path("name") String name);
+
+
+  //user
+  @GET("/admin/users")
+  Future<List<UserInfo>> getAllUsers();
+
+  @GET("/admin/users/{id}")
+  Future<UserInfo> getUserById(@Path("id") int id);
+
+  @POST("/admin/users/{id}/toggle-active")
+  Future<void> toggleUserActive(@Path("id") int id);
+
+  @DELETE("/admin/users/{id}")
+  Future<void> deleteUser(@Path("id") int id);
+
+  @POST("/admin/users/{id}/full-name")
+  Future<void> updateUserFullName(
+    @Path("id") int id,
+    @Query("fullName") String fullName,
+  );
+
+  //order
+  @GET("/admin/orders/customer/{customerId}")
+  Future<List<OrderInfo>> getOrdersByCustomer(
+    @Path("customerId") int customerId,
+  );
+
+  // product
+  @GET("/admin/products")
+  Future<List<ProductInfo>> getAllProducts();
 
 }

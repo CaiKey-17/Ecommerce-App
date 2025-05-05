@@ -55,6 +55,6 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
         """, nativeQuery = true)
     List<OrderSummaryDTO> findStatusOrdersByCustomerId(@Param("customerId") Integer customerId,@Param("processList") List<String> processList,@Param("status") String status );
 
-
-
+    @Query("SELECT o FROM Order o WHERE o.id_fk_customer = :idFkCustomer")
+    List<Order> findByIdFkCustomer(@Param("idFkCustomer") Integer idFkCustomer);
 }

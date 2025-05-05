@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.dto.OrderSummaryDTO;
+import com.example.api.model.Order;
 import com.example.api.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,8 +34,8 @@ public class OrderService {
         return orderRepository.findStatusOrdersByCustomerId(customerId,processList,"Hoàn tất");
     }
 
-
-
-
+    public List<Order> getOrdersByCustomerId(Integer customerId) {
+        return orderRepository.findByIdFkCustomer(customerId);
+    }
 
 }

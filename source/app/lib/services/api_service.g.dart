@@ -598,22 +598,22 @@ class _ApiService implements ApiService {
     final queryParameters = <String, dynamic>{r'name': name};
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<List<dynamic>>(
-      _setStreamType<List<ProductInfo>>(
-        Options(method: 'GET', headers: _headers, extra: _extra)
+    final _result = await _dio
+        .fetch<List<dynamic>>(_setStreamType<List<ProductInfo>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
             .compose(
               _dio.options,
               '/products/search',
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
-      ),
-    );
-    var value =
-        _result.data!
-            .map((dynamic i) => ProductInfo.fromJson(i as Map<String, dynamic>))
-            .toList();
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    var value = _result.data!
+        .map((dynamic i) => ProductInfo.fromJson(i as Map<String, dynamic>))
+        .toList();
     return value;
   }
 
@@ -636,22 +636,22 @@ class _ApiService implements ApiService {
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
-    final _result = await _dio.fetch<List<dynamic>>(
-      _setStreamType<List<ProductInfo>>(
-        Options(method: 'GET', headers: _headers, extra: _extra)
+    final _result = await _dio
+        .fetch<List<dynamic>>(_setStreamType<List<ProductInfo>>(Options(
+      method: 'GET',
+      headers: _headers,
+      extra: _extra,
+    )
             .compose(
               _dio.options,
               '/products/search-advance',
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
-      ),
-    );
-    var value =
-        _result.data!
-            .map((dynamic i) => ProductInfo.fromJson(i as Map<String, dynamic>))
-            .toList();
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+    var value = _result.data!
+        .map((dynamic i) => ProductInfo.fromJson(i as Map<String, dynamic>))
+        .toList();
     return value;
   }
 
@@ -1039,7 +1039,7 @@ class _ApiService implements ApiService {
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-     var value =
+    var value =
         _result.data!
             .map((dynamic i) => Map<String, dynamic>.from(i as Map))
             .toList();
@@ -1069,7 +1069,7 @@ class _ApiService implements ApiService {
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-     var value =
+    var value =
         _result.data!
             .map((dynamic i) => Map<String, dynamic>.from(i as Map))
             .toList();
@@ -1099,7 +1099,7 @@ class _ApiService implements ApiService {
               data: _data,
             )
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-     var value =
+    var value =
         _result.data!
             .map((dynamic i) => Map<String, dynamic>.from(i as Map))
             .toList();
@@ -1159,17 +1159,18 @@ class _ApiService implements ApiService {
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
-      _setStreamType<ApiResponse<dynamic>>(
-        Options(method: 'POST', headers: _headers, extra: _extra)
+        _setStreamType<ApiResponse<dynamic>>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
             .compose(
               _dio.options,
               '/order/cancel',
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
-      ),
-    );
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = ApiResponse<dynamic>.fromJson(_result.data!);
     return value;
   }
@@ -1181,17 +1182,18 @@ class _ApiService implements ApiService {
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(
-      _setStreamType<ApiResponse<dynamic>>(
-        Options(method: 'POST', headers: _headers, extra: _extra)
+        _setStreamType<ApiResponse<dynamic>>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
             .compose(
               _dio.options,
               '/order/received',
               queryParameters: queryParameters,
               data: _data,
             )
-            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
-      ),
-    );
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = ApiResponse<dynamic>.fromJson(_result.data!);
     return value;
   }
