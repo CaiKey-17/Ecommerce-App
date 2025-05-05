@@ -19,6 +19,8 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
 
     Optional<Users> findByTempId(String tempId);
 
+    Optional<Users> findById(Integer id);
+
 
 }
 

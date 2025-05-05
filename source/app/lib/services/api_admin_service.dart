@@ -8,7 +8,7 @@ part 'api_admin_service.g.dart';
 
 class ApiResponse<T> {
   final int code;
-  final String message; 
+  final String message;
   final T? data;
 
   ApiResponse({required this.code, required this.message, this.data});
@@ -22,7 +22,7 @@ class ApiResponse<T> {
   }
 }
 
-@RestApi(baseUrl: "http://172.16.10.26:8080/api")
+@RestApi(baseUrl: "http://192.168.70.182:8080/api")
 abstract class ApiAdminService {
   factory ApiAdminService(Dio dio, {String baseUrl}) = _ApiAdminService;
 
@@ -32,7 +32,8 @@ abstract class ApiAdminService {
   @POST("/admin/brand/add")
   Future<BrandInfo> createBrand(
     @Query("name") String name,
-    @Query("image") String image);
+    @Query("image") String image,
+  );
 
   @POST("/admin/brand/{name}")
   Future<BrandInfo> updateBrand(
@@ -41,8 +42,7 @@ abstract class ApiAdminService {
   );
 
   @DELETE("/admin/brand/{name}")
-  Future<void> deleteBrand(
-    @Path("name") String name);
+  Future<void> deleteBrand(@Path("name") String name);
 
   //category
   @GET("/admin/category/list")
@@ -51,7 +51,8 @@ abstract class ApiAdminService {
   @POST("/admin/category/add")
   Future<CategoryInfo> createCategory(
     @Query("name") String name,
-    @Query("image") String image);
+    @Query("image") String image,
+  );
 
   @POST("/admin/category/{name}")
   Future<CategoryInfo> updateCategory(
@@ -60,7 +61,5 @@ abstract class ApiAdminService {
   );
 
   @DELETE("/admin/category/{name}")
-  Future<void> deleteCategory(
-    @Path("name") String name);
-
+  Future<void> deleteCategory(@Path("name") String name);
 }
