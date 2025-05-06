@@ -157,6 +157,17 @@ public class CartController {
         return ResponseEntity.ok(list);
     }
 
+    @GetMapping("/list-detail")
+    public ResponseEntity<List<OrderDetailProjection>> listItemCartsDetail(
+            @RequestParam(value = "orderId") Integer orderId,
+            HttpServletResponse response,
+            HttpSession session) {
+
+        List<OrderDetailProjection> list = orderDetailService.getOrderDetailsByCustomerIdDetail(orderId);
+
+        return ResponseEntity.ok(list);
+    }
+
 
 
 

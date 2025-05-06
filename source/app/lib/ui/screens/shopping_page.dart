@@ -53,7 +53,11 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
   }
 
   Future<void> fetchCartItems() async {
+    setState(() {
+      isLoading = true;
+    });
     try {
+      await Future.delayed(const Duration(milliseconds: 300));
       List<CartInfo> response;
       if (token.isNotEmpty && userId == -1) {
         response = await apiService.getItemInCart(token: token);
@@ -150,24 +154,72 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Xác nhận xoá"),
-          content: const Text("Bạn có chắc chắn muốn xoá sản phẩm này?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Hủy"),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red,
+                  size: 48,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Xác nhận xoá',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Bạn muốn xoá sản phẩm này?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey[700],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Hủy'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _removeItem(index, orderDetailId, orderDetailId);
+                      },
+                      child: const Text('Xóa'),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _removeItem(index, orderDetailId, orderDetailId);
-              },
-              child: const Text("Xóa", style: TextStyle(color: Colors.red)),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -204,55 +256,78 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
 
     String message =
         hasSelectedItems
-            ? "Bạn có chắc chắn muốn xoá các sản phẩm đã chọn?"
-            : "Bạn có chắc chắn muốn xoá toàn bộ giỏ hàng?";
+            ? "Bạn muốn xoá các sản phẩm đã chọn?"
+            : "Bạn muốn xoá toàn bộ giỏ hàng?";
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
+        return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: Row(
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.blue,
-                size: 28,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                "Xác nhận xoá",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red,
+                  size: 48,
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                const Text(
+                  "Xác nhận xoá",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey[700],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('Hủy'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _removeSelectedItems();
+                      },
+                      child: const Text('Xóa'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          content: Text(message, style: const TextStyle(fontSize: 16)),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.blue),
-              child: const Text("Hủy"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _removeSelectedItems();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text("Xóa"),
-            ),
-          ],
         );
       },
     );
@@ -293,7 +368,24 @@ class _ShoppingCartPageState extends State<ShoppingCartPage> {
         ],
       ),
       body:
-          cartItems.isEmpty
+          isLoading
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Đang tải...",
+                      style: TextStyle(fontSize: 18, color: Colors.blue),
+                    ),
+                  ],
+                ),
+              )
+              : cartItems.isEmpty
               ? Container(
                 color: const Color.fromARGB(255, 239, 239, 239),
                 child: const Center(

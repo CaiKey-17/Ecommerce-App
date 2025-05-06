@@ -181,6 +181,9 @@ abstract class ApiService {
     @Query("id") int? id,
   });
 
+  @GET("/cart/list-detail")
+  Future<List<CartInfo>> getItemInCartDetail({@Query("orderId") int? orderId});
+
   @GET("/cart/quantity")
   Future<Map<String, dynamic>> getRawQuantityInCart(
     @Query("userId") int? userId,
