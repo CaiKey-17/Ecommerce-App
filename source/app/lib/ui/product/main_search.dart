@@ -6,6 +6,7 @@ import 'package:app/providers/cart_provider.dart';
 import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
+import 'package:app/ui/product/product_details.dart';
 import 'package:app/ui/screens/shopping_page.dart';
 import 'package:app/ui/product/search_page.dart';
 import 'package:dio/dio.dart';
@@ -33,6 +34,7 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
   List<ProductInfo> products = [];
   List<CategoryInfo> brands = [];
   String? selectedBrand;
+  int? selectedRating;
 
   double? minPrice;
   double? maxPrice;
@@ -86,14 +88,12 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
       ),
       builder: (context) => _FilterBottomSheet(brands: brands),
     );
-
     if (result != null) {
       setState(() {
         minPrice = result['minPrice'];
         maxPrice = result['maxPrice'];
-        if (result['brands'] != null) {
-          selectedBrand = null;
-        }
+        selectedBrand = result['brand'];
+        selectedRating = result['rating'];
       });
 
       _reloadDataWithFilter();
@@ -298,7 +298,16 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_rounded),
-          onPressed: () => {Navigator.pop(context)},
+          onPressed: () async {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.remove('minPrice');
+            await prefs.remove('maxPrice');
+            await prefs.remove('selectedBrand');
+            await prefs.remove('selectedRating');
+            await prefs.remove('selectedPriceRange');
+
+            Navigator.pop(context);
+          },
         ),
         title: _buildSearchBar(),
         centerTitle: true,
@@ -320,11 +329,17 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
                 );
               },
               child: badges.Badge(
+                showBadge: cartProvider.cartItemCount > 0,
                 badgeContent: Text(
                   cartProvider.cartItemCount.toString(),
                   style: TextStyle(fontSize: 12, color: Colors.white),
                 ),
-                child: Icon(Icons.card_travel_outlined),
+                badgeStyle: badges.BadgeStyle(
+                  badgeColor: Colors.redAccent,
+                  elevation: 0,
+                ),
+                position: badges.BadgePosition.topEnd(top: -6, end: -6),
+                child: Icon(Icons.shopping_cart_outlined),
               ),
             ),
           ),
@@ -339,22 +354,7 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
             height: isCollapsed ? 0 : 50,
             child: isCollapsed ? SizedBox.shrink() : _buildFilterBar(brands),
           ),
-          AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            height: isCollapsed ? 0 : 40,
-            child:
-                isCollapsed
-                    ? SizedBox.shrink()
-                    : SortOptionsWidget(
-                      selectPrice: selectPrice,
-                      onSortChanged: (newValue) {
-                        setState(() {
-                          selectPrice = newValue;
-                          applySorting();
-                        });
-                      },
-                    ),
-          ),
+
           Expanded(
             child: _isLoading ? _buildGridViewShimmer() : _buildGridView(),
           ),
@@ -473,10 +473,7 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
   Widget _buildSearchBar() {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SearchPage()),
-        );
+        Navigator.pop(context);
       },
       child: Container(
         height: 36,
@@ -494,7 +491,7 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
               child: Icon(Icons.search, color: Colors.grey, size: 19),
             ),
             Text(
-              "Tìm kiếm ${widget.name}",
+              "Kết quả tìm `${widget.name}`",
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ],
@@ -509,6 +506,7 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
       color: Colors.white,
       padding: EdgeInsets.only(left: 10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           ElevatedButton.icon(
             onPressed: () => showFilterBottomSheet(context, brands),
@@ -526,51 +524,24 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
               ),
             ),
           ),
-          SizedBox(width: 10),
-          Expanded(
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children:
-                  brands.map((brand) => _buildFilterChip(brand.name)).toList(),
-            ),
+          SortOptionsWidget(
+            selectPrice: selectPrice,
+            onSortChanged: (newValue) {
+              setState(() {
+                selectPrice = newValue;
+                applySorting();
+              });
+            },
           ),
+          // SizedBox(width: 10),
+          // Expanded(
+          //   child: ListView(
+          //     scrollDirection: Axis.horizontal,
+          //     children:
+          //         brands.map((brand) => _buildFilterChip(brand.name)).toList(),
+          //   ),
+          // ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label) {
-    final isSelected = label == selectedBrand;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 5),
-      child: ChoiceChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        selected: isSelected,
-        backgroundColor: Colors.white,
-        selectedColor: Colors.blue,
-        checkmarkColor: Colors.white,
-        shape: StadiumBorder(
-          side: BorderSide(
-            color: isSelected ? Colors.blue : Colors.grey.shade300,
-            width: 1,
-          ),
-        ),
-        elevation: 2,
-        pressElevation: 5,
-        onSelected: (_) {
-          setState(() {
-            selectedBrand = isSelected ? null : label;
-          });
-          _reloadDataWithFilter();
-        },
       ),
     );
   }
@@ -586,7 +557,7 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
         selectedBrand,
         minPrice,
         maxPrice,
-        null,
+        selectedRating?.toDouble(),
       );
 
       setState(() {
@@ -675,120 +646,135 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
   }
 
   Widget _buildProductItem(ProductInfo product) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 5,
-            spreadRadius: 2,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(productId: product.id),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-            child: Image.network(
-              product.image ?? 'assets/images/linhkien.webp',
-              width: double.infinity,
-              height: 150,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 150,
-                  color: Colors.grey.shade200,
-                  child: const Center(child: Icon(Icons.image_not_supported)),
-                );
-              },
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade300,
+              blurRadius: 5,
+              spreadRadius: 2,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.name ?? "",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  product.description ?? "",
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                if (product.discountPercent > 0)
-                  Row(
-                    children: [
-                      Text(
-                        product.oldPrice.toString() ?? "",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "- ${product.discountPercent}%" ?? "",
-                        style: const TextStyle(fontSize: 12, color: Colors.red),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {
-                  cartService.addToCart(
-                    productID: product.idVariant,
-                    colorId: product.idColor,
-                    id: product.id,
-                    token: token,
-                    context: context,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(10),
+              ),
+              child: Image.network(
+                product.image ?? 'assets/images/linhkien.webp',
+                width: double.infinity,
+                height: 150,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 150,
+                    color: Colors.grey.shade200,
+                    child: const Center(child: Icon(Icons.image_not_supported)),
                   );
                 },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.blue, width: 1),
-                  foregroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name ?? "",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                child: const Text(
-                  "Thêm giỏ hàng",
-                  style: TextStyle(fontSize: 14),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.description ?? "",
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  if (product.discountPercent > 0)
+                    Row(
+                      children: [
+                        Text(
+                          product.oldPrice.toString() ?? "",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "- ${product.discountPercent}%" ?? "",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    cartService.addToCart(
+                      productID: product.idVariant,
+                      colorId: product.idColor,
+                      id: product.id,
+                      token: token,
+                      context: context,
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.blue, width: 1),
+                    foregroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    "Thêm giỏ hàng",
+                    style: TextStyle(fontSize: 14),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -806,13 +792,16 @@ class _FilterBottomSheet extends StatefulWidget {
 class _FilterBottomSheetState extends State<_FilterBottomSheet> {
   double _minPrice = 10000;
   double _maxPrice = 30000000;
+
   RangeValues _currentRange = RangeValues(1000000, 5000000);
   final NumberFormat currencyFormat = NumberFormat.currency(
     locale: 'vi_VN',
     symbol: 'đ',
   );
 
-  Set<String> names = {};
+  String? selectedBrand;
+  int? selectedRating;
+  String? selectedPriceRange;
 
   List<String> priceRanges = [
     "Dưới 1 triệu",
@@ -821,7 +810,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     "5 triệu - 10 triệu",
     "Trên 10 triệu",
   ];
-  String? selectedPriceRange;
 
   @override
   void initState() {
@@ -833,12 +821,14 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     double minPrice = prefs.getDouble('minPrice') ?? 10000;
     double maxPrice = prefs.getDouble('maxPrice') ?? 30000000;
-    List<String> selectedBrands = prefs.getStringList('selectedBrands') ?? [];
+    String? savedBrand = prefs.getString('selectedBrand');
+    int? savedRating = prefs.getInt('selectedRating');
     String? savedPriceRange = prefs.getString('selectedPriceRange');
 
     setState(() {
       _currentRange = RangeValues(minPrice, maxPrice);
-      names = selectedBrands.toSet();
+      selectedBrand = savedBrand;
+      selectedRating = savedRating;
       selectedPriceRange = savedPriceRange;
 
       if (savedPriceRange != null) {
@@ -869,7 +859,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
       height: MediaQuery.of(context).size.height * 0.6,
       child: Container(
         color: Colors.white,
-
         child: Column(
           children: [
             AppBar(
@@ -889,8 +878,9 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      names.clear();
+                      selectedBrand = null;
                       selectedPriceRange = null;
+                      selectedRating = null;
                       _currentRange = RangeValues(_minPrice, _maxPrice);
                     });
                   },
@@ -901,97 +891,84 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 ),
               ],
             ),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Khoảng giá",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
+                    Text("Khoảng giá", style: _titleStyle()),
                     Wrap(
                       spacing: 10,
-                      children: List.generate(priceRanges.length, (index) {
-                        String price = priceRanges[index];
-                        bool isSelected = selectedPriceRange == price;
-                        return FilterChip(
-                          label: Text(
-                            price,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : Colors.blue,
-                            ),
-                          ),
-                          selected: isSelected,
-                          onSelected: (bool selected) {
-                            setState(() {
-                              if (selected) {
-                                selectedPriceRange = price;
-                                switch (price) {
-                                  case "Dưới 1 triệu":
-                                    _currentRange = RangeValues(10000, 1000000);
-                                    break;
-                                  case "1 triệu - 2 triệu":
-                                    _currentRange = RangeValues(
-                                      1000000,
-                                      2000000,
-                                    );
-                                    break;
-                                  case "2 triệu - 5 triệu":
-                                    _currentRange = RangeValues(
-                                      2000000,
-                                      5000000,
-                                    );
-                                    break;
-                                  case "5 triệu - 10 triệu":
-                                    _currentRange = RangeValues(
-                                      5000000,
-                                      10000000,
-                                    );
-                                    break;
-                                  case "Trên 10 triệu":
-                                    _currentRange = RangeValues(
-                                      10000000,
-                                      30000000,
-                                    );
-                                    break;
-                                }
-                              } else {
-                                selectedPriceRange = null;
-                                _currentRange = RangeValues(
-                                  _minPrice,
-                                  _maxPrice,
-                                );
-                              }
-                            });
-                          },
-                          selectedColor: Colors.blue.withOpacity(0.7),
-                          backgroundColor: Colors.blue.withOpacity(0.1),
-                          checkmarkColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          elevation: 4,
-                        );
-                      }),
+                      children:
+                          priceRanges.map((price) {
+                            bool isSelected = selectedPriceRange == price;
+                            return FilterChip(
+                              label: Text(
+                                price,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isSelected ? Colors.white : Colors.blue,
+                                ),
+                              ),
+                              selected: isSelected,
+                              onSelected: (bool selected) {
+                                setState(() {
+                                  selectedPriceRange = selected ? price : null;
+                                  switch (selectedPriceRange) {
+                                    case "Dưới 1 triệu":
+                                      _currentRange = RangeValues(
+                                        10000,
+                                        1000000,
+                                      );
+                                      break;
+                                    case "1 triệu - 2 triệu":
+                                      _currentRange = RangeValues(
+                                        1000000,
+                                        2000000,
+                                      );
+                                      break;
+                                    case "2 triệu - 5 triệu":
+                                      _currentRange = RangeValues(
+                                        2000000,
+                                        5000000,
+                                      );
+                                      break;
+                                    case "5 triệu - 10 triệu":
+                                      _currentRange = RangeValues(
+                                        5000000,
+                                        10000000,
+                                      );
+                                      break;
+                                    case "Trên 10 triệu":
+                                      _currentRange = RangeValues(
+                                        10000000,
+                                        30000000,
+                                      );
+                                      break;
+                                    default:
+                                      _currentRange = RangeValues(
+                                        _minPrice,
+                                        _maxPrice,
+                                      );
+                                  }
+                                });
+                              },
+                              selectedColor: Colors.blue.withOpacity(0.7),
+                              backgroundColor: Colors.white,
+
+                              checkmarkColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              elevation: 4,
+                            );
+                          }).toList(),
                     ),
                     SizedBox(height: 10),
-
-                    Text(
-                      "Chọn khoảng giá (VNĐ)",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
+                    Text("Chọn khoảng giá (VNĐ)", style: _titleStyle()),
                     SizedBox(height: 10),
-
                     Row(
                       children: [
                         _buildPriceBox(_currentRange.start),
@@ -1001,7 +978,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                         _buildPriceBox(_currentRange.end),
                       ],
                     ),
-                    SizedBox(height: 10),
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
                         trackHeight: 4,
@@ -1015,7 +991,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                         min: _minPrice,
                         max: _maxPrice,
                         divisions: 100,
-                        onChanged: (RangeValues values) {
+                        onChanged: (values) {
                           setState(() {
                             _currentRange = values;
                             selectedPriceRange = null;
@@ -1023,11 +999,73 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                         },
                       ),
                     ),
+                    SizedBox(height: 20),
+                    Text("Thương hiệu", style: _titleStyle()),
+                    Wrap(
+                      spacing: 8,
+                      children:
+                          widget.brands.map((brand) {
+                            bool isSelected = selectedBrand == brand.name;
+                            return FilterChip(
+                              label: Text(
+                                brand.name,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isSelected ? Colors.white : Colors.blue,
+                                ),
+                              ),
+                              selected: isSelected,
+                              onSelected: (bool selected) {
+                                setState(() {
+                                  selectedBrand = selected ? brand.name : null;
+                                });
+                              },
+                              selectedColor: Colors.blue.withOpacity(0.7),
+                              backgroundColor: Colors.white,
+
+                              checkmarkColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            );
+                          }).toList(),
+                    ),
+                    SizedBox(height: 20),
+                    Text("Chất lượng sản phẩm", style: _titleStyle()),
+                    Wrap(
+                      spacing: 8,
+                      children: List.generate(5, (index) {
+                        int rating = index + 1;
+                        bool isSelected = selectedRating == rating;
+                        return FilterChip(
+                          label: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(
+                              rating,
+                              (_) => Icon(
+                                Icons.star,
+                                size: 16,
+                                color: isSelected ? Colors.white : Colors.amber,
+                              ),
+                            ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (bool selected) {
+                            setState(() {
+                              selectedRating = selected ? rating : null;
+                            });
+                          },
+                          selectedColor: Colors.blue,
+                          backgroundColor: Colors.white,
+                          checkmarkColor: Colors.white,
+                        );
+                      }),
+                    ),
                   ],
                 ),
               ),
             ),
-
             Padding(
               padding: EdgeInsets.all(16),
               child: SizedBox(
@@ -1038,8 +1076,16 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                         await SharedPreferences.getInstance();
                     await prefs.setDouble('minPrice', _currentRange.start);
                     await prefs.setDouble('maxPrice', _currentRange.end);
-                    await prefs.setStringList('selectedBrands', names.toList());
-
+                    if (selectedBrand != null) {
+                      await prefs.setString('selectedBrand', selectedBrand!);
+                    } else {
+                      await prefs.remove('selectedBrand');
+                    }
+                    if (selectedRating != null) {
+                      await prefs.setInt('selectedRating', selectedRating!);
+                    } else {
+                      await prefs.remove('selectedRating');
+                    }
                     if (selectedPriceRange != null) {
                       await prefs.setString(
                         'selectedPriceRange',
@@ -1052,11 +1098,10 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                     Navigator.pop(context, {
                       'minPrice': _currentRange.start,
                       'maxPrice': _currentRange.end,
-                      'brands': names.toList(),
+                      'brand': selectedBrand,
+                      'rating': selectedRating,
                     });
                   },
-
-                  child: Text("Áp dụng", style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -1064,6 +1109,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
+                  child: Text("Áp dụng", style: TextStyle(color: Colors.white)),
                 ),
               ),
             ),
@@ -1072,6 +1118,9 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
       ),
     );
   }
+
+  TextStyle _titleStyle() =>
+      TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 16);
 
   Widget _buildPriceBox(double value) {
     return Container(
