@@ -2,6 +2,7 @@ import 'package:app/globals/convert_money.dart';
 import 'package:app/providers/user_points_provider.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
+import 'package:app/ui/order/detail_order_page.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -629,133 +630,144 @@ class _ActivityPageState extends State<ActivityPage>
                   );
                 } else {}
 
-                return Card(
-                  color: const Color.fromARGB(255, 247, 247, 247),
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              order["status"] ?? "Không xác định",
-                              style: TextStyle(
-                                color:
-                                    order["status"] == "Chờ xác nhận"
-                                        ? Colors.red
-                                        : order["status"] == "Đã xác nhận"
-                                        ? Colors.green
-                                        : order["status"] == "Đã hủy"
-                                        ? Colors.red
-                                        : order["status"] == "Hoàn tất"
-                                        ? Colors.green
-                                        : Colors.grey,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Divider(),
-                        Row(
-                          children: [
-                            Container(
-                              width: 70,
-                              height: 70,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image:
-                                      (order["image"] != null &&
-                                              order["image"]
-                                                  .toString()
-                                                  .isNotEmpty)
-                                          ? NetworkImage(order["image"])
-                                          : AssetImage(
-                                                'assets/images/default.jpg',
-                                              )
-                                              as ImageProvider,
-                                  fit: BoxFit.cover,
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => DetailOrderPage(orderId: order["id"]),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    color: const Color.fromARGB(255, 247, 247, 247),
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                order["status"] ?? "Không xác định",
+                                style: TextStyle(
+                                  color:
+                                      order["status"] == "Chờ xác nhận"
+                                          ? Colors.red
+                                          : order["status"] == "Đã xác nhận"
+                                          ? Colors.green
+                                          : order["status"] == "Đã hủy"
+                                          ? Colors.red
+                                          : order["status"] == "Hoàn tất"
+                                          ? Colors.green
+                                          : Colors.grey,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    order["name"] ?? "Sản phẩm không có tên",
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                            ],
+                          ),
+                          const Divider(),
+                          Row(
+                            children: [
+                              Container(
+                                width: 70,
+                                height: 70,
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    image:
+                                        (order["image"] != null &&
+                                                order["image"]
+                                                    .toString()
+                                                    .isNotEmpty)
+                                            ? NetworkImage(order["image"])
+                                            : AssetImage(
+                                                  'assets/images/default.jpg',
+                                                )
+                                                as ImageProvider,
+                                    fit: BoxFit.cover,
                                   ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    order["time"] ?? "Không có thời gian",
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    "và ${order["quantity"] ?? 0} sản phẩm khác",
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 13,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Tổng số tiền:",
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                            Text(
-                              "${order["totalPrice"]?.toString() ?? 'N/A'} ₫",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.red,
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      order["name"] ?? "Sản phẩm không có tên",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      order["time"] ?? "Không có thời gian",
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      "và ${order["quantity"] ?? 0} sản phẩm khác",
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 13,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment:
-                              refundButton != null
-                                  ? MainAxisAlignment.spaceEvenly
-                                  : MainAxisAlignment.end,
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Tổng số tiền:",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                              Text(
+                                "${order["totalPrice"]?.toString() ?? 'N/A'} ₫",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment:
+                                refundButton != null
+                                    ? MainAxisAlignment.spaceEvenly
+                                    : MainAxisAlignment.end,
 
-                          children: [
-                            if (refundButton != null) refundButton,
-                            const SizedBox(width: 10),
-                            if (actionButton != null) actionButton!,
-                          ],
-                        ),
-                      ],
+                            children: [
+                              if (refundButton != null) refundButton,
+                              const SizedBox(width: 10),
+                              if (actionButton != null) actionButton!,
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
