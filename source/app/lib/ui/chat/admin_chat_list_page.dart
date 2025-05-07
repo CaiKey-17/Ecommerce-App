@@ -7,7 +7,6 @@ import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
 import 'package:http/http.dart' as http;
 import 'chat_model.dart';
-import 'chat_detail_page.dart';
 import 'package:app/ui/admin/widgets/sidebar.dart';
 
 class AdminChatListPage extends StatefulWidget {
