@@ -924,6 +924,72 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<CouponAdmin> listCoupon() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<CouponAdmin>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/coupon',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = CouponAdmin.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<void> addCoupon(couponValue, maxAllowedUses, minOrderValue) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'couponValue': couponValue,
+      r'maxAllowedUses': maxAllowedUses,
+      r'minOrderValue': minOrderValue,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    await _dio.fetch<void>(
+      _setStreamType<void>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/coupon',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+  }
+
+  @override
+  Future<void> deleteCoupon(id) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'id': id};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    await _dio.fetch<void>(
+      _setStreamType<void>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/coupon/delete',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+  }
+
+  @override
   Future<Map<String, dynamic>> addToCart(
     token,
     productId,
