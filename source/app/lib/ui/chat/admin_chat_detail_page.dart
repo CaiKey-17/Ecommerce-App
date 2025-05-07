@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,6 +32,10 @@ class AdminChatDetailPage extends StatefulWidget {
 class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
   late StompClient _stompClient;
   List<Map<String, dynamic>> _messages = [];
+  File? _selectedImage;
+  String? _imageUrl;
+  bool _isUploading = false;
+
   TextEditingController _messageController = TextEditingController();
   late int _receiverId;
   final ScrollController _scrollController = ScrollController();
@@ -45,22 +50,15 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
   }
 
   void _connectWebSocket() {
-    if (!_stompClient.isActive) {
-      _stompClient.activate();
-    }
-
-    _stompClient.subscribe(
-      destination: '/topic/chat',
-      callback: (frame) {
-        if (frame.body != null) {
-          final received = jsonDecode(frame.body!);
-          if (received['receiver_id'] == widget.userId ||
-              received['sender_id'] == widget.userId) {
-            _scrollToBottom();
-          }
-        }
-      },
+    _stompClient = StompClient(
+      config: StompConfig.SockJS(
+        url: 'http://192.168.70.182:8080/ws',
+        onConnect: _onConnect,
+        onWebSocketError: (error) => print('WebSocket Error: $error'),
+      ),
     );
+
+    _stompClient.activate();
   }
 
   void _onConnect(StompFrame frame) {
@@ -83,15 +81,16 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
     );
   }
 
-  void _sendMessage() {
+  void _sendMessage({String? imageUrl}) {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && imageUrl == null) return;
 
     final now = DateTime.now().toIso8601String();
     Map<String, dynamic> message = {
       'sender_id': widget.userId,
       'receiver_id': _receiverId,
       'content': text,
+      'image': imageUrl ?? '',
       'sentAt': now,
     };
 
@@ -100,14 +99,56 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
       body: jsonEncode(message),
     );
 
-    setState(() {
-      _messages.add(message);
-    });
-
     _messageController.clear();
-    _scrollToBottom();
+  }
 
-    widget.onMessageSent(text);
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() => _selectedImage = File(pickedFile.path));
+      await uploadImageToCloudinary();
+    }
+  }
+
+  Future<void> uploadImageToCloudinary() async {
+    if (_selectedImage == null) return;
+
+    setState(() => _isUploading = true);
+
+    try {
+      final cloudinaryUrl = "https://api.cloudinary.com/v1_1/dwskd7iqr/upload";
+      final uploadPreset = "flutter";
+
+      var request = http.MultipartRequest('POST', Uri.parse(cloudinaryUrl));
+      request.fields['upload_preset'] = uploadPreset;
+      request.files.add(
+        await http.MultipartFile.fromPath('file', _selectedImage!.path),
+      );
+
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+      var jsonResponse = json.decode(responseData);
+
+      if (response.statusCode == 200) {
+        final imageUrl = jsonResponse['secure_url'];
+        print("✅ Upload thành công: $imageUrl");
+
+        _sendMessage(imageUrl: imageUrl);
+
+        setState(() {
+          _imageUrl = imageUrl;
+          _selectedImage = null;
+        });
+      } else {
+        print("❌ Lỗi khi upload: ${jsonResponse['error']['message']}");
+      }
+    } catch (e) {
+      print("❌ Lỗi upload: $e");
+    }
+
+    setState(() => _isUploading = false);
   }
 
   Future<void> _loadMessages() async {
@@ -157,6 +198,7 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
     final isMe = msg['sender_id'] == widget.userId;
     final content = msg['content'] ?? '';
     final time = _formatTime(msg['sentAt']);
+    final imageUrl = msg['image'];
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -180,13 +222,27 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
             crossAxisAlignment:
                 isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
             children: [
-              Text(
-                content,
-                style: TextStyle(
-                  color: isMe ? Colors.white : Colors.black87,
-                  fontSize: 16,
+              if (imageUrl != null && imageUrl.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(bottom: 6),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      imageUrl,
+                      width: 180,
+                      height: 180,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
+              if (content.isNotEmpty)
+                Text(
+                  content,
+                  style: TextStyle(
+                    color: isMe ? Colors.white : Colors.black87,
+                    fontSize: 16,
+                  ),
+                ),
               SizedBox(height: 4),
               Text(
                 time,
@@ -242,7 +298,7 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
                   constraints: BoxConstraints(minWidth: 30, minHeight: 32),
                   iconSize: 25,
                   icon: Icon(Icons.add_circle_outline, color: Colors.blue),
-                  onPressed: () {},
+                  onPressed: _pickImage,
                 ),
                 IconButton(
                   padding: EdgeInsets.zero,
@@ -259,7 +315,6 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
                   onPressed: () {},
                 ),
 
-                // Dùng Flexible để input chỉ chiếm vừa đủ
                 Flexible(
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 12),

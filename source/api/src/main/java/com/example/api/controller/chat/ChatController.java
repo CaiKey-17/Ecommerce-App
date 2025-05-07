@@ -39,7 +39,6 @@ public class ChatController {
         message.setSentAt(new Date());
         messageRepository.save(message);
 
-        // Broadcast cho tất cả người đang subscribe topic chat
         messagingTemplate.convertAndSend("/topic/chat", message);
     }
     @GetMapping("/messages/{userId}/{otherUserId}")
