@@ -25,8 +25,31 @@ public class Coupon {
     @Column(name = "max_allowed_uses", nullable = false)
     private Integer maxAllowedUses;
 
+    @Column(name = "used_count", nullable = false)
+    private Integer usedCount = 0;
+
+    @Column(name = "min_order_value", nullable = false)
+    private Integer minOrderValue;
+
+
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private Timestamp createdAt;
+
+    public Integer getUsedCount() {
+        return usedCount;
+    }
+
+    public Integer getMinOrderValue() {
+        return minOrderValue;
+    }
+
+    public void setMinOrderValue(Integer minOrderValue) {
+        this.minOrderValue = minOrderValue;
+    }
+
+    public void setUsedCount(Integer usedCount) {
+        this.usedCount = usedCount;
+    }
 
     public Integer getId() {
         return id;

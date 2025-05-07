@@ -6,6 +6,7 @@ import 'package:app/models/comment.dart';
 import 'package:app/models/comment_info.dart';
 import 'package:app/models/comment_reply_request.dart';
 import 'package:app/models/comment_request.dart';
+import 'package:app/models/coupon_admin_info.dart';
 import 'package:app/models/coupon_info.dart';
 
 import 'package:app/models/product_info.dart';
@@ -194,6 +195,18 @@ abstract class ApiService {
 
   @GET("/coupon/find")
   Future<Coupon> findCoupon(@Query("name") String name);
+
+  @GET("/coupon")
+  Future<CouponAdmin> listCoupon();
+
+  @POST("/coupon")
+  Future<void> addCoupon(
+    @Query("couponValue") int couponValue,
+    @Query("maxAllowedUses") int maxAllowedUses,
+    @Query("minOrderValue") int minOrderValue,
+  );
+  @POST("/coupon/delete")
+  Future<void> deleteCoupon(@Query("id") int id);
 
   @POST("/cart/add")
   Future<Map<String, dynamic>> addToCart(
