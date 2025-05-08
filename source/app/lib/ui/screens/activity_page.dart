@@ -721,15 +721,17 @@ class _ActivityPageState extends State<ActivityPage>
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     const SizedBox(height: 5),
-                                    Text(
-                                      "và ${order["quantity"] ?? 0} sản phẩm khác",
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 13,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                    (order["quantity"] - 1) > 0
+                                        ? Text(
+                                          "và ${order["quantity"] - 1} sản phẩm khác",
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 13,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                        : const SizedBox.shrink(),
                                   ],
                                 ),
                               ),

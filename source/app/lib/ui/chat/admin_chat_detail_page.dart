@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:app/globals/ip.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:stomp_dart_client/stomp.dart';
@@ -52,7 +53,7 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
   void _connectWebSocket() {
     _stompClient = StompClient(
       config: StompConfig.SockJS(
-        url: 'http://192.168.70.182:8080/ws',
+        url: ApiConfig.baseUrlWsc,
         onConnect: _onConnect,
         onWebSocketError: (error) => print('WebSocket Error: $error'),
       ),
@@ -154,9 +155,7 @@ class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
   Future<void> _loadMessages() async {
     try {
       final response = await http.get(
-        Uri.parse(
-          'http://192.168.70.182:8080/api/chat/messages/${widget.userId}/$_receiverId',
-        ),
+        ApiConfig.getChatMessages(widget.userId, _receiverId),
       );
       if (response.statusCode == 200) {
         final List<dynamic> messages = jsonDecode(response.body);

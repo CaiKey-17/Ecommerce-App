@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:app/globals/convert_money.dart';
+import 'package:app/globals/ip.dart';
 import 'package:app/models/cart_info.dart';
 import 'package:app/models/color_model.dart';
 import 'package:app/models/comment.dart';
@@ -15,6 +16,7 @@ import 'package:app/models/rating_info.dart';
 import 'package:app/models/sentiment_request.dart';
 import 'package:app/models/sentiment_response.dart';
 import 'package:app/models/variant_model.dart';
+import 'package:app/providers/cart_provider.dart';
 import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/api_service_sentiment.dart';
@@ -27,11 +29,13 @@ import 'package:app/ui/screens/shopping_page.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:badges/badges.dart' as badges;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
 import 'package:stomp_dart_client/stomp_handler.dart';
+import 'package:provider/provider.dart';
 
 class ProductPage extends StatefulWidget {
   final int productId;
@@ -174,7 +178,11 @@ class _ProductPageState extends State<ProductPage> {
       token = prefs.getString('token') ?? "";
       userId = prefs.getInt('userId') ?? -1;
       fullName = prefs.getString('fullName') ?? "";
-      role = prefs.getString('role') ?? "";
+      role = prefs.getString('role') ?? "ROLE_CUSTOMER";
+      Future.microtask(() {
+        final cartProvider = Provider.of<CartProvider>(context, listen: false);
+        cartProvider.fetchCartFromApi(userId);
+      });
     });
   }
 
@@ -316,9 +324,14 @@ class _ProductPageState extends State<ProductPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = Provider.of<CartProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
+
       appBar: AppBar(
+        foregroundColor: Colors.white,
+
         backgroundColor: Colors.blue,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
@@ -333,16 +346,31 @@ class _ProductPageState extends State<ProductPage> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ShoppingCartPage(isFromTab: false),
+          Padding(
+            padding: const EdgeInsets.only(right: 16, left: 10),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ShoppingCartPage(isFromTab: false),
+                  ),
+                );
+              },
+              child: badges.Badge(
+                showBadge: cartProvider.cartItemCount > 0,
+                badgeContent: Text(
+                  cartProvider.cartItemCount.toString(),
+                  style: TextStyle(fontSize: 12, color: Colors.white),
                 ),
-              );
-            },
+                badgeStyle: badges.BadgeStyle(
+                  badgeColor: Colors.redAccent,
+                  elevation: 0,
+                ),
+                position: badges.BadgePosition.topEnd(top: -6, end: -6),
+                child: Icon(Icons.shopping_cart_outlined),
+              ),
+            ),
           ),
         ],
       ),
@@ -702,19 +730,26 @@ class _ProductPageState extends State<ProductPage> {
                                 ),
                                 const SizedBox(height: 10),
                                 CommentSectionWidget(
-                                  role: role,
+                                  role: role != null ? role : 'ROLE_CUSTOMER',
                                   productId: widget.productId,
-                                  fullName: fullName,
+                                  fullName:
+                                      fullName != null
+                                          ? fullName
+                                          : 'Người dùng vô danh',
                                   comments: comments,
                                   initialCommentCount: 5,
                                   controller: _newCommentController,
                                   onSend: () async {
                                     if (_newCommentController.text.isNotEmpty) {
                                       final replyRequest = CommentRequest(
-                                        username: fullName,
+                                        username:
+                                            fullName != ""
+                                                ? fullName
+                                                : "Người dùng ẩn danh",
                                         content: _newCommentController.text,
                                         productId: widget.productId,
-                                        role: role,
+                                        role:
+                                            role != "" ? role : 'ROLE_CUSTOMER',
                                       );
 
                                       try {
@@ -1257,7 +1292,7 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
   late ApiService apiService;
   late ApiServiceSentiment apiServiceSentiment;
   List<RatingInfo> ratings = [];
-  String fullName = "";
+  String fullName = "Người dùng vô danh";
   int userId = -1;
 
   String? sentiment;
@@ -1275,7 +1310,7 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token') ?? "";
-      fullName = prefs.getString('fullName') ?? "";
+      fullName = prefs.getString('fullName') ?? "Người dùng vô danh";
       userId = prefs.getInt('userId') ?? -1;
       isLoading = false;
     });
@@ -2247,7 +2282,7 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
   void connectToWebSocket() {
     stompClient = StompClient(
       config: StompConfig.SockJS(
-        url: 'http://192.168.70.182:8080/ws',
+        url: ApiConfig.baseUrlWsc,
         onConnect: onStompConnected,
         onWebSocketError: (dynamic error) => print('Lỗi WS: $error'),
       ),
@@ -2345,10 +2380,10 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
 
   void onSendReply(int index, int commentId, String role) async {
     final replyRequest = CommentReplyRequest(
-      username: widget.fullName,
+      username: widget.fullName != "" ? widget.fullName : "Người dùng ẩn danh",
       content: _replyController.text,
       commentId: commentId,
-      role: role,
+      role: role != "" ? role : "ROLE_CUSTOMER",
     );
 
     try {
@@ -2465,7 +2500,9 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                                   Row(
                                     children: [
                                       Text(
-                                        comment['username'],
+                                        comment['username'] != ""
+                                            ? comment['username']
+                                            : 'Người dùng ẩn danh',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -2648,7 +2685,9 @@ class _CommentSectionWidgetState extends State<CommentSectionWidget> {
                                       () => onSendReply(
                                         index,
                                         comment['id'],
-                                        widget.role,
+                                        widget.role != null
+                                            ? widget.role
+                                            : 'ROLE_CUSTOMER',
                                       ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,

@@ -1,3 +1,4 @@
+import 'package:app/globals/ip.dart';
 import 'package:app/luan/models/brand_info.dart';
 import 'package:app/luan/models/category_info.dart';
 
@@ -22,7 +23,7 @@ class ApiResponse<T> {
   }
 }
 
-@RestApi(baseUrl: "http://192.168.70.182:8080/api")
+@RestApi(baseUrl: ApiConfig.baseUrlAPI)
 abstract class ApiAdminService {
   factory ApiAdminService(Dio dio, {String baseUrl}) = _ApiAdminService;
 
