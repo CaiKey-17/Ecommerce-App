@@ -31,7 +31,7 @@ public class CouponController {
     }
 
     @GetMapping("/find")
-    public ResponseEntity<?> findCoupon(@RequestParam String name) {
+    public ResponseEntity<?> findCoupon(@RequestParam String name,@RequestParam double price) {
         Coupon coupon = couponRepository.findByName(name);
 
         if (coupon == null) {
@@ -39,6 +39,15 @@ public class CouponController {
                     "code", 404,
                     "message", "Mã giảm giá không tồn tại"
             ));
+        }
+
+        if(price<= coupon.getMinOrderValue()){
+            return ResponseEntity.badRequest().body(Map.of(
+                    "code", 400,
+                    "message", "Đơn hàng chưa đủ điều kiện áp dụng"
+            ));
+
+
         }
 
         if (coupon.getMaxAllowedUses() == coupon.getUsedCount()) {

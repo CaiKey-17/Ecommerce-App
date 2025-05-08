@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:app/globals/ip.dart';
 import 'package:app/ui/chat/admin_chat_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,7 +95,7 @@ class _AdminChatListPageState extends State<AdminChatListPage> {
   void connectWebSocket() {
     stompClient = StompClient(
       config: StompConfig.SockJS(
-        url: 'http://192.168.70.182:8080/ws',
+        url: ApiConfig.baseUrlWsc,
         onConnect: onWebSocketConnected,
         onWebSocketError: (dynamic error) => print('WebSocket error: $error'),
         stompConnectHeaders: {'Authorization': 'Bearer token'},
@@ -105,9 +106,7 @@ class _AdminChatListPageState extends State<AdminChatListPage> {
   }
 
   Future<List<Chat>> fetchChatContacts(int currentUserId) async {
-    final response = await http.get(
-      Uri.parse("http://192.168.70.182:8080/api/chat/contacts/$currentUserId"),
-    );
+    final response = await http.get(ApiConfig.getChatContact(currentUserId));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);

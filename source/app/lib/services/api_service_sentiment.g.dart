@@ -10,7 +10,7 @@ part of 'api_service_sentiment.dart';
 
 class _ApiServiceSentiment implements ApiServiceSentiment {
   _ApiServiceSentiment(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://192.168.70.182:5001';
+    baseUrl ??= ApiConfig.baseUrlSentiment;
   }
 
   final Dio _dio;

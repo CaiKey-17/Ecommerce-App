@@ -10,7 +10,7 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'http://192.168.70.182:8080/api';
+    baseUrl ??= ApiConfig.baseUrlAPI;
   }
 
   final Dio _dio;
@@ -902,9 +902,9 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<Coupon> findCoupon(name) async {
+  Future<Coupon> findCoupon(name, price) async {
     const _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{r'name': name};
+    final queryParameters = <String, dynamic>{r'name': name, r'price': price};
     final _headers = <String, dynamic>{};
     final Map<String, dynamic>? _data = null;
     final _result = await _dio.fetch<Map<String, dynamic>>(

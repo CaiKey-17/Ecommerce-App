@@ -374,7 +374,7 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
         crossAxisSpacing: 8,
         childAspectRatio: 0.6,
       ),
-      itemCount: 4, // Số lượng item giả lập (có thể thay đổi)
+      itemCount: 4,
       itemBuilder: (context, index) => _buildProductItemShimmer(),
     );
   }
@@ -398,7 +398,6 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Phần ảnh
             Container(
               width: double.infinity,
               height: 150,
@@ -407,17 +406,12 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
                 color: Colors.white,
               ),
             ),
-            // Phần nội dung
             Padding(
               padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 120, // Giả lập tên sản phẩm
-                    height: 14,
-                    color: Colors.white,
-                  ),
+                  Container(width: 120, height: 14, color: Colors.white),
                   const SizedBox(height: 4),
                   Container(
                     width: double.infinity,
@@ -427,37 +421,24 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
                   const SizedBox(height: 2),
                   Container(width: 80, height: 12, color: Colors.white),
                   const SizedBox(height: 8),
-                  Container(
-                    width: 60, // Giả lập giá
-                    height: 16,
-                    color: Colors.white,
-                  ),
+                  Container(width: 60, height: 16, color: Colors.white),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Container(
-                        width: 40, // Giả lập giá cũ
-                        height: 12,
-                        color: Colors.white,
-                      ),
+                      Container(width: 40, height: 12, color: Colors.white),
                       const SizedBox(width: 4),
-                      Container(
-                        width: 30, // Giả lập giảm giá
-                        height: 12,
-                        color: Colors.white,
-                      ),
+                      Container(width: 30, height: 12, color: Colors.white),
                     ],
                   ),
                 ],
               ),
             ),
             const Spacer(),
-            // Nút "Thêm giỏ hàng"
             Padding(
               padding: const EdgeInsets.all(8),
               child: Container(
                 width: double.infinity,
-                height: 36, // Ước lượng chiều cao nút
+                height: 36,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.grey[300]!, width: 1),
@@ -533,14 +514,6 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
               });
             },
           ),
-          // SizedBox(width: 10),
-          // Expanded(
-          //   child: ListView(
-          //     scrollDirection: Axis.horizontal,
-          //     children:
-          //         brands.map((brand) => _buildFilterChip(brand.name)).toList(),
-          //   ),
-          // ),
         ],
       ),
     );

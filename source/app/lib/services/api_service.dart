@@ -1,3 +1,4 @@
+import 'package:app/globals/ip.dart';
 import 'package:app/models/address.dart';
 import 'package:app/models/address_response.dart';
 import 'package:app/models/admin_info.dart';
@@ -45,7 +46,7 @@ class ApiResponse<T> {
   }
 }
 
-@RestApi(baseUrl: "http://192.168.70.182:8080/api")
+@RestApi(baseUrl: ApiConfig.baseUrlAPI)
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -194,7 +195,10 @@ abstract class ApiService {
   Future<void> sendResetPassword(@Query("email") String email);
 
   @GET("/coupon/find")
-  Future<Coupon> findCoupon(@Query("name") String name);
+  Future<Coupon> findCoupon(
+    @Query("name") String name,
+    @Query("price") double price,
+  );
 
   @GET("/coupon")
   Future<CouponAdmin> listCoupon();
