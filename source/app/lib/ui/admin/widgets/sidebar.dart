@@ -24,11 +24,13 @@ class SideBar extends StatefulWidget {
 
 class _SideBarState extends State<SideBar> {
   String image_url = "";
+  String fullName = "";
   int? userId;
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       image_url = prefs.getString('image') ?? "";
+      fullName = prefs.getString('fullName') ?? "";
       userId = prefs.getInt('userId') ?? -1;
     });
   }
@@ -42,11 +44,12 @@ class _SideBarState extends State<SideBar> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.white,
       child: SingleChildScrollView(
         child: Column(
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue[700]),
+              decoration: BoxDecoration(color: Colors.blue),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -58,9 +61,9 @@ class _SideBarState extends State<SideBar> {
                     ),
                     child: ProfileImagePicker(imageUrl: image_url),
                   ),
-                  const SizedBox(width: 12), // khoảng cách giữa ảnh và text
-                  const Text(
-                    'Admin Panel',
+                  const SizedBox(width: 12),
+                  Text(
+                    fullName,
                     style: TextStyle(color: Colors.white, fontSize: 22),
                   ),
                 ],

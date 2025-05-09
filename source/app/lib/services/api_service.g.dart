@@ -10,7 +10,7 @@ part of 'api_service.dart';
 
 class _ApiService implements ApiService {
   _ApiService(this._dio, {this.baseUrl}) {
-    baseUrl ??= ApiConfig.baseUrlAPI;
+    baseUrl ??= 'http://192.168.70.182:8080/api';
   }
 
   final Dio _dio;
@@ -1245,6 +1245,77 @@ class _ApiService implements ApiService {
       ),
     );
     final value = ApiResponse<dynamic>.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> getUserStatistics() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse<Map<String, dynamic>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/user-stats',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse<Map<String, dynamic>>.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<ApiResponse<Map<String, dynamic>>> getOrderStatistics() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse<Map<String, dynamic>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/order-stats',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse<Map<String, dynamic>>.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
+  Future<ApiResponse1<List<Map<String, dynamic>>>>
+  getTopSellingProducts() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse1<List<Map<String, dynamic>>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/top-selling-products',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse1<List<Map<String, dynamic>>>.fromJson(
+      _result.data!,
+      (data) => (data as List).cast<Map<String, dynamic>>(),
+    );
+
     return value;
   }
 

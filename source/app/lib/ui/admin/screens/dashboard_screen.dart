@@ -1,4 +1,10 @@
+import 'package:app/globals/convert_money.dart';
+import 'package:app/models/order_statistics.dart';
+import 'package:app/models/top_selling_product.dart';
+import 'package:app/models/user_statistics.dart';
+import 'package:app/services/api_service.dart';
 import 'package:app/ui/admin/widgets/sidebar.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,17 +25,100 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  late ApiService apiService;
+  bool isLoading = true;
   String token = "";
+  int? totalUser;
+  int? newUser;
   String selectedFilter = "Năm";
   DateTime? startDate;
   DateTime? endDate;
   List<SalesData> salesData = [];
-
+  UserStatistics? userStatistics;
+  OrderStatisticsDTO? orderStatisticsDTO;
+  List<TopSellingProductDTO> listTopSelling = [];
   @override
   void initState() {
     super.initState();
+    apiService = ApiService(Dio());
+
     _fetchData();
     _loadUserData();
+    getUserStatistics();
+    getOrderStatistics();
+    getProductStatistics();
+  }
+
+  Future<void> getProductStatistics() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await apiService.getTopSellingProducts();
+
+      if (response.code == 200 && response.data != null) {
+        final data = response.data!;
+        setState(() {
+          listTopSelling =
+              data.map((json) => TopSellingProductDTO.fromJson(json)).toList();
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to fetch top selling products');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      rethrow;
+    }
+  }
+
+  Future<void> getOrderStatistics() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getOrderStatistics();
+      if (response.code == 200) {
+        final data = response.data!;
+        setState(() {
+          orderStatisticsDTO = OrderStatisticsDTO.fromJson(data);
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to fetch order statistics');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      rethrow;
+    }
+  }
+
+  Future<void> getUserStatistics() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.getUserStatistics();
+      if (response.code == 200) {
+        final data = response.data;
+        setState(() {
+          userStatistics = UserStatistics.fromJson(data!);
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to fetch user statistics');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      rethrow;
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -125,9 +214,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withOpacity(0.3),
             spreadRadius: 2,
             blurRadius: 5,
           ),
@@ -185,6 +275,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -289,6 +380,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -316,11 +408,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         toY: totalRevenue,
                         color: Colors.blue,
                         width: 20,
+                        borderRadius: BorderRadius.zero,
                       ),
                       BarChartRodData(
                         toY: totalProfit,
                         color: Colors.green,
                         width: 20,
+                        borderRadius: BorderRadius.zero,
                       ),
                     ],
                   ),
@@ -356,6 +450,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -383,6 +478,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         toY: totalOrders.toDouble(),
                         color: Colors.orange,
                         width: 20,
+                        borderRadius: BorderRadius.zero,
                       ),
                     ],
                   ),
@@ -521,62 +617,449 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildUserChartCard(String totalU, String newU) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            "Biểu đồ người dùng",
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 250,
+            child: BarChart(
+              BarChartData(
+                gridData: FlGridData(show: true),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 32,
+                      getTitlesWidget: (value, _) {
+                        return Text(
+                          '${value.toInt()}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 32,
+                      getTitlesWidget: (value, _) {
+                        return Text(
+                          '${value.toInt()}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, _) {
+                        switch (value.toInt()) {
+                          case 0:
+                            return const Text('Tổng');
+                          case 1:
+                            return const Text('Mới');
+                          default:
+                            return const Text('');
+                        }
+                      },
+                    ),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                borderData: FlBorderData(show: true),
+                // Thiết lập maxY để tạo thêm không gian
+                maxY:
+                    double.parse(totalU) > double.parse(newU)
+                        ? double.parse(totalU) + 2
+                        : double.parse(newU) + 2,
+                barGroups: [
+                  BarChartGroupData(
+                    x: 0,
+                    barRods: [
+                      BarChartRodData(
+                        toY: double.parse(totalU),
+                        color: Colors.blue,
+                        width: 25,
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    ],
+                  ),
+                  BarChartGroupData(
+                    x: 1,
+                    barRods: [
+                      BarChartRodData(
+                        toY: double.parse(newU),
+                        color: Colors.green,
+                        width: 25,
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Tổng người dùng: ${totalU}",
+            style: TextStyle(fontSize: 12, color: Colors.blue),
+          ),
+          Text(
+            "Người dùng mới:  ${newU}",
+            style: TextStyle(fontSize: 12, color: Colors.green),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildOrderRevenueChartCard(String countO, String revenueO) {
+    double count = double.parse(countO);
+    double revenue = double.parse(revenueO) / 1000000;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            "Biểu đồ Đơn hàng & Doanh thu",
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 260,
+            child: BarChart(
+              BarChartData(
+                gridData: FlGridData(show: true),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 32,
+                      getTitlesWidget: (value, _) {
+                        return Text(
+                          '${value.toInt()}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 50,
+                      getTitlesWidget: (value, _) {
+                        return Text(
+                          '${(value * 1000000).toStringAsFixed(0)}tr',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, _) {
+                        switch (value.toInt()) {
+                          case 0:
+                            return const Text('Đơn hàng');
+                          case 1:
+                            return const Text('Doanh thu');
+                          default:
+                            return const Text('');
+                        }
+                      },
+                    ),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                borderData: FlBorderData(show: true),
+                maxY: revenue > count ? revenue + 2 : count + 2,
+                barGroups: [
+                  BarChartGroupData(
+                    x: 0,
+                    barRods: [
+                      BarChartRodData(
+                        toY: count,
+                        color: Colors.blue,
+                        width: 30,
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    ],
+                  ),
+                  BarChartGroupData(
+                    x: 1,
+                    barRods: [
+                      BarChartRodData(
+                        toY: revenue,
+                        color: Colors.green,
+                        width: 30,
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Tổng: ${countO} đơn",
+            style: TextStyle(fontSize: 12, color: Colors.blue),
+          ),
+          Text(
+            "Tổng doanh thu: " +
+                "${ConvertMoney.currencyFormatter.format(double.parse(revenueO))} ₫",
+
+            style: TextStyle(fontSize: 12, color: Colors.green),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildTopSellingProductsChartCard(List<TopSellingProductDTO> list) {
+    // Giới hạn chỉ lấy 3 sản phẩm đầu tiên
+    final top3 = list.take(3).toList();
+
+    final List<Color> barColors = [Colors.blue, Colors.green, Colors.orange];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            "Biểu đồ Top 3 Sản phẩm bán chạy",
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 260,
+            child: BarChart(
+              BarChartData(
+                gridData: FlGridData(show: true),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 32,
+                      getTitlesWidget: (value, _) {
+                        return Text(
+                          '${value.toInt()}',
+                          style: const TextStyle(fontSize: 12),
+                        );
+                      },
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, _) {
+                        if (value.toInt() < top3.length) {
+                          return Text(
+                            top3[value.toInt()].productName,
+                            style: const TextStyle(fontSize: 10),
+                          );
+                        }
+                        return const Text('');
+                      },
+                    ),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                borderData: FlBorderData(show: true),
+
+                barGroups: List.generate(top3.length, (index) {
+                  final product = top3[index];
+                  return BarChartGroupData(
+                    x: index,
+                    barRods: [
+                      BarChartRodData(
+                        toY: product.totalSold.toDouble(),
+                        color: barColors[index],
+                        width: 30,
+                        borderRadius: BorderRadius.zero,
+                      ),
+                    ],
+                  );
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...List.generate(top3.length, (index) {
+            final product = top3[index];
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                'Top ${index + 1}: ${product.productName} (${product.totalSold})',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: barColors[index],
+                  fontWeight: index == 0 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Dashboard")),
-      drawer: SideBar(token: token),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GridView.count(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.5,
-              children: [
-                _buildStatCard(
-                  "Tổng người dùng",
-                  "15,234",
-                  "+1,234 mới",
-                  Colors.blue,
-                ),
-                _buildStatCard(
-                  "Số đơn hàng",
-                  "${salesData.fold(0, (sum, e) => sum + e.orders)}",
-                  "Tăng 15%",
-                  Colors.green,
-                ),
-              ],
-            ),
-            SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children:
-                  [
-                    "Tuần",
-                    "Tháng",
-                    "Quý",
-                    "Năm",
-                  ].map((e) => _buildFilterButton(e)).toList(),
-            ),
-            SizedBox(height: 16),
-            _buildDateRangePicker(),
-            SizedBox(height: 24),
-            _buildLineChart(salesData),
-            SizedBox(height: 24),
-            _buildRevenueProfitChart(salesData),
-            SizedBox(height: 24),
-            _buildOrdersChart(salesData),
-            SizedBox(height: 24),
-            _buildStatisticsTable(salesData),
-          ],
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          "Dashboard",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
+      drawer: SideBar(token: token),
+      body:
+          isLoading
+              ? CircularProgressIndicator()
+              : SingleChildScrollView(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.5,
+                      children: [
+                        _buildStatCard(
+                          "Tổng người dùng",
+                          userStatistics!.totalUsers.toString(),
+                          "+ " +
+                              userStatistics!.newUsers.toString() +
+                              " người dùng mới",
+
+                          Colors.blue,
+                        ),
+
+                        _buildStatCard(
+                          "Tổng đơn hàng",
+                          orderStatisticsDTO!.countOrder.toString(),
+                          "+ " +
+                              "${ConvertMoney.currencyFormatter.format(orderStatisticsDTO!.totalRevenue)} ₫",
+
+                          Colors.green,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24),
+                    _buildUserChartCard(
+                      userStatistics!.totalUsers.toString(),
+                      userStatistics!.newUsers.toString(),
+                    ),
+                    SizedBox(height: 24),
+                    buildOrderRevenueChartCard(
+                      orderStatisticsDTO!.countOrder.toString(),
+                      orderStatisticsDTO!.totalRevenue.toString(),
+                    ),
+                    SizedBox(height: 24),
+                    buildTopSellingProductsChartCard(listTopSelling),
+                    SizedBox(height: 24),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children:
+                          [
+                            "Tuần",
+                            "Tháng",
+                            "Quý",
+                            "Năm",
+                          ].map((e) => _buildFilterButton(e)).toList(),
+                    ),
+                    SizedBox(height: 16),
+                    _buildDateRangePicker(),
+                    SizedBox(height: 24),
+                    _buildLineChart(salesData),
+                    SizedBox(height: 24),
+                    _buildRevenueProfitChart(salesData),
+                    SizedBox(height: 24),
+                    _buildOrdersChart(salesData),
+                    SizedBox(height: 24),
+                    _buildStatisticsTable(salesData),
+                  ],
+                ),
+              ),
     );
   }
 }

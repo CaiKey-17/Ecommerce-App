@@ -1,6 +1,8 @@
 package com.example.api.service;
 
+import com.example.api.dto.OrderStatisticsDTO;
 import com.example.api.dto.OrderSummaryDTO;
+import com.example.api.dto.TopSellingProductDTO;
 import com.example.api.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +35,15 @@ public class OrderService {
         return orderRepository.findStatusOrdersByCustomerId(customerId,processList,"Hoàn tất");
     }
 
+    public OrderStatisticsDTO getOrderStatistics() {
+        long count = orderRepository.countOrdersNotInCart();
+        long totalRevenue = orderRepository.getTotalRevenue();
+        return new OrderStatisticsDTO(count, totalRevenue);
+    }
 
+    public List<TopSellingProductDTO> getTopSellingProducts() {
+        return orderRepository.findTopSellingProducts();
+    }
 
 
 

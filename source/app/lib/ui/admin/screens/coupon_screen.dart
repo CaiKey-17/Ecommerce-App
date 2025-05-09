@@ -114,7 +114,7 @@ class _CouponScreenState extends State<CouponScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: Colors.blue,
       ),
       body:
           isLoading
@@ -138,7 +138,7 @@ class _CouponScreenState extends State<CouponScreen> {
               ),
 
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: Colors.blue,
         onPressed: () {
           _showCouponDialog(isEdit: false);
         },
@@ -292,7 +292,7 @@ class _CouponScreenState extends State<CouponScreen> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade700,
+                      color: Colors.blue,
                     ),
                   ),
                   SizedBox(height: 20),
