@@ -41,7 +41,6 @@ public class CommentController {
     public ResponseEntity<CommentDTO> replyToComment(@PathVariable Integer commentId, @RequestBody Comment reply) {
         CommentDTO savedReply = commentService.addReply(commentId, reply);
 
-        // Gửi reply qua WebSocket riêng
         messagingTemplate.convertAndSend("/topic/replies/" + commentId, savedReply);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedReply);

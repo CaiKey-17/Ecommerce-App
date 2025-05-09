@@ -48,6 +48,8 @@ class ProductPage extends StatefulWidget {
 
 class _ProductPageState extends State<ProductPage> {
   late ApiService apiService;
+  late StompClient stompClient;
+
   int selectedColorIndex = 0;
   int selectedVersionIndex = 0;
   int id_Color = -1;
@@ -102,10 +104,47 @@ class _ProductPageState extends State<ProductPage> {
   void initState() {
     super.initState();
     apiService = ApiService(Dio());
+
     cartRepository = CartRepository(apiService);
     cartService = CartService(cartRepository: cartRepository);
     _loadUserData();
     fetchProductDetail();
+
+    stompClient = StompClient(
+      config: StompConfig.SockJS(
+        url: ApiConfig.baseUrlWsc,
+        onConnect: onConnectCallback,
+        onWebSocketError: (dynamic error) => print("WebSocket Error: $error"),
+      ),
+    );
+
+    stompClient.activate();
+  }
+
+  void onConnectCallback(StompFrame frame) {
+    stompClient.subscribe(
+      destination: '/topic/ratings/${widget.productId}',
+      callback: (StompFrame frame) {
+        if (frame.body != null) {
+          final data = json.decode(frame.body!);
+          print("Rating mới: $data");
+          setState(() {
+            reviews.insert(0, {
+              'id': data['id'],
+              'name': data['name'],
+              'rating': data['rating'],
+              'content': data['content'],
+              'verified': (data['sentiment'] == 1 || data['sentiment'] == 2),
+              'goodCount': (data['sentiment'] == 1) ? 1 : 0,
+              'badCount': (data['sentiment'] == 0) ? 1 : 0,
+              'liked': (data['sentiment'] == 1),
+              'disliked': (data['sentiment'] == 0),
+              'idFkCustomer': data['idFkCustomer'],
+            });
+          });
+        }
+      },
+    );
   }
 
   Future<void> handleAddToCart() async {
@@ -1398,20 +1437,7 @@ class _ProductRatingWidgetState extends State<ProductRatingWidget> {
         widget.productId,
         rating_info,
       );
-      widget.reviews.add(
-        {
-              'name': fullName,
-              'rating': rating,
-              'content': text,
-              'verified': sentiment == 'Positive' || sentiment == 'Negative',
-              'goodCount': sentiment == 'Positive' ? 1 : 0,
-              'badCount': sentiment == 'Negative' ? 1 : 0,
-              'liked': sentiment == 'Positive',
-              'disliked': sentiment == 'Negative',
-              'idFkCustomer': rating_info.idFkCustomer,
-            }
-            as Map<String, Object>,
-      );
+
       setState(() {
         isLoading = false;
       });
