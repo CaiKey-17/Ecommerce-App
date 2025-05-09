@@ -9,12 +9,14 @@ import 'package:app/models/comment_reply_request.dart';
 import 'package:app/models/comment_request.dart';
 import 'package:app/models/coupon_admin_info.dart';
 import 'package:app/models/coupon_info.dart';
+import 'package:app/models/order_statistics.dart';
 
 import 'package:app/models/product_info.dart';
 import 'package:app/models/product_info_detail.dart';
 import 'package:app/models/rating_info.dart';
 import 'package:app/models/resend_otp_request.dart';
 import 'package:app/models/resend_otp_response.dart';
+import 'package:app/models/top_selling_product.dart';
 import 'package:app/models/valid_response.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -42,6 +44,25 @@ class ApiResponse<T> {
       code: json['code'],
       message: json['message'],
       data: json['data'],
+    );
+  }
+}
+
+class ApiResponse1<T> {
+  final int code;
+  final String message;
+  final T? data;
+
+  ApiResponse1({required this.code, required this.message, this.data});
+
+  factory ApiResponse1.fromJson(
+    Map<String, dynamic> json,
+    T Function(dynamic) fromJsonT,
+  ) {
+    return ApiResponse1(
+      code: json['code'],
+      message: json['message'],
+      data: json['data'] != null ? fromJsonT(json['data']) : null,
     );
   }
 }
@@ -266,4 +287,13 @@ abstract class ApiService {
 
   @POST("/order/received")
   Future<ApiResponse> received(@Query("orderId") int orderId);
+
+  @GET("/statistic/user-stats")
+  Future<ApiResponse<Map<String, dynamic>>> getUserStatistics();
+
+  @GET("/statistic/order-stats")
+  Future<ApiResponse<Map<String, dynamic>>> getOrderStatistics();
+
+  @GET("/statistic/top-selling-products")
+  Future<ApiResponse1<List<Map<String, dynamic>>>> getTopSellingProducts();
 }

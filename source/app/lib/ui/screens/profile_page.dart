@@ -243,9 +243,6 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         }
       }),
-      _buildMenuItem(Icons.language, "Thay đổi ngôn ngữ", () {}),
-
-      _buildMenuItem(Icons.security, "Chính sách và điều khoản", () {}),
 
       check
           ? Column(

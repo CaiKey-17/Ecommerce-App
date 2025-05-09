@@ -1,6 +1,7 @@
 package com.example.api.repository;
 
 import com.example.api.dto.OrderSummaryDTO;
+import com.example.api.dto.TopSellingProductDTO;
 import com.example.api.model.Address;
 import com.example.api.model.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -55,6 +56,26 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
         """, nativeQuery = true)
     List<OrderSummaryDTO> findStatusOrdersByCustomerId(@Param("customerId") Integer customerId,@Param("processList") List<String> processList,@Param("status") String status );
 
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.process != 'giohang'")
+    long countOrdersNotInCart();
 
+    @Query("SELECT SUM(o.total) FROM Order o WHERE o.process = 'hoantat'")
+    Long getTotalRevenue();
+
+    @Query(value = """
+        SELECT p.id AS productId,
+               p.name AS productName,
+               SUM(d.quantity) AS totalSold
+        FROM product p
+        JOIN product_variant v ON p.id = v.fk_variant_product
+        JOIN order_details d ON d.fk_product_id = v.id
+        JOIN orders o ON o.id = d.fk_order_id
+        WHERE o.process = 'hoantat'
+        GROUP BY p.id, p.name
+        HAVING SUM(d.quantity) > 0
+        ORDER BY SUM(d.quantity) DESC
+        LIMIT 3
+    """, nativeQuery = true)
+    List<TopSellingProductDTO> findTopSellingProducts();
 
 }
