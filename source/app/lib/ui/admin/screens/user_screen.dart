@@ -27,7 +27,7 @@ class _UserScreenState extends State<UserScreen> {
     try {
       final usersData = await apiAdminService.getAllUsers();
 
-       print("API response: ${usersData.toString()}");
+      print("API response: ${usersData.toString()}");
       setState(() {
         users = usersData;
         isLoading = false;
@@ -67,13 +67,16 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
       appBar: AppBar(
         title: Text(
           "Quản lý người dùng",
-           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       drawer: SideBar(token: token),
       body: Padding(
@@ -83,20 +86,14 @@ class _UserScreenState extends State<UserScreen> {
           children: [Expanded(child: _buildUserList(context))],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+
+      floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
-        icon: Icon(Icons.add, color: Colors.white),
-        label: Text(
-          "Thêm người dùng",
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
         onPressed: () {
           _showAddUserDialog(context);
         },
+        child: Icon(Icons.add, color: Colors.white),
+        shape: CircleBorder(),
       ),
     );
   }
@@ -125,15 +122,15 @@ class _UserScreenState extends State<UserScreen> {
             children: [
               CircleAvatar(
                 backgroundColor: Colors.blue,
-                backgroundImage: user.image.isNotEmpty
-                    ? NetworkImage(user.image)  
-                    : null,  
-                child: user.image.isEmpty
-                    ? Text(
-                        user.id.toString(),
-                        style: TextStyle(color: Colors.white),
-                      )
-                    : null,  
+                backgroundImage:
+                    user.image.isNotEmpty ? NetworkImage(user.image) : null,
+                child:
+                    user.image.isEmpty
+                        ? Text(
+                          user.id.toString(),
+                          style: TextStyle(color: Colors.white),
+                        )
+                        : null,
               ),
               SizedBox(width: 12),
               Expanded(
@@ -148,11 +145,7 @@ class _UserScreenState extends State<UserScreen> {
                       ),
                     ),
                     SizedBox(height: 4),
-                    Text(
-                      user.email,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    
+                    Text(user.email, style: TextStyle(color: Colors.grey[700])),
                   ],
                 ),
               ),
@@ -160,19 +153,23 @@ class _UserScreenState extends State<UserScreen> {
                 onPressed: () async {
                   try {
                     await apiAdminService.toggleUserActive(user.id);
-                    await fetchUsersManager(); 
+                    await fetchUsersManager();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Đã cập nhật trạng thái người dùng")),
+                      SnackBar(
+                        content: Text("Đã cập nhật trạng thái người dùng"),
+                      ),
                     );
                   } catch (e) {
                     print("Lỗi khi cập nhật trạng thái: $e");
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Lỗi khi cập nhật trạng thái người dùng")),
+                      SnackBar(
+                        content: Text("Lỗi khi cập nhật trạng thái người dùng"),
+                      ),
                     );
                   }
                 },
                 icon: Icon(
-                  user.active  != 1 ? Icons.lock : Icons.lock_open,
+                  user.active != 1 ? Icons.lock : Icons.lock_open,
                   color: user.active != 1 ? Colors.red : Colors.green,
                 ),
               ),
@@ -187,14 +184,13 @@ class _UserScreenState extends State<UserScreen> {
 
   Widget _buildPopupMenu(BuildContext context, int userIndex) {
     return PopupMenuButton<String>(
+      color: Colors.white,
       onSelected: (value) {
         if (value == 'view') {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder:
-                  (context) =>
-                      UserDetailsScreen(user: users[userIndex]),
+              builder: (context) => UserDetailsScreen(user: users[userIndex]),
             ),
           );
         } else if (value == 'delete') {
@@ -228,23 +224,23 @@ class _UserScreenState extends State<UserScreen> {
               child: Text("Hủy"),
             ),
             ElevatedButton(
-            onPressed: () async {
-              try {
-                await apiAdminService.deleteUser(users[userIndex].id);
-                setState(() {
-                  users.removeAt(userIndex);
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Xóa người dùng thành công")),
-                );
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Lỗi khi xóa người dùng: $e")),
-                );
-                Navigator.pop(context);
-              }
-            },
+              onPressed: () async {
+                try {
+                  await apiAdminService.deleteUser(users[userIndex].id);
+                  setState(() {
+                    users.removeAt(userIndex);
+                  });
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Xóa người dùng thành công")),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Lỗi khi xóa người dùng: $e")),
+                  );
+                  Navigator.pop(context);
+                }
+              },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: Text("Xóa", style: TextStyle(color: Colors.white)),
             ),

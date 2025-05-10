@@ -76,20 +76,24 @@ class _SideBarState extends State<SideBar> {
                 MaterialPageRoute(builder: (context) => DashboardScreen()),
               );
             }),
-            _buildDrawerItem(Icons.shopping_cart, 'Quản lý loại sản phẩm', () {
+            _buildDrawerItem(Icons.category, 'Quản lý loại sản phẩm', () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => CategoryScreen()),
               );
             }),
 
-            _buildDrawerItem(Icons.shopping_cart, 'Quản lý thương hiệu', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => BrandScreen()),
-              );
-            }),
-            _buildDrawerItem(Icons.shopping_cart, 'Quản lý sản phẩm', () {
+            _buildDrawerItem(
+              Icons.branding_watermark,
+              'Quản lý thương hiệu',
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => BrandScreen()),
+                );
+              },
+            ),
+            _buildDrawerItem(Icons.inventory_2, 'Quản lý sản phẩm', () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ProductScreen()),

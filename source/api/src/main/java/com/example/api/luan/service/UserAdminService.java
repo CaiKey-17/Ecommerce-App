@@ -14,7 +14,7 @@ public class UserAdminService {
     private UsersRepository usersRepository;
 
     public List<UserInfoDTO> getAllUsers() {
-        List<Users> users = usersRepository.findAll();
+        List<Users> users = usersRepository.findAllUsersWithRoleId2();
 
         List<UserInfoDTO> dtoList = new ArrayList<>();
         for (Users user : users) {

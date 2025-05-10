@@ -56,11 +56,7 @@ class _ProductScreenState extends State<ProductScreen> {
   }
 
   String sortOption = "Mặc định";
-  List<String> sortOptions = [
-    "Mặc định",
-    "A - Z",
-    "Z - A",
-  ];
+  List<String> sortOptions = ["Mặc định", "A - Z", "Z - A"];
   bool _showSortBar = true;
   bool _showSearchOptions = false;
   bool _showSearchField = false;
@@ -70,7 +66,6 @@ class _ProductScreenState extends State<ProductScreen> {
   String formatCurrency(double amount) {
     return NumberFormat("#,###", "vi_VN").format(amount);
   }
-
 
   void _sortProducts() {
     setState(() {
@@ -87,11 +82,16 @@ class _ProductScreenState extends State<ProductScreen> {
       if (query.isEmpty) {
         fetchProductsManager();
       } else {
-        products = products.where((product) {
+        products =
+            products.where((product) {
               if (_searchType == "category") {
-                return product.fkCategory!.toLowerCase().contains(query.toLowerCase());
+                return product.fkCategory!.toLowerCase().contains(
+                  query.toLowerCase(),
+                );
               } else if (_searchType == "brand") {
-                return product.fkBrand!.toLowerCase().contains(query.toLowerCase()); 
+                return product.fkBrand!.toLowerCase().contains(
+                  query.toLowerCase(),
+                );
               }
               return true;
             }).toList();
@@ -103,14 +103,16 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: SideBar(token: token),
-      backgroundColor: Colors.grey[200],
+
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           "Quản lý sản phẩm",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -120,39 +122,28 @@ class _ProductScreenState extends State<ProductScreen> {
             if (errorMessage != null)
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  errorMessage!,
-                  style: TextStyle(color: Colors.red),
-                ),
+                child: Text(errorMessage!, style: TextStyle(color: Colors.red)),
               ),
             Expanded(child: _buildProductList()),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.blue.shade700,
-        icon: Icon(Icons.add, color: Colors.white),
-        label: Text(
-          "Thêm sản phẩm",
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blue,
         onPressed: () async {
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder:
-                  (context) => ProductDetailScreen(
-                    isEdit: false,
-                    productInfo: null,
-                  ),
+                  (context) =>
+                      ProductDetailScreen(isEdit: false, productInfo: null),
             ),
           );
           await fetchProductsManager();
         },
+        child: Icon(Icons.add, color: Colors.white),
+        shape: CircleBorder(),
       ),
     );
   }
@@ -167,6 +158,7 @@ class _ProductScreenState extends State<ProductScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 DropdownButton<String>(
+                  dropdownColor: Colors.white,
                   value: sortOption,
                   items:
                       sortOptions.map((String option) {
@@ -185,7 +177,7 @@ class _ProductScreenState extends State<ProductScreen> {
                   },
                 ),
                 IconButton(
-                  icon: Icon(Icons.search, color: Colors.blue.shade700),
+                  icon: Icon(Icons.search, color: Colors.blue),
                   onPressed: () {
                     setState(() {
                       _showSearchOptions = !_showSearchOptions;
@@ -199,7 +191,7 @@ class _ProductScreenState extends State<ProductScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 ElevatedButton(
                   onPressed: () {
@@ -215,6 +207,9 @@ class _ProductScreenState extends State<ProductScreen> {
                     backgroundColor: Color(0xFF1976D2),
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(horizontal: 28, vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: Text("Tìm kiếm theo loại"),
                 ),
@@ -232,6 +227,9 @@ class _ProductScreenState extends State<ProductScreen> {
                     backgroundColor: Color(0xFF1976D2),
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.symmetric(horizontal: 28, vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: Text("Tìm kiếm theo hãng"),
                 ),
@@ -294,109 +292,101 @@ class _ProductScreenState extends State<ProductScreen> {
           //     }
           //     return true;
           //   },
-            child: ListView.builder(
-              padding: EdgeInsets.only(bottom: 100.0),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return Card(
-                  margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 1.5,
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Stack(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildProductImage(product.mainImage),
-                                SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Mã: ${product.id}",
-                                        style: TextStyle(fontSize: 14),
+          child: ListView.builder(
+            padding: EdgeInsets.only(bottom: 100.0),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return Card(
+                color: Colors.white,
+                margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 1.5,
+                child: Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Stack(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildProductImage(product.mainImage),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Mã: ${product.id}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      product.name ?? "Không có tên",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue,
                                       ),
-                                      Text(
-                                        product.name ?? "Không có tên",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                      Text(
-                                        "Loại: ${product.fkCategory ?? 'Không xác định'}",
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                      Text(
-                                        "Hãng: ${product.fkBrand ?? 'Không xác định'}",
-                                        style: TextStyle(fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                    Text(
+                                      "Loại: ${product.fkCategory ?? 'Không xác định'}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      "Hãng: ${product.fkBrand ?? 'Không xác định'}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                          ],
-                        ),
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                products.removeAt(index);
-                              });
-                            },
+                              ),
+                            ],
                           ),
+                          SizedBox(height: 8),
+                        ],
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: IconButton(
+                          icon: Icon(Icons.close, color: Colors.red, size: 20),
+                          onPressed: () {
+                            setState(() {
+                              products.removeAt(index);
+                            });
+                          },
                         ),
-                        Positioned(
-                          top: 40,
-                          right: 1,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.edit,
-                              color: Colors.blue.shade700,
-                              size: 20,
-                            ),
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) => ProductDetailScreen(
-                                        isEdit: true,
-                                        productInfo: product,
-                                      ),
-                                ),
-                              );
-                              await fetchProductsManager();
-                            },
-                          ),
+                      ),
+                      Positioned(
+                        top: 40,
+                        right: 1,
+                        child: IconButton(
+                          icon: Icon(Icons.edit, color: Colors.blue, size: 20),
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => ProductDetailScreen(
+                                      isEdit: true,
+                                      productInfo: product,
+                                    ),
+                              ),
+                            );
+                            await fetchProductsManager();
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
+        ),
       ],
     );
   }
@@ -408,18 +398,13 @@ class _ProductScreenState extends State<ProductScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.grey.shade400, width: 1),
-        image:
-            imagePath != null
-                ? DecorationImage(
-                  image: NetworkImage(imagePath),
-                  fit: BoxFit.cover,
-                )
-                : DecorationImage(
-                  image: AssetImage(
-                    'https://thanhnien.mediacdn.vn/Uploaded/haoph/2021_10_21/jack-va-thien-an-5805.jpeg',
-                  ),
-                  fit: BoxFit.cover,
-                ),
+        image: DecorationImage(
+          image:
+              imagePath != null
+                  ? NetworkImage(imagePath)
+                  : AssetImage('assets/images/default.jpg') as ImageProvider,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
