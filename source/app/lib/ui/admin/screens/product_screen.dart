@@ -1,9 +1,10 @@
+import 'package:app/luan/models/product_info.dart';
+import 'package:app/services/api_admin_service.dart';
 import 'package:app/ui/admin/screens/product_detail_screen.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/sidebar.dart';
-import 'dart:io';
 import 'package:intl/intl.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -13,6 +14,10 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   String token = "";
+  late ApiAdminService apiAdminService;
+  bool isLoading = false;
+  List<ProductInfo> products = [];
+  String? errorMessage;
 
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -21,23 +26,40 @@ class _ProductScreenState extends State<ProductScreen> {
     });
   }
 
+  Future<void> fetchProductsManager() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final productsData = await apiAdminService.getAllProducts();
+      setState(() {
+        products = productsData;
+        isLoading = false;
+      });
+    } catch (e) {
+      errorMessage = "Không thể tải danh sách sản phẩm: $e";
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi khi lấy danh sách sản phẩm: $e")),
+      );
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    apiAdminService = ApiAdminService(Dio());
     _loadUserData();
-    _initializeProducts();
+    fetchProductsManager();
   }
 
-  List<Map<String, dynamic>> products = [];
-  List<String> categories = ["Điện thoại", "Laptop", "Phụ kiện", "Khác"];
-  int productCounter = 1;
   String sortOption = "Mặc định";
   List<String> sortOptions = [
     "Mặc định",
     "A - Z",
     "Z - A",
-    "Giá tăng",
-    "Giá giảm",
   ];
   bool _showSortBar = true;
   bool _showSearchOptions = false;
@@ -45,58 +67,17 @@ class _ProductScreenState extends State<ProductScreen> {
   String _searchType = "";
   final TextEditingController _searchController = TextEditingController();
 
-  void _initializeProducts() {
-    for (int i = 0; i < 5; i++) {
-      _addProduct(
-        "Sản phẩm $i",
-        "1000000",
-        "10",
-        "null",
-        "Điện thoại",
-        "Apple",
-        0,
-      );
-    }
-  }
-
   String formatCurrency(double amount) {
     return NumberFormat("#,###", "vi_VN").format(amount);
   }
 
-  void _addProduct(
-    String name,
-    String price,
-    String quantity,
-    String? image,
-    String category,
-    String brand,
-    double discount,
-  ) {
-    setState(() {
-      products.add({
-        "id": "#00$productCounter",
-        "name": name,
-        "price": double.parse(price),
-        "quantity": int.parse(quantity),
-        "category": category,
-        "brand": brand,
-        "discount": discount,
-        "image": image,
-      });
-      productCounter++;
-    });
-  }
 
   void _sortProducts() {
     setState(() {
       if (sortOption == "A - Z") {
-        products.sort((a, b) => a["name"].compareTo(b["name"]));
+        products.sort((a, b) => a.name!.compareTo(b.name!));
       } else if (sortOption == "Z - A") {
-        products.sort((a, b) => b["name"].compareTo(a["name"]));
-      } else if (sortOption == "Giá tăng") {
-        products.sort((a, b) => a["price"].compareTo(b["price"]));
-      } else if (sortOption == "Giá giảm") {
-        products.sort((a, b) => b["price"].compareTo(a["price"]));
+        products.sort((a, b) => b.name!.compareTo(a.name!));
       }
     });
   }
@@ -104,18 +85,13 @@ class _ProductScreenState extends State<ProductScreen> {
   void _filterProducts(String query) {
     setState(() {
       if (query.isEmpty) {
-        _initializeProducts(); // Reset danh sách nếu không có query
+        fetchProductsManager();
       } else {
-        products =
-            products.where((product) {
+        products = products.where((product) {
               if (_searchType == "category") {
-                return product["category"].toLowerCase().contains(
-                  query.toLowerCase(),
-                );
+                return product.fkCategory!.toLowerCase().contains(query.toLowerCase());
               } else if (_searchType == "brand") {
-                return product["brand"].toLowerCase().contains(
-                  query.toLowerCase(),
-                ); // Sửa từ "name" thành "brand"
+                return product.fkBrand!.toLowerCase().contains(query.toLowerCase()); 
               }
               return true;
             }).toList();
@@ -134,44 +110,48 @@ class _ProductScreenState extends State<ProductScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Column(children: [Expanded(child: _buildProductList())]),
+        child: Column(
+          children: [
+            if (isLoading) CircularProgressIndicator(),
+            if (errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  errorMessage!,
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            Expanded(child: _buildProductList()),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Colors.blue.shade700,
         icon: Icon(Icons.add, color: Colors.white),
         label: Text(
-          "Thêm",
+          "Thêm sản phẩm",
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder:
                   (context) => ProductDetailScreen(
                     isEdit: false,
-                    onSave: (product) {
-                      _addProduct(
-                        product["name"],
-                        product["price"].toString(),
-                        product["quantity"].toString(),
-                        product["image"],
-                        product["category"],
-                        product["brand"],
-                        product["discount"],
-                      );
-                    },
+                    productInfo: null,
                   ),
             ),
           );
+          await fetchProductsManager();
         },
       ),
     );
@@ -285,7 +265,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             _showSearchField = false;
                             _showSortBar = true;
                             _searchController.clear();
-                            _initializeProducts();
+                            fetchProductsManager();
                           });
                         },
                       ),
@@ -299,27 +279,26 @@ class _ProductScreenState extends State<ProductScreen> {
             ),
           ),
         Expanded(
-          child: NotificationListener<ScrollNotification>(
-            onNotification: (ScrollNotification scrollInfo) {
-              if (!_showSearchField && scrollInfo is ScrollUpdateNotification) {
-                if (scrollInfo.scrollDelta! > 0 && _showSortBar) {
-                  setState(() {
-                    _showSortBar = false;
-                  });
-                } else if (scrollInfo.scrollDelta! < 0 && !_showSortBar) {
-                  setState(() {
-                    _showSortBar = true;
-                  });
-                }
-              }
-              return true;
-            },
+          // child: NotificationListener<ScrollNotification>(
+          //   onNotification: (ScrollNotification scrollInfo) {
+          //     if (!_showSearchField && scrollInfo is ScrollUpdateNotification) {
+          //       if (scrollInfo.scrollDelta! > 0 && _showSortBar) {
+          //         setState(() {
+          //           _showSortBar = false;
+          //         });
+          //       } else if (scrollInfo.scrollDelta! < 0 && !_showSortBar) {
+          //         setState(() {
+          //           _showSortBar = true;
+          //         });
+          //       }
+          //     }
+          //     return true;
+          //   },
             child: ListView.builder(
+              padding: EdgeInsets.only(bottom: 100.0),
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final product = products[index];
-                double finalPrice =
-                    product["price"] * (1 - product["discount"] / 100);
                 return Card(
                   margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                   shape: RoundedRectangleBorder(
@@ -336,7 +315,7 @@ class _ProductScreenState extends State<ProductScreen> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildProductImage(product["image"]),
+                                _buildProductImage(product.mainImage),
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
@@ -344,11 +323,11 @@ class _ProductScreenState extends State<ProductScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "Mã: ${product["id"]}",
+                                        "Mã: ${product.id}",
                                         style: TextStyle(fontSize: 14),
                                       ),
                                       Text(
-                                        product["name"],
+                                        product.name ?? "Không có tên",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -356,11 +335,11 @@ class _ProductScreenState extends State<ProductScreen> {
                                         ),
                                       ),
                                       Text(
-                                        "Loại: ${product["category"]}",
+                                        "Loại: ${product.fkCategory ?? 'Không xác định'}",
                                         style: TextStyle(fontSize: 14),
                                       ),
                                       Text(
-                                        "Hãng: ${product["brand"]}",
+                                        "Hãng: ${product.fkBrand ?? 'Không xác định'}",
                                         style: TextStyle(fontSize: 14),
                                       ),
                                     ],
@@ -369,30 +348,6 @@ class _ProductScreenState extends State<ProductScreen> {
                               ],
                             ),
                             SizedBox(height: 8),
-                            Text(
-                              "Giá: ${formatCurrency(product["price"])} VNĐ",
-                            ),
-                            if (product["discount"] > 0)
-                              Text(
-                                "Giảm giá: ${product["discount"]}%",
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            Row(
-                              children: [
-                                Text(
-                                  "Giá sau giảm: ",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  "${formatCurrency(finalPrice)} VNĐ",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text("Tồn kho: ${product["quantity"]}"),
                           ],
                         ),
                         Positioned(
@@ -412,7 +367,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           ),
                         ),
                         Positioned(
-                          top: 60,
+                          top: 40,
                           right: 1,
                           child: IconButton(
                             icon: Icon(
@@ -420,23 +375,18 @@ class _ProductScreenState extends State<ProductScreen> {
                               color: Colors.blue.shade700,
                               size: 20,
                             ),
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder:
                                       (context) => ProductDetailScreen(
                                         isEdit: true,
-                                        product: product,
-                                        productIndex: index,
-                                        onSave: (updatedProduct) {
-                                          setState(() {
-                                            products[index] = updatedProduct;
-                                          });
-                                        },
+                                        productInfo: product,
                                       ),
                                 ),
                               );
+                              await fetchProductsManager();
                             },
                           ),
                         ),
@@ -447,7 +397,6 @@ class _ProductScreenState extends State<ProductScreen> {
               },
             ),
           ),
-        ),
       ],
     );
   }
@@ -462,7 +411,7 @@ class _ProductScreenState extends State<ProductScreen> {
         image:
             imagePath != null
                 ? DecorationImage(
-                  image: FileImage(File(imagePath)),
+                  image: NetworkImage(imagePath),
                   fit: BoxFit.cover,
                 )
                 : DecorationImage(

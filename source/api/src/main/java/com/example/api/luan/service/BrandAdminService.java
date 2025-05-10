@@ -42,4 +42,8 @@ public class BrandAdminService {
     public void deleteBrand(String name) {
         brandRepository.deleteById(name);
     }
+
+    public List<String> getAllBrandNames() {
+        return brandRepository.findAllBrandNames();
+    }
 }

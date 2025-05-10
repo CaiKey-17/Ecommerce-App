@@ -55,4 +55,9 @@ public class BrandAdminController {
         brandService.deleteBrand(name);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/names")
+    public List<String> getAllBrandNames() {
+        return brandService.getAllBrandNames();
+    }
 }
