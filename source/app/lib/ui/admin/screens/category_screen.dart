@@ -57,13 +57,16 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
       appBar: AppBar(
         title: Text(
           "Quản lý loại sản phẩm",
-           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       drawer: SideBar(token: token),
       body:
@@ -76,18 +79,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   children: [Expanded(child: _buildCategoryList(context))],
                 ),
               ),
-      floatingActionButton: FloatingActionButton.extended(
+
+      floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
-        icon: Icon(Icons.add, color: Colors.white),
-        label: Text(
-          "Thêm loại",
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        onPressed: () => _showCategoryDialog(context, isEdit: false),
+        onPressed: () {
+          _showCategoryDialog(context, isEdit: false);
+        },
+        child: Icon(Icons.add, color: Colors.white),
+        shape: CircleBorder(),
       ),
     );
   }
@@ -106,7 +105,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withOpacity(0.3),
                 blurRadius: 4,
                 offset: Offset(0, 2),
               ),
@@ -144,6 +143,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Widget _buildPopupMenu(BuildContext context, int categoryIndex) {
     return PopupMenuButton<String>(
+      color: Colors.white,
       onSelected: (value) {
         if (value == 'edit') {
           _showCategoryDialog(
@@ -184,6 +184,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -209,12 +210,18 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       controller: nameController,
                       enabled: !isEdit,
                       decoration: InputDecoration(
-                        labelText: "Tên tloại",
+                        labelText: "Tên loại",
                         labelStyle: TextStyle(
                           fontSize: 14,
                           color: Colors.black54,
                         ),
                         border: OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.blue,
+                            width: 2.0,
+                          ),
+                        ),
                       ),
                       style: TextStyle(fontSize: 16, color: Colors.black),
                     ),
@@ -226,7 +233,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     "Đóng",
-                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ),
                 TextButton(
@@ -275,7 +282,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   },
                   child: Text(
                     "Xong",
-                    style: TextStyle(fontSize: 16, color: Colors.green),
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
                   ),
                 ),
               ],
@@ -306,9 +313,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   await apiAdminService.deleteCategory(
                     categories[categoryIndex].name!,
                   );
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text("Xóa loại sản phẩm thành công")));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Xóa loại sản phẩm thành công")),
+                  );
                   await fetchCategoriesManager();
                   Navigator.pop(context);
                 } catch (e) {

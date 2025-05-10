@@ -57,14 +57,17 @@ class _BrandScreenState extends State<BrandScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
       appBar: AppBar(
         title: Text(
           "Quản lý thương hiệu",
-           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
-          ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
       drawer: SideBar(token: token),
       body:
           isLoading
@@ -76,18 +79,14 @@ class _BrandScreenState extends State<BrandScreen> {
                   children: [Expanded(child: _buildBrandList(context))],
                 ),
               ),
-      floatingActionButton: FloatingActionButton.extended(
+
+      floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
-        icon: Icon(Icons.add, color: Colors.white),
-        label: Text(
-          "Thêm thương hiệu",
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        onPressed: () => _showBrandDialog(context, isEdit: false),
+        onPressed: () {
+          _showBrandDialog(context, isEdit: false);
+        },
+        child: Icon(Icons.add, color: Colors.white),
+        shape: CircleBorder(),
       ),
     );
   }
@@ -106,13 +105,13 @@ class _BrandScreenState extends State<BrandScreen> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withOpacity(0.3),
                 blurRadius: 4,
                 offset: Offset(0, 2),
               ),
             ],
           ),
-          
+
           child: Row(
             children: [
               SizedBox(
@@ -152,6 +151,7 @@ class _BrandScreenState extends State<BrandScreen> {
           _confirmDeleteBrand(context, brandIndex);
         }
       },
+      color: Colors.white,
       itemBuilder:
           (context) => [
             PopupMenuItem(value: 'edit', child: Text('Chỉnh sửa')),
@@ -181,6 +181,7 @@ class _BrandScreenState extends State<BrandScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -212,6 +213,12 @@ class _BrandScreenState extends State<BrandScreen> {
                           color: Colors.black54,
                         ),
                         border: OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.blue,
+                            width: 2.0,
+                          ),
+                        ),
                       ),
                       style: TextStyle(fontSize: 16, color: Colors.black),
                     ),
@@ -223,7 +230,7 @@ class _BrandScreenState extends State<BrandScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: Text(
                     "Đóng",
-                    style: TextStyle(fontSize: 16, color: Colors.blue),
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ),
                 TextButton(
@@ -269,7 +276,7 @@ class _BrandScreenState extends State<BrandScreen> {
                   },
                   child: Text(
                     "Xong",
-                    style: TextStyle(fontSize: 16, color: Colors.green),
+                    style: TextStyle(fontSize: 16, color: Colors.blue),
                   ),
                 ),
               ],

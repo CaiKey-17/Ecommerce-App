@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class BrandImagePicker extends StatefulWidget {
   final String? imageUrl;
-  final ValueChanged<String?>? onImageChanged; 
+  final ValueChanged<String?>? onImageChanged;
 
   const BrandImagePicker({super.key, this.imageUrl, this.onImageChanged});
 
@@ -75,20 +75,19 @@ class _BrandImagePickerState extends State<BrandImagePicker> {
         widget.onImageChanged?.call(_imageUrl);
 
         print("✅ Upload thành công: $_imageUrl");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Tải ảnh lên thành công")),
-        );
       } else {
         print("❌ Lỗi khi upload: ${jsonResponse['error']['message']}");
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Lỗi tải ảnh: ${jsonResponse['error']['message']}")),
+          SnackBar(
+            content: Text("Lỗi tải ảnh: ${jsonResponse['error']['message']}"),
+          ),
         );
       }
     } catch (e) {
       print("❌ Lỗi upload: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Lỗi tải ảnh: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Lỗi tải ảnh: $e")));
     }
 
     setState(() => _isUploading = false);
@@ -104,30 +103,30 @@ class _BrandImagePickerState extends State<BrandImagePicker> {
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(8),
-          image: _imageUrl?.isNotEmpty == true
-              ? DecorationImage(
-                  image: NetworkImage(_imageUrl!),
-                  fit: BoxFit.cover,
-                )
-              : widget.imageUrl?.isNotEmpty == true
-                  ? DecorationImage(
-                      image: NetworkImage(widget.imageUrl!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
+          image: DecorationImage(
+            image:
+                _imageUrl?.isNotEmpty == true
+                    ? NetworkImage(_imageUrl!)
+                    : widget.imageUrl?.isNotEmpty == true
+                    ? NetworkImage(widget.imageUrl!)
+                    : AssetImage('assets/images/default.jpg') as ImageProvider,
+            fit: BoxFit.cover,
+          ),
         ),
-        child: _imageUrl?.isNotEmpty == true || widget.imageUrl?.isNotEmpty == true
-            ? null
-            : _isUploading
-                ? const Center(
-                  child: SizedBox(
-                    width: 30,
-                    height: 30,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                )
 
-                : const Icon(Icons.image, size: 40, color: Colors.grey),
+        child:
+            (_imageUrl?.isNotEmpty != true &&
+                    widget.imageUrl?.isNotEmpty != true)
+                ? (_isUploading
+                    ? const Center(
+                      child: SizedBox(
+                        width: 30,
+                        height: 30,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                    : null)
+                : null,
       ),
     );
   }
