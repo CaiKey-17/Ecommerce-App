@@ -7,6 +7,7 @@ import 'package:app/repositories/cart_repository.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/services/cart_service.dart';
 import 'package:app/ui/product/main_brand.dart';
+import 'package:app/ui/product/product_details.dart';
 import 'package:app/ui/screens/shopping_page.dart';
 import 'package:app/ui/product/search_page.dart';
 import 'package:dio/dio.dart';
@@ -258,12 +259,17 @@ class _CategoryPageState extends State<CategoryPage> {
                 );
               },
               child: badges.Badge(
+                showBadge: cartProvider.cartItemCount > 0,
                 badgeContent: Text(
                   cartProvider.cartItemCount.toString(),
-
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(fontSize: 12, color: Colors.white),
                 ),
-                child: Icon(Icons.card_travel_outlined),
+                badgeStyle: badges.BadgeStyle(
+                  badgeColor: Colors.redAccent,
+                  elevation: 0,
+                ),
+                position: badges.BadgePosition.topEnd(top: -6, end: -6),
+                child: Icon(Icons.shopping_cart_outlined),
               ),
             ),
           ),
@@ -273,11 +279,6 @@ class _CategoryPageState extends State<CategoryPage> {
         children: [
           const SizedBox(height: 8),
 
-          AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            height: isCollapsed ? 0 : 50,
-            child: isCollapsed ? SizedBox.shrink() : _buildFilterBar(brands),
-          ),
           AnimatedContainer(
             duration: Duration(milliseconds: 200),
             height: isCollapsed ? 0 : 40,
@@ -614,121 +615,136 @@ class _CategoryPageState extends State<CategoryPage> {
   }
 
   Widget _buildProductItem(ProductInfo product) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 5,
-            spreadRadius: 2,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductPage(productId: product.id),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-            child: Image.network(
-              product.image ?? 'assets/images/linhkien.webp',
-              width: double.infinity,
-              height: 150,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 150,
-                  color: Colors.grey.shade200,
-                  child: const Center(child: Icon(Icons.image_not_supported)),
-                );
-              },
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade300,
+              blurRadius: 5,
+              spreadRadius: 2,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.name ?? "",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  product.description ?? "",
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
-
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                if (product.discountPercent > 0)
-                  Row(
-                    children: [
-                      Text(
-                        product.oldPrice.toString() ?? "",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "- ${product.discountPercent}%" ?? "",
-                        style: const TextStyle(fontSize: 12, color: Colors.red),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {
-                  cartService.addToCart(
-                    productID: product.idVariant,
-                    colorId: product.idColor,
-                    id: product.id,
-                    token: token,
-                    context: context,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(10),
+              ),
+              child: Image.network(
+                product.image ?? 'assets/images/linhkien.webp',
+                width: double.infinity,
+                height: 150,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 150,
+                    color: Colors.grey.shade200,
+                    child: const Center(child: Icon(Icons.image_not_supported)),
                   );
                 },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.blue, width: 1),
-                  foregroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 9),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name ?? "",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                child: const Text(
-                  "Thêm giỏ hàng",
-                  style: TextStyle(fontSize: 14),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.description ?? "",
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "${ConvertMoney.currencyFormatter.format(product.price)} ₫",
+
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  if (product.discountPercent > 0)
+                    Row(
+                      children: [
+                        Text(
+                          product.oldPrice.toString() ?? "",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "- ${product.discountPercent}%" ?? "",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    cartService.addToCart(
+                      productID: product.idVariant,
+                      colorId: product.idColor,
+                      id: product.id,
+                      token: token,
+                      context: context,
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.blue, width: 1),
+                    foregroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    "Thêm giỏ hàng",
+                    style: TextStyle(fontSize: 14),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

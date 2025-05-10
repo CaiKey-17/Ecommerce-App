@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:app/globals/ip.dart';
 import 'package:app/ui/product/main_category.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -29,7 +30,7 @@ class ImageUploader {
 
     var request = http.MultipartRequest(
       'POST',
-      Uri.parse("http://192.168.70.182:5002/detect/"),
+      Uri.parse(ApiConfig.baseUrlDetect),
     );
     request.files.add(await http.MultipartFile.fromPath('file', _image!.path));
 

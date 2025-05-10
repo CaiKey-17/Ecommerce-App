@@ -1,3 +1,4 @@
+import 'package:app/globals/ip.dart';
 import 'package:app/models/address.dart';
 import 'package:app/models/address_response.dart';
 import 'package:app/models/admin_info.dart';
@@ -6,13 +7,16 @@ import 'package:app/models/comment.dart';
 import 'package:app/models/comment_info.dart';
 import 'package:app/models/comment_reply_request.dart';
 import 'package:app/models/comment_request.dart';
+import 'package:app/models/coupon_admin_info.dart';
 import 'package:app/models/coupon_info.dart';
+import 'package:app/models/order_statistics.dart';
 
 import 'package:app/models/product_info.dart';
 import 'package:app/models/product_info_detail.dart';
 import 'package:app/models/rating_info.dart';
 import 'package:app/models/resend_otp_request.dart';
 import 'package:app/models/resend_otp_response.dart';
+import 'package:app/models/top_selling_product.dart';
 import 'package:app/models/valid_response.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
@@ -44,7 +48,26 @@ class ApiResponse<T> {
   }
 }
 
-@RestApi(baseUrl: "http://192.168.1.5:8080/api")
+class ApiResponse1<T> {
+  final int code;
+  final String message;
+  final T? data;
+
+  ApiResponse1({required this.code, required this.message, this.data});
+
+  factory ApiResponse1.fromJson(
+    Map<String, dynamic> json,
+    T Function(dynamic) fromJsonT,
+  ) {
+    return ApiResponse1(
+      code: json['code'],
+      message: json['message'],
+      data: json['data'] != null ? fromJsonT(json['data']) : null,
+    );
+  }
+}
+
+@RestApi(baseUrl: ApiConfig.baseUrlAPI)
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 
@@ -181,6 +204,9 @@ abstract class ApiService {
     @Query("id") int? id,
   });
 
+  @GET("/cart/list-detail")
+  Future<List<CartInfo>> getItemInCartDetail({@Query("orderId") int? orderId});
+
   @GET("/cart/quantity")
   Future<Map<String, dynamic>> getRawQuantityInCart(
     @Query("userId") int? userId,
@@ -190,7 +216,22 @@ abstract class ApiService {
   Future<void> sendResetPassword(@Query("email") String email);
 
   @GET("/coupon/find")
-  Future<Coupon> findCoupon(@Query("name") String name);
+  Future<Coupon> findCoupon(
+    @Query("name") String name,
+    @Query("price") double price,
+  );
+
+  @GET("/coupon")
+  Future<CouponAdmin> listCoupon();
+
+  @POST("/coupon")
+  Future<void> addCoupon(
+    @Query("couponValue") int couponValue,
+    @Query("maxAllowedUses") int maxAllowedUses,
+    @Query("minOrderValue") int minOrderValue,
+  );
+  @POST("/coupon/delete")
+  Future<void> deleteCoupon(@Query("id") int id);
 
   @POST("/cart/add")
   Future<Map<String, dynamic>> addToCart(
@@ -246,4 +287,13 @@ abstract class ApiService {
 
   @POST("/order/received")
   Future<ApiResponse> received(@Query("orderId") int orderId);
+
+  @GET("/statistic/user-stats")
+  Future<ApiResponse<Map<String, dynamic>>> getUserStatistics();
+
+  @GET("/statistic/order-stats")
+  Future<ApiResponse<Map<String, dynamic>>> getOrderStatistics();
+
+  @GET("/statistic/top-selling-products")
+  Future<ApiResponse1<List<Map<String, dynamic>>>> getTopSellingProducts();
 }

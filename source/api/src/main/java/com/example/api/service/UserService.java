@@ -111,6 +111,10 @@ public class UserService {
         return otp.equals(otpStorage.get(email));
     }
 
+    public Map<String, Long> getUserStatistics() {
+        return userRepository.getTotalUsersAndNewUsers();
+    }
+
 
     @Transactional
     public void registerUser(String email, String password, String address, String fullname,String codes) {

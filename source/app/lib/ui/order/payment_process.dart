@@ -219,9 +219,10 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     return appliedDiscount + appliedMemberPoints;
   }
 
-  Future<void> fetchCoupon(String name) async {
+  Future<void> fetchCoupon(String name, double totalAmount) async {
+    print(totalAmount.toString());
     try {
-      final response = await apiService.findCoupon(name);
+      final response = await apiService.findCoupon(name, totalAmount);
 
       setState(() {
         isLoading = false;
@@ -761,7 +762,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               onChanged: (value) {
                 _couponController.notifyListeners();
               },
-              onSubmitted: (value) => fetchCoupon(value),
+              onSubmitted: (value) => fetchCoupon(value, totalAmount),
             ),
           ),
         ),
@@ -777,7 +778,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                     value.text.isNotEmpty
                         ? () {
                           FocusScope.of(context).unfocus();
-                          fetchCoupon(value.text);
+                          fetchCoupon(value.text, totalAmount);
                         }
                         : null,
                 style: ElevatedButton.styleFrom(

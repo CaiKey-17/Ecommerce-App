@@ -1,3 +1,4 @@
+import 'package:app/globals/ip.dart';
 import 'package:app/models/category_info.dart';
 import 'package:app/models/coupon_info.dart';
 import 'package:app/models/product_info.dart';
@@ -22,7 +23,7 @@ import '../models/cart_info.dart';
 
 part 'api_service_sentiment.g.dart';
 
-@RestApi(baseUrl: "http://172.16.10.26:5001")
+@RestApi(baseUrl: ApiConfig.baseUrlSentiment)
 abstract class ApiServiceSentiment {
   factory ApiServiceSentiment(Dio dio, {String baseUrl}) = _ApiServiceSentiment;
 

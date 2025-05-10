@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/cart_provider.dart';
 import 'ui/main_page.dart';
 import 'ui/login/login_page.dart';
@@ -23,17 +24,22 @@ void main() async {
   runApp(MyApp(apiService: apiService));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final ApiService apiService;
 
   const MyApp({super.key, required this.apiService});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => CartProvider(apiService: apiService),
+          create: (_) => CartProvider(apiService: widget.apiService),
         ),
         ChangeNotifierProvider(create: (_) => UserPointsProvider()),
       ],
@@ -64,12 +70,25 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  String role = "";
+
+  Future<void> _navigateAfterDelay() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String role = prefs.getString('role') ?? "";
+
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (role == "ROLE_ADMIN") {
+      Navigator.pushNamedAndRemoveUntil(context, "/manager", (route) => false);
+    } else {
+      Navigator.pushNamedAndRemoveUntil(context, "/main", (route) => false);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacementNamed('/main');
-    });
+    _navigateAfterDelay();
   }
 
   @override

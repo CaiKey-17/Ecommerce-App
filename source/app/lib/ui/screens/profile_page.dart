@@ -7,6 +7,7 @@ import 'package:app/ui/login/login_page.dart';
 import 'package:app/ui/login/register_page.dart';
 import 'package:app/ui/profile/address_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
@@ -203,35 +204,57 @@ class _ProfilePageState extends State<ProfilePage> {
   List<Widget> _buildMenuItems() {
     List<Widget> items = [
       _buildMenuItem(Icons.person, "Thay đổi thông tin cá nhân", () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => EditProfilePage(fullName: fullName, email: email),
-          ),
-        ).then((_) => _loadUserData());
+        if (token.isEmpty) {
+          Fluttertoast.showToast(
+            msg: "Vui lòng đăng nhập",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.black54,
+            textColor: Colors.white,
+            fontSize: 14.0,
+          );
+          return;
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) =>
+                      EditProfilePage(fullName: fullName, email: email),
+            ),
+          ).then((_) => _loadUserData());
+        }
       }),
       _buildMenuItem(Icons.location_history_outlined, "Sổ địa chỉ", () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => AddressListScreen()),
-        );
+        if (token.isEmpty) {
+          Fluttertoast.showToast(
+            msg: "Vui lòng đăng nhập",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.black54,
+            textColor: Colors.white,
+            fontSize: 14.0,
+          );
+          return;
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddressListScreen()),
+          );
+        }
       }),
-      _buildMenuItem(Icons.language, "Thay đổi ngôn ngữ", () {}),
 
-      _buildMenuItem(Icons.security, "Chính sách và điều khoản", () {}),
-
-      _buildMenuItem(Icons.password_rounded, "Thay đổi mật khẩu", () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChangePasswordScreen(token: token),
-          ),
-        );
-      }),
       check
           ? Column(
             children: [
+              _buildMenuItem(Icons.password_rounded, "Thay đổi mật khẩu", () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChangePasswordScreen(token: token),
+                  ),
+                );
+              }),
               _buildMenuItem(Icons.logout, "Đăng xuất", () {
                 LogoutHelper.confirmLogout(context, () {});
               }),

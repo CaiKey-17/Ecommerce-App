@@ -2,6 +2,7 @@ import 'package:app/globals/logout.dart';
 import 'package:app/providers/profile_image_picker.dart';
 import 'package:app/ui/admin/screens/brand_screen.dart';
 import 'package:app/ui/admin/screens/category_screen.dart';
+import 'package:app/ui/chat/admin_chat_list_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,10 +24,14 @@ class SideBar extends StatefulWidget {
 
 class _SideBarState extends State<SideBar> {
   String image_url = "";
+  String fullName = "";
+  int? userId;
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       image_url = prefs.getString('image') ?? "";
+      fullName = prefs.getString('fullName') ?? "";
+      userId = prefs.getInt('userId') ?? -1;
     });
   }
 
@@ -39,11 +44,12 @@ class _SideBarState extends State<SideBar> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.white,
       child: SingleChildScrollView(
         child: Column(
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue[700]),
+              decoration: BoxDecoration(color: Colors.blue),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -55,9 +61,9 @@ class _SideBarState extends State<SideBar> {
                     ),
                     child: ProfileImagePicker(imageUrl: image_url),
                   ),
-                  const SizedBox(width: 12), // khoảng cách giữa ảnh và text
-                  const Text(
-                    'Admin Panel',
+                  const SizedBox(width: 12),
+                  Text(
+                    fullName,
                     style: TextStyle(color: Colors.white, fontSize: 22),
                   ),
                 ],
@@ -110,7 +116,9 @@ class _SideBarState extends State<SideBar> {
             _buildDrawerItem(Icons.support_agent, 'Hỗ trợ khách hàng', () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SupportScreen()),
+                MaterialPageRoute(
+                  builder: (context) => AdminChatListPage(userId: userId!),
+                ),
               );
             }),
 

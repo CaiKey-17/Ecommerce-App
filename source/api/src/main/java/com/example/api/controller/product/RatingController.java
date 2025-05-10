@@ -7,6 +7,7 @@ import com.example.api.service.BrandService;
 import com.example.api.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,9 @@ public class RatingController {
 
     @Autowired
     private RatingService ratingService;
+    @Autowired
+
+    private SimpMessagingTemplate messagingTemplate;
 
     public RatingController(RatingService ratingService) {
         this.ratingService = ratingService;
@@ -30,6 +34,16 @@ public class RatingController {
         }
         return ResponseEntity.ok(ratings);
     }
+//    @PostMapping("/product/{productId}")
+//    public ResponseEntity<Rating> createRating(
+//            @PathVariable Integer productId,
+//            @RequestBody Rating rating
+//    ) {
+//        rating.setId_fk_product(productId);
+//        Rating savedRating = ratingService.saveRating(rating);
+//        return ResponseEntity.ok(savedRating);
+//    }
+
     @PostMapping("/product/{productId}")
     public ResponseEntity<Rating> createRating(
             @PathVariable Integer productId,
@@ -37,10 +51,11 @@ public class RatingController {
     ) {
         rating.setId_fk_product(productId);
         Rating savedRating = ratingService.saveRating(rating);
+
+        messagingTemplate.convertAndSend("/topic/ratings/" + productId, savedRating);
+
         return ResponseEntity.ok(savedRating);
     }
-
-
 
 
 }

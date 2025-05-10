@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:app/ui/ai/detect_image.dart';
+import 'package:app/ui/product/main_search.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -1196,9 +1197,7 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    CategoryPage(selectedCategory: "Giảm giá"),
+                            builder: (context) => SearchByNamePage(name: ""),
                           ),
                         );
                       },

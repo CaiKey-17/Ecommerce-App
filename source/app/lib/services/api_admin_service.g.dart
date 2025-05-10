@@ -13,7 +13,8 @@ class _ApiAdminService implements ApiAdminService {
     this._dio, {
     this.baseUrl,
   }) {
-    baseUrl ??= 'http://192.168.1.5:8080/api';
+
+    baseUrl ??= 'http://192.168.70.182:8080/api';
   }
 
   final Dio _dio;

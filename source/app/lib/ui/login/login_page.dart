@@ -379,9 +379,8 @@ class _LoginPageState extends State<LoginPage> {
                       _passwordFocusNode.unfocus();
                     },
                   ),
-                  SizedBox(height: screenHeight * 0.015),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         onPressed: () {
@@ -394,10 +393,7 @@ class _LoginPageState extends State<LoginPage> {
                         },
                         child: Text(
                           "Quên mật khẩu?",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: screenWidth * 0.04,
-                          ),
+                          style: TextStyle(color: Colors.blue, fontSize: 15),
                         ),
                       ),
                     ],

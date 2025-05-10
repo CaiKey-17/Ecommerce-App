@@ -209,8 +209,10 @@ CREATE PROCEDURE `Cancel` (IN `p_OrderId` INT)   BEGIN
         WHERE id = p_OrderId;
 
         UPDATE coupons
-        SET max_allowed_uses = max_allowed_uses + 1
+        SET used_count = used_count - 1
         WHERE id = v_couponId;
+
+       
 
         UPDATE customer
         SET points = points+ v_points/1000
@@ -386,7 +388,7 @@ SET pc.quantity = pc.quantity - sub.total_quantity;
         
         IF p_FkCouponId != -1 THEN
             UPDATE coupons
-            SET max_allowed_uses = max_allowed_uses -1
+            SET used_count = used_count +1
             WHERE id = p_FkCouponId;
         END IF;
         

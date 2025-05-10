@@ -1,37 +1,51 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:app/globals/ip.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
+import 'chat_model.dart';
+import 'package:http/http.dart' as http;
 
-class ChatScreen extends StatefulWidget {
+class AdminChatDetailPage extends StatefulWidget {
   final int userId;
+  final int sentId;
+  final String userName;
 
-  ChatScreen({required this.userId});
+  final StompClient stompClient;
+  final Function(String) onMessageSent;
+
+  AdminChatDetailPage({
+    required this.userId,
+    required this.userName,
+    required this.sentId,
+    required this.stompClient,
+    required this.onMessageSent,
+  });
 
   @override
-  _ChatScreenState createState() => _ChatScreenState();
+  _AdminChatDetailPageState createState() => _AdminChatDetailPageState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _AdminChatDetailPageState extends State<AdminChatDetailPage> {
   late StompClient _stompClient;
   List<Map<String, dynamic>> _messages = [];
-  TextEditingController _messageController = TextEditingController();
-  late int _receiverId;
-  final ScrollController _scrollController = ScrollController();
-  bool _showEmojiPicker = false;
   File? _selectedImage;
   String? _imageUrl;
   bool _isUploading = false;
 
+  TextEditingController _messageController = TextEditingController();
+  late int _receiverId;
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
-    _receiverId = 143;
+    _stompClient = widget.stompClient;
+    _receiverId = widget.sentId;
     _connectWebSocket();
     _loadMessages();
   }
@@ -55,10 +69,14 @@ class _ChatScreenState extends State<ChatScreen> {
       callback: (frame) {
         if (frame.body != null) {
           final received = jsonDecode(frame.body!);
-          setState(() {
-            _messages.add(received);
-          });
-          _scrollToBottom();
+
+          if (received['receiver_id'] == widget.userId ||
+              received['sender_id'] == widget.userId) {
+            setState(() {
+              _messages.add(received);
+            });
+            _scrollToBottom();
+          }
         }
       },
     );
@@ -241,7 +259,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    _stompClient.deactivate();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -256,7 +273,7 @@ class _ChatScreenState extends State<ChatScreen> {
           icon: Icon(Icons.arrow_back_ios_rounded),
           onPressed: () => {Navigator.pop(context)},
         ),
-        title: Text("Bộ phận CSKH", style: TextStyle(color: Colors.white)),
+        title: Text(widget.userName, style: TextStyle(color: Colors.white)),
         centerTitle: true,
         backgroundColor: Colors.blue,
         iconTheme: IconThemeData(color: Colors.white),
@@ -270,6 +287,7 @@ class _ChatScreenState extends State<ChatScreen> {
               itemBuilder: (ctx, i) => _buildMessageBubble(_messages[i]),
             ),
           ),
+          Divider(height: 1),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             child: Row(

@@ -25,6 +25,10 @@ public class OrderDetailService {
         return orderDetailRepository.findOrderDetailsByCustomerId(customerId,process);
     }
 
+    public List<OrderDetailProjection> getOrderDetailsByCustomerIdDetail(Integer orderId) {
+        return orderDetailRepository.findOrderDetailsByCustomerIdDetail(orderId);
+    }
+
     public List<OrderDetailProjection> getOrderDetailsByCustomerIdAndOrderId(Integer customerId,String process,int orderId) {
         return orderDetailRepository.findOrderDetailsByCustomerIdAndOrderId(customerId,process,orderId);
     }

@@ -587,7 +587,7 @@ public class ProductService {
                 if (maxPrice != null && price > maxPrice) continue;
 
                 Double avgRating = productRepository.findAvgRatingByProductId(product.getId());
-                if (rating != null && (avgRating == null || avgRating < rating)) continue;
+                if (rating != null && (avgRating == null || !avgRating.equals(rating))) continue;
 
                 List<Product_color> colors = productColorRepository.findByFkVariantProduct(variant.getId());
 

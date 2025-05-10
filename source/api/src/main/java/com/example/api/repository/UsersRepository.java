@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 
 public interface UsersRepository extends JpaRepository<Users, Integer> {
@@ -29,6 +30,20 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
     @Modifying
     @Query("UPDATE Users u SET u.fullName = :fullName WHERE u.id = :id")
     void updateFullNameById(@Param("id") Integer id, @Param("fullName") String fullName);
+    Optional<Users> findById(Integer id);
+
+
+    @Query("SELECT " +
+            "COUNT(u) AS total_users, " +
+            "SUM(CASE " +
+            "WHEN FUNCTION('MONTH', u.createdAt) = FUNCTION('MONTH', CURRENT_DATE) " +
+            "AND FUNCTION('YEAR', u.createdAt) = FUNCTION('YEAR', CURRENT_DATE) THEN 1 " +
+            "ELSE 0 " +
+            "END) AS new_users " +
+            "FROM Users u " +
+            "JOIN u.roles r " +
+            "WHERE r.id = 2")
+    Map<String, Long> getTotalUsersAndNewUsers();
 
 }
 
