@@ -57,7 +57,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Quản lý loại sản phẩm")),
+      appBar: AppBar(
+        title: Text(
+          "Quản lý loại sản phẩm",
+           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+          ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+      ),
       drawer: SideBar(token: token),
       body:
           isLoading

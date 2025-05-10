@@ -56,4 +56,9 @@ public class CategoryAdminController {
         categoryService.deleteCategory(name);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/names")
+    public List<String> getAllCategoryNames() {
+        return categoryService.getAllCategoryNames();
+    }
 }

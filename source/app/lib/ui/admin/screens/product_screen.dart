@@ -110,7 +110,7 @@ class _ProductScreenState extends State<ProductScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -140,19 +140,18 @@ class _ProductScreenState extends State<ProductScreen> {
             color: Colors.white,
           ),
         ),
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder:
                   (context) => ProductDetailScreen(
                     isEdit: false,
-                    onSave: (product) {
-                      
-                    },
+                    productInfo: null,
                   ),
             ),
           );
+          await fetchProductsManager();
         },
       ),
     );
@@ -296,6 +295,7 @@ class _ProductScreenState extends State<ProductScreen> {
           //     return true;
           //   },
             child: ListView.builder(
+              padding: EdgeInsets.only(bottom: 100.0),
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final product = products[index];
@@ -375,23 +375,18 @@ class _ProductScreenState extends State<ProductScreen> {
                               color: Colors.blue.shade700,
                               size: 20,
                             ),
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder:
                                       (context) => ProductDetailScreen(
                                         isEdit: true,
-                                        product: product.toJson(),
-                                        productIndex: index,
-                                        onSave: (updatedProduct) {
-                                          setState(() {
-                                            ProductInfo.fromJson(updatedProduct);
-                                          });
-                                        },
+                                        productInfo: product,
                                       ),
                                 ),
                               );
+                              await fetchProductsManager();
                             },
                           ),
                         ),

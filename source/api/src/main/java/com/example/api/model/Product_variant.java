@@ -1,5 +1,6 @@
 package com.example.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Formula;
@@ -27,7 +28,7 @@ public class Product_variant {
     private Double originalPrice;
 
     private Integer discountPercent;
-    @Column(name = "price", nullable = true)
+    @Column(name = "price", nullable = true, insertable = false, updatable = false)
     private Double price;
 
 
@@ -87,6 +88,7 @@ public class Product_variant {
         return price;
     }
 
+    @JsonIgnore
     public void setPrice(Double price) {
         this.price = price;
     }

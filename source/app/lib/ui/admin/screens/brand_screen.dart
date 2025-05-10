@@ -57,7 +57,14 @@ class _BrandScreenState extends State<BrandScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Quản lý thương hiệu")),
+      appBar: AppBar(
+        title: Text(
+          "Quản lý thương hiệu",
+           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+          ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        ),
       drawer: SideBar(token: token),
       body:
           isLoading

@@ -44,4 +44,8 @@ public class CategoryAdminService {
     public void deleteCategory(String name) {
         categoryRepository.deleteById(name);
     }
+
+    public List<String> getAllCategoryNames() {
+        return categoryRepository.findAllCategoryNames();
+    }
 }

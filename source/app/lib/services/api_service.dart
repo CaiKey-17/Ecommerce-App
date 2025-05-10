@@ -44,7 +44,7 @@ class ApiResponse<T> {
   }
 }
 
-@RestApi(baseUrl: "http://172.16.10.26:8080/api")
+@RestApi(baseUrl: "http://192.168.1.5:8080/api")
 abstract class ApiService {
   factory ApiService(Dio dio, {String baseUrl}) = _ApiService;
 

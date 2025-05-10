@@ -67,7 +67,14 @@ class _UserScreenState extends State<UserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Quản lý người dùng")),
+      appBar: AppBar(
+        title: Text(
+          "Quản lý người dùng",
+           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+          ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+      ),
       drawer: SideBar(token: token),
       body: Padding(
         padding: const EdgeInsets.only(left: 10, right: 10),
