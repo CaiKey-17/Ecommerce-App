@@ -13,7 +13,7 @@ import 'package:intl/intl.dart';
 import '../widgets/sidebar.dart';
 
 class OrderScreen extends StatefulWidget {
-  final int? couponId; // Thêm tham số couponId tùy chọn
+  final int? couponId;
 
   const OrderScreen({super.key, this.couponId});
 
@@ -38,10 +38,8 @@ class _OrderScreenState extends State<OrderScreen> {
   late ApiAdminService apiService;
 
   final List<String> orderStatuses = [
-    'Đang Đặt',
-    'Đang Giao',
-    'Hoàn Tất',
-    'Đã Hủy',
+    'Chấp nhận',
+    'Không chấp nhận',
   ];
 
   @override
@@ -95,7 +93,7 @@ class _OrderScreenState extends State<OrderScreen> {
           try {
             debugPrint('Tải bills cho đơn hàng ID: ${order.id}');
             final bills = await apiService.getBillsByOrder(order.id!);
-            debugPrint('Bills cho đơn hàng ${order.id}: $bills');
+            debugPrint('BILLS cho đơn hàng ${order.id}: $bills');
             orderBills[order.id!] = bills;
           } catch (e, stackTrace) {
             debugPrint('Lỗi khi tải bills cho đơn hàng ${order.id}: $e');
@@ -283,43 +281,35 @@ class _OrderScreenState extends State<OrderScreen> {
     try {
       switch (backendStatus?.toLowerCase()) {
         case 'dahuy':
-          return 'Đã Hủy';
+          return 'Không chấp nhận';
         case 'danggiao':
-          return 'Đang Giao';
-        case 'hoantat':
-          return 'Hoàn Tất';
-        case 'dangdat':
-          return 'Đang Đặt';
+          return 'Chấp nhận';
         default:
           debugPrint('Trạng thái backend không xác định: $backendStatus');
-          return 'Đang Đặt';
+          return 'Chấp nhận';
       }
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi dịch trạng thái: $e');
       debugPrint('StackTrace: $stackTrace');
-      return 'Đang Đặt';
+      return 'Chấp nhận';
     }
   }
 
   String _toBackendStatus(String uiStatus) {
     try {
       switch (uiStatus) {
-        case 'Đã Hủy':
+        case 'Không chấp nhận':
           return 'dahuy';
-        case 'Đang Giao':
+        case 'Chấp nhận':
           return 'danggiao';
-        case 'Hoàn Tất':
-          return 'hoantat';
-        case 'Đang Đặt':
-          return 'dangdat';
         default:
           debugPrint('Trạng thái giao diện không xác định: $uiStatus');
-          return 'dangdat';
+          return 'danggiao';
       }
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi chuyển trạng thái sang backend: $e');
       debugPrint('StackTrace: $stackTrace');
-      return 'dangdat';
+      return 'danggiao';
     }
   }
 
@@ -342,43 +332,25 @@ class _OrderScreenState extends State<OrderScreen> {
   }
 
   String _getPaymentMethod(int? orderId) {
-  try {
-    if (orderId == null || !orderBills.containsKey(orderId)) {
-      debugPrint('Không tìm thấy bill cho orderId: $orderId');
-      return 'N/A';
-    }
-    final bills = orderBills[orderId]!;
-    if (bills.isNotEmpty && bills.first.methodPayment != null) {
-      final method = bills.first.methodPayment!.toLowerCase();
-      if (method == 'tienmat') {
-        return 'Tiền mặt';
-      }
-      return bills.first.methodPayment!; 
-    }
-    debugPrint('Không có phương thức thanh toán cho orderId: $orderId');
-    return 'N/A';
-  } catch (e, stackTrace) {
-    debugPrint('Lỗi khi lấy phương thức thanh toán cho orderId $orderId: $e');
-    debugPrint('StackTrace: $stackTrace');
-    return 'N/A';
-  }
-}
-
-  String _toBackendPaymentStatus(String uiStatus) {
     try {
-      switch (uiStatus) {
-        case 'Đã thanh toán':
-          return 'dathanhtoan';
-        case 'Chưa thanh toán':
-          return 'chuathanhtoan';
-        default:
-          debugPrint('Trạng thái thanh toán giao diện không xác định: $uiStatus');
-          return 'chuathanhtoan';
+      if (orderId == null || !orderBills.containsKey(orderId)) {
+        debugPrint('Không tìm thấy bill cho orderId: $orderId');
+        return 'N/A';
       }
+      final bills = orderBills[orderId]!;
+      if (bills.isNotEmpty && bills.first.methodPayment != null) {
+        final method = bills.first.methodPayment!.toLowerCase();
+        if (method == 'tienmat') {
+          return 'Tiền mặt';
+        }
+        return bills.first.methodPayment!;
+      }
+      debugPrint('Không có phương thức thanh toán cho orderId: $orderId');
+      return 'N/A';
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi chuyển trạng thái thanh toán sang backend: $e');
+      debugPrint('Lỗi khi lấy phương thức thanh toán cho orderId $orderId: $e');
       debugPrint('StackTrace: $stackTrace');
-      return 'chuathanhtoan';
+      return 'N/A';
     }
   }
 
@@ -434,65 +406,6 @@ class _OrderScreenState extends State<OrderScreen> {
       String errorMessage = 'Lỗi khi cập nhật trạng thái: $e';
       if (e is DioException) {
         errorMessage = 'Lỗi khi cập nhật trạng thái: ${e.response?.statusCode} - ${e.message}';
-        debugPrint('DioException details: StatusCode=${e.response?.statusCode}, ResponseData=${e.response?.data}');
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
-    }
-  }
-
-  Future<void> _updatePaymentStatus(OrderInfo order, String newStatus) async {
-    if (order.id == null) {
-      debugPrint('Lỗi: order.id là null khi cập nhật trạng thái thanh toán');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: Không xác định được ID đơn hàng')),
-      );
-      return;
-    }
-
-    try {
-      debugPrint('Cập nhật trạng thái thanh toán cho đơn hàng ID: ${order.id}, Trạng thái mới: $newStatus');
-      final bills = orderBills[order.id!];
-      if (bills == null || bills.isEmpty) {
-        debugPrint('Lỗi: Không tìm thấy hóa đơn cho đơn hàng ID: ${order.id}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: Không tìm thấy hóa đơn cho đơn hàng')),
-        );
-        return;
-      }
-
-      final bill = bills.first;
-      if (bill.id == null) {
-        debugPrint('Lỗi: bill.id là null cho đơn hàng ID: ${order.id}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: Không xác định được ID hóa đơn')),
-        );
-        return;
-      }
-
-      final backendStatus = _toBackendPaymentStatus(newStatus);
-      debugPrint('Gửi yêu cầu cập nhật trạng thái thanh toán tới backend: billId=${bill.id}, statusOrder=$backendStatus');
-      await apiService.updateBillStatus(bill.id!, backendStatus);
-      debugPrint('Cập nhật trạng thái thanh toán hóa đơn ID: ${bill.id} thành công');
-
-      // Làm mới danh sách bills
-      final updatedBills = await apiService.getBillsByOrder(order.id!);
-      setState(() {
-        orderBills[order.id!] = updatedBills;
-        debugPrint('Đã cập nhật danh sách bills cho đơn hàng ID: ${order.id}');
-        _applyFilter();
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cập nhật trạng thái thanh toán thành công')),
-      );
-    } catch (e, stackTrace) {
-      debugPrint('Lỗi khi cập nhật trạng thái thanh toán cho đơn hàng ID: ${order.id}: $e');
-      debugPrint('StackTrace: $stackTrace');
-      String errorMessage = 'Lỗi khi cập nhật trạng thái thanh toán: $e';
-      if (e is DioException) {
-        errorMessage = 'Lỗi khi cập nhật trạng thái thanh toán: ${e.response?.statusCode} - ${e.message}';
         debugPrint('DioException details: StatusCode=${e.response?.statusCode}, ResponseData=${e.response?.data}');
       }
       ScaffoldMessenger.of(context).showSnackBar(
@@ -619,9 +532,8 @@ class _OrderScreenState extends State<OrderScreen> {
           _buildHeaderColumn("Chiết khấu"),
           _buildHeaderColumn("Điểm"),
           _buildHeaderColumn("Thời gian"),
-          _buildHeaderColumn("Biến thể"),
-          _buildHeaderColumn("Trạng thái"),
           _buildHeaderColumn("Thanh toán"),
+          _buildHeaderColumn("Trạng thái"),
         ],
         rows: List.generate(
           pagedOrders.length,
@@ -675,9 +587,8 @@ class _OrderScreenState extends State<OrderScreen> {
           _buildTableCell(formatCurrency(order.couponTotal)),
           _buildTableCell(formatCurrency(order.pointTotal)),
           _buildTableCell(formatDate(order.createdAt)),
-          _buildTableCell(productVariants[order.idFkProductVariant]?.nameVariant ?? 'N/A'),
+          DataCell(_buildPaymentStatusText(order)),
           DataCell(_buildStatusDropdown(order)),
-          DataCell(_buildPaymentDropdown(order)),
         ],
         onSelectChanged: (isSelected) {
           try {
@@ -692,7 +603,10 @@ class _OrderScreenState extends State<OrderScreen> {
                     variant: productVariants[order.idFkProductVariant],
                   ),
                 ),
-              );
+              ).then((value) {
+                // Reload dữ liệu khi quay lại từ OrderDetailsScreen
+                _fetchOrdersAndBills();
+              });
             }
           } catch (e, stackTrace) {
             debugPrint('Lỗi khi chọn đơn hàng ID: ${order.id}: $e');
@@ -752,7 +666,15 @@ class _OrderScreenState extends State<OrderScreen> {
           }
         },
         items: orderStatuses.map<DropdownMenuItem<String>>((String status) {
-          return DropdownMenuItem<String>(value: status, child: Text(status));
+          return DropdownMenuItem<String>(
+            value: status,
+            child: Text(
+              status,
+              style: TextStyle(
+                color: status == 'Chấp nhận' ? Colors.green : Colors.red,
+              ),
+            ),
+          );
         }).toList(),
       );
     } catch (e, stackTrace) {
@@ -762,34 +684,19 @@ class _OrderScreenState extends State<OrderScreen> {
     }
   }
 
-  Widget _buildPaymentDropdown(OrderInfo order) {
+  Widget _buildPaymentStatusText(OrderInfo order) {
     try {
-      final currentPaymentStatus = _getPaymentStatus(order.id);
-      return DropdownButton<String>(
-        value: currentPaymentStatus,
-        onChanged: (newValue) {
-          try {
-            if (newValue != null && newValue != currentPaymentStatus) {
-              debugPrint('Thay đổi trạng thái thanh toán cho đơn hàng ID: ${order.id} thành: $newValue');
-              _updatePaymentStatus(order, newValue);
-            } else {
-              debugPrint('Không thay đổi trạng thái thanh toán cho đơn hàng ID: ${order.id} (giá trị giống hiện tại hoặc null)');
-            }
-          } catch (e, stackTrace) {
-            debugPrint('Lỗi khi thay đổi trạng thái thanh toán dropdown cho đơn hàng ID: ${order.id}: $e');
-            debugPrint('StackTrace: $stackTrace');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Lỗi khi thay đổi trạng thái thanh toán: $e')),
-            );
-          }
-        },
-        items: ['Đã thanh toán', 'Chưa thanh toán']
-            .map<DropdownMenuItem<String>>((String status) {
-          return DropdownMenuItem<String>(value: status, child: Text(status));
-        }).toList(),
+      final paymentStatus = _getPaymentStatus(order.id);
+      return Text(
+        paymentStatus,
+        style: TextStyle(
+          fontSize: 14,
+          color: paymentStatus == 'Đã thanh toán' ? Colors.green : Colors.black,
+        ),
+        textAlign: TextAlign.center,
       );
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi xây dựng dropdown thanh toán cho đơn hàng ID: ${order.id}: $e');
+      debugPrint('Lỗi khi xây dựng trạng thái thanh toán cho đơn hàng ID: ${order.id}: $e');
       debugPrint('StackTrace: $stackTrace');
       return SizedBox.shrink();
     }
