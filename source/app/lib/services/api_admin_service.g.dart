@@ -13,7 +13,7 @@ class _ApiAdminService implements ApiAdminService {
     this._dio, {
     this.baseUrl,
   }) {
-    baseUrl ??= 'http://172.16.10.26:8080/api';
+    baseUrl ??= 'http://192.168.70.182:8080/api';
   }
 
   final Dio _dio;
@@ -429,6 +429,25 @@ class _ApiAdminService implements ApiAdminService {
 
   @override
   Future<OrderInfo> getOrderById(orderId) async {
+    await _dio.fetch<void>(_setStreamType<void>(Options(
+      method: 'DELETE',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          '/admin/users/${id}',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
+  }
+
+  @override
+  Future<void> updateUserFullName(
+    id,
+    fullName,
+  ) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -448,6 +467,18 @@ class _ApiAdminService implements ApiAdminService {
             .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
     final value = OrderInfo.fromJson(_result.data!);
     return value;
+    await _dio.fetch<void>(_setStreamType<void>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+    )
+        .compose(
+          _dio.options,
+          '/admin/users/${id}/full-name',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
   }
 
   @override

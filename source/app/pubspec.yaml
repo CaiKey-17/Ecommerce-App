@@ -33,6 +33,8 @@ dependencies:
     sdk: flutter
   dart_jsonwebtoken: ^3.1.1
 
+  flutter_localizations:
+    sdk: flutter
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -44,7 +46,7 @@ dependencies:
   lottie: ^2.6.0
   email_validator: ^3.0.0
   fluttertoast: ^8.2.12
-  intl: ^0.20.2
+  intl: ^0.19.0
   dio: ^5.3.2
   retrofit: ^4.0.1
   json_annotation: ^4.8.1

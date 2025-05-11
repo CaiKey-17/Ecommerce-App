@@ -1,4 +1,5 @@
 import 'package:app/globals/ip.dart';
+import 'package:app/models/total_product_by_year.dart';
 import 'package:app/models/address.dart';
 import 'package:app/models/address_response.dart';
 import 'package:app/models/admin_info.dart';
@@ -65,6 +66,67 @@ class ApiResponse1<T> {
       data: json['data'] != null ? fromJsonT(json['data']) : null,
     );
   }
+}
+
+class PerformanceDataDTO {
+  final String thoiGian;
+  final int tongSoDon;
+  final double tongLoiNhuan;
+  final double tongDoanhThu;
+
+  PerformanceDataDTO({
+    required this.thoiGian,
+    required this.tongSoDon,
+    required this.tongLoiNhuan,
+    required this.tongDoanhThu,
+  });
+
+  factory PerformanceDataDTO.fromJson(Map<String, dynamic> json) {
+    return PerformanceDataDTO(
+      thoiGian: json['thoiGian'],
+      tongSoDon: json['tongSoDon'],
+      tongLoiNhuan: (json['tongLoiNhuan'] as num).toDouble(),
+      tongDoanhThu: (json['tongDoanhThu'] as num).toDouble(),
+    );
+  }
+
+  PerformanceData toPerformanceData() {
+    return PerformanceData(thoiGian, tongSoDon, tongLoiNhuan, tongDoanhThu);
+  }
+}
+
+class ProductDataDTO {
+  final String category;
+  final int quantity;
+
+  ProductDataDTO({required this.category, required this.quantity});
+
+  factory ProductDataDTO.fromJson(Map<String, dynamic> json) {
+    return ProductDataDTO(
+      category: json['category'],
+      quantity: json['quantity'],
+    );
+  }
+
+  ProductData toProductData() {
+    return ProductData(category, quantity);
+  }
+}
+
+class PerformanceData {
+  final String period;
+  final int orders;
+  final double revenue;
+  final double profit;
+
+  PerformanceData(this.period, this.orders, this.revenue, this.profit);
+}
+
+class ProductData {
+  final String category;
+  final int quantity;
+
+  ProductData(this.category, this.quantity);
 }
 
 @RestApi(baseUrl: ApiConfig.baseUrlAPI)
@@ -296,4 +358,85 @@ abstract class ApiService {
 
   @GET("/statistic/top-selling-products")
   Future<ApiResponse1<List<Map<String, dynamic>>>> getTopSellingProducts();
+
+  @GET("/statistic/performance")
+  Future<ApiResponse1<List<PerformanceDataDTO>>> getPerformanceData(
+    @Query("period") String period,
+  );
+  @GET("/statistic/performance-year")
+  Future<ApiResponse1<List<PerformanceDataDTO>>> getPerformanceDataByYear(
+    @Query("year") int year,
+  );
+
+  @GET("/statistic/performance-year-quarter")
+  Future<ApiResponse1<List<PerformanceDataDTO>>>
+  getPerformanceDataByYearQuarter(
+    @Query("year") int year,
+    @Query("quarter") int quarter,
+  );
+
+  @GET("/statistic/performance-year-month")
+  Future<ApiResponse1<List<PerformanceDataDTO>>> getPerformanceDataByYearMonth(
+    @Query("year") int year,
+    @Query("month") int month,
+  );
+  @GET("/statistic/performance-year-week")
+  Future<ApiResponse1<List<PerformanceDataDTO>>> getPerformanceDataByYearWeek(
+    @Query("year") int year,
+    @Query("month") int month,
+    @Query("week") int week,
+  );
+
+  // API thống kê sản phẩm theo period
+  @GET("/statistic/product-stats")
+  Future<ApiResponse1<List<ProductDataDTO>>> getProductData(
+    @Query("period") String period,
+  );
+
+  // API thống kê performance theo khoảng thời gian tùy chỉnh (start, end)
+  @GET("/statistic/performance/custom")
+  Future<ApiResponse1<List<PerformanceDataDTO>>> getCustomPerformanceData(
+    @Query("start") String start,
+    @Query("end") String end,
+  );
+
+  // API thống kê sản phẩm theo khoảng thời gian tùy chỉnh (start, end)
+  @GET("/statistic/product-stats/custom")
+  Future<ApiResponse1<List<ProductDataDTO>>> getCustomProductData(
+    @Query("start") String start,
+    @Query("end") String end,
+  );
+
+  @GET("/statistic/sold-products-by-year")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYear();
+
+  @GET("/statistic/sold-products-by-year-month")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonth(
+    @Query("year") int year,
+  );
+
+  @GET("/statistic/sold-products-by-year-month-v2")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonthV2(
+    @Query("year") int year,
+    @Query("month") int month,
+  );
+
+  @GET("/statistic/sold-products-by-year-quarter")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearQuarter(
+    @Query("year") int year,
+    @Query("quarter") int quarter,
+  );
+
+  @GET("/statistic/sold-products-by-year-month-week")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonthWeek(
+    @Query("year") int year,
+    @Query("month") int month,
+    @Query("week") int week,
+  );
+
+  @GET("/statistic/sold-products/custom")
+  Future<ApiResponse1<List<TotalProductByYear>>> getTotalProductByDayBetween(
+    @Query("start") String start,
+    @Query("end") String end,
+  );
 }
