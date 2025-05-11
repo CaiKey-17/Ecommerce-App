@@ -6,6 +6,7 @@ import 'package:app/ui/product/product_details.dart';
 import 'package:app/ui/screens/shopping_page.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
@@ -44,6 +45,12 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => UserPointsProvider()),
       ],
       child: MaterialApp(
+        locale: Locale('vi', 'VN'),
+        supportedLocales: [Locale('en', 'US'), Locale('vi', 'VN')],
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
         debugShowCheckedModeBanner: false,
         title: 'Ecommerce App',
         theme: ThemeData(

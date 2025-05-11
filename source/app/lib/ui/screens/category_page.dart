@@ -73,6 +73,7 @@ class _CategoryPageListState extends State<CategoryPageList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: _buildSearchBar(),

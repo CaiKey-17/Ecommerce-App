@@ -2,6 +2,7 @@ import 'package:app/globals/logout.dart';
 import 'package:app/providers/profile_image_picker.dart';
 import 'package:app/ui/admin/screens/brand_screen.dart';
 import 'package:app/ui/admin/screens/category_screen.dart';
+import 'package:app/ui/admin/screens/test.dart';
 import 'package:app/ui/chat/admin_chat_list_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -76,6 +77,13 @@ class _SideBarState extends State<SideBar> {
                 MaterialPageRoute(builder: (context) => DashboardScreen()),
               );
             }),
+            _buildDrawerItem(Icons.dashboard, 'Dashboard nâng cao', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => DashboardPage()),
+              );
+            }),
+
             _buildDrawerItem(Icons.category, 'Quản lý loại sản phẩm', () {
               Navigator.push(
                 context,
