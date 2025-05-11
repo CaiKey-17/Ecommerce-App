@@ -1,14 +1,15 @@
 package com.example.api.controller.statistic;
 
-import com.example.api.dto.ApiResponse;
-import com.example.api.dto.OrderStatisticsDTO;
-import com.example.api.dto.TopSellingProductDTO;
+import com.example.api.dto.*;
+import com.example.api.repository.OrderRepository;
 import com.example.api.service.OrderService;
+import com.example.api.service.StatisticService;
 import com.example.api.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -20,6 +21,12 @@ public class StatisticController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private StatisticService statisticService;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @GetMapping("/user-stats")
     public ResponseEntity<ApiResponse<Map<String, Long>>> getUserStatistics() {
@@ -44,4 +51,71 @@ public class StatisticController {
         ApiResponse<List<TopSellingProductDTO>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", topSellingProducts);
         return ResponseEntity.ok(response);
     }
+
+
+    @GetMapping("/performance")
+    public ResponseEntity<ApiResponse<List<PerformanceDataProjection>>> getPerformanceData(@RequestParam("period") String period) {
+        List<PerformanceDataProjection> performanceData = statisticService.getPerformanceData(period);
+        ApiResponse<List<PerformanceDataProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/performance-year")
+    public ResponseEntity<ApiResponse<List<PerformanceDataProjection>>> getPerformanceDataYear(@RequestParam("year") int year) {
+        List<PerformanceDataProjection> performanceData = orderRepository.getStatisticByMonth(year);
+        ApiResponse<List<PerformanceDataProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/performance-year-quarter")
+    public ResponseEntity<ApiResponse<List<PerformanceDataProjection>>> getPerformanceDataYearQuarter(@RequestParam("year") int year,@RequestParam("quarter") int quarter) {
+        List<PerformanceDataProjection> performanceData = orderRepository.getStatisticByMonthAndQuarter(year,quarter);
+        ApiResponse<List<PerformanceDataProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/performance-year-month")
+    public ResponseEntity<ApiResponse<List<PerformanceDataProjection>>> getPerformanceDataYearMonth(@RequestParam("year") int year,@RequestParam("month") int month) {
+        List<PerformanceDataProjection> performanceData = orderRepository.getStatisticByDay(year,month);
+        ApiResponse<List<PerformanceDataProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/performance-year-week")
+    public ResponseEntity<ApiResponse<List<PerformanceDataProjection>>> getPerformanceDataYearWeek(@RequestParam("year") int year,@RequestParam("month") int month,@RequestParam("week") int week) {
+        List<PerformanceDataProjection> performanceData = orderRepository.getStatisticByWeek(year,month,week);
+        ApiResponse<List<PerformanceDataProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
+    @GetMapping("/product-stats")
+    public ResponseEntity<ApiResponse<List<ProductDataDTO>>> getProductData(@RequestParam("period") String period) {
+        List<ProductDataDTO> productData = statisticService.getProductData(period);
+        ApiResponse<List<ProductDataDTO>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/performance/custom")
+    public ResponseEntity<ApiResponse<List<PerformanceDataProjection>>> getCustomPerformanceData(@RequestParam("start") String start, @RequestParam("end") String end) {
+        List<PerformanceDataProjection> performanceData = orderRepository.getRevenueByDayBetween(start, end);
+        ApiResponse<List<PerformanceDataProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/product-stats/custom")
+    public ResponseEntity<ApiResponse<List<ProductDataDTO>>> getCustomProductData(@RequestParam("start") String start, @RequestParam("end") String end) {
+        List<ProductDataDTO> productData = statisticService.getCustomProductData(start, end);
+        ApiResponse<List<ProductDataDTO>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    //
+//    @GetMapping("/performance-test")
+//    public ResponseEntity<ApiResponse<List<PerformanceDataProjection>>> getPerformanceDataTest(@RequestParam("currentYear") int currentYear) {
+//        List<PerformanceDataProjection> performanceData = orderRepository.getStatisticByYear(currentYear);
+//        ApiResponse<List<PerformanceDataProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+//        return ResponseEntity.ok(response);
+//    }
 }

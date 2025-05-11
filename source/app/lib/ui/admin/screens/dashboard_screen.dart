@@ -987,79 +987,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
         foregroundColor: Colors.white,
       ),
       drawer: SideBar(token: token),
-      body:
-          isLoading
-              ? CircularProgressIndicator()
-              : SingleChildScrollView(
-                padding: EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.5,
-                      children: [
-                        _buildStatCard(
-                          "Tổng người dùng",
-                          userStatistics!.totalUsers.toString(),
-                          "+ " +
-                              userStatistics!.newUsers.toString() +
-                              " người dùng mới",
-
-                          Colors.blue,
-                        ),
-
-                        _buildStatCard(
-                          "Tổng đơn hàng",
-                          orderStatisticsDTO!.countOrder.toString(),
-                          "+ " +
-                              "${ConvertMoney.currencyFormatter.format(orderStatisticsDTO!.totalRevenue)} ₫",
-
-                          Colors.green,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 24),
-                    _buildUserChartCard(
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GridView.count(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.5,
+              children: [
+                isLoading
+                    ? CircularProgressIndicator()
+                    : _buildStatCard(
+                      "Tổng người dùng",
                       userStatistics!.totalUsers.toString(),
-                      userStatistics!.newUsers.toString(),
-                    ),
-                    SizedBox(height: 24),
-                    buildOrderRevenueChartCard(
-                      orderStatisticsDTO!.countOrder.toString(),
-                      orderStatisticsDTO!.totalRevenue.toString(),
-                    ),
-                    SizedBox(height: 24),
-                    buildTopSellingProductsChartCard(listTopSelling),
-                    SizedBox(height: 24),
+                      "+ " +
+                          userStatistics!.newUsers.toString() +
+                          " người dùng mới",
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children:
-                          [
-                            "Tuần",
-                            "Tháng",
-                            "Quý",
-                            "Năm",
-                          ].map((e) => _buildFilterButton(e)).toList(),
+                      Colors.blue,
                     ),
-                    SizedBox(height: 16),
-                    _buildDateRangePicker(),
-                    SizedBox(height: 24),
-                    _buildLineChart(salesData),
-                    SizedBox(height: 24),
-                    _buildRevenueProfitChart(salesData),
-                    SizedBox(height: 24),
-                    _buildOrdersChart(salesData),
-                    SizedBox(height: 24),
-                    _buildStatisticsTable(salesData),
-                  ],
+
+                isLoading
+                    ? CircularProgressIndicator()
+                    : _buildStatCard(
+                      "Tổng đơn hàng",
+                      orderStatisticsDTO!.countOrder.toString(),
+                      "+ " +
+                          "${ConvertMoney.currencyFormatter.format(orderStatisticsDTO!.totalRevenue)} ₫",
+
+                      Colors.green,
+                    ),
+              ],
+            ),
+            SizedBox(height: 24),
+            isLoading
+                ? CircularProgressIndicator()
+                : _buildUserChartCard(
+                  userStatistics!.totalUsers.toString(),
+                  userStatistics!.newUsers.toString(),
                 ),
-              ),
+            SizedBox(height: 24),
+            isLoading
+                ? CircularProgressIndicator()
+                : buildOrderRevenueChartCard(
+                  orderStatisticsDTO!.countOrder.toString(),
+                  orderStatisticsDTO!.totalRevenue.toString(),
+                ),
+            SizedBox(height: 24),
+            isLoading
+                ? CircularProgressIndicator()
+                : buildTopSellingProductsChartCard(listTopSelling),
+            // SizedBox(height: 24),
+
+            //   Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //     children:
+            //         [
+            //           "Tuần",
+            //           "Tháng",
+            //           "Quý",
+            //           "Năm",
+            //         ].map((e) => _buildFilterButton(e)).toList(),
+            //   ),
+            //   SizedBox(height: 16),
+            //   _buildDateRangePicker(),
+            //   SizedBox(height: 24),
+            //   _buildLineChart(salesData),
+            //   SizedBox(height: 24),
+            //   _buildRevenueProfitChart(salesData),
+            //   SizedBox(height: 24),
+            //   _buildOrdersChart(salesData),
+            //   SizedBox(height: 24),
+            //   _buildStatisticsTable(salesData),
+          ],
+        ),
+      ),
     );
   }
 }
