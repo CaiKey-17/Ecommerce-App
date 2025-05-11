@@ -40,9 +40,33 @@ public class UserAdminService {
     }
 
 
-    public Optional<Users> getUserById(Integer id) {
-        return usersRepository.findById(id);
+    public Optional<UserInfoDTO> getUserById(Integer id) {
+        Optional<Users> optionalUser = usersRepository.findById(id);
+
+        if (optionalUser.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Users user = optionalUser.get();
+
+        String roleName = user.getRoles().isEmpty() ? "" : user.getRoles().getClass().getName();
+
+        UserInfoDTO dto = new UserInfoDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setFullName(user.getFullName());
+        dto.setRole(roleName);
+        dto.setAddresses(Collections.emptyList());
+        dto.setActive(user.getActive() != null ? user.getActive() : 0);
+        dto.setTempId(user.getTempId());
+        dto.setCreatedAt(user.getCreatedAt() != null ? user.getCreatedAt().toString() : "");
+        dto.setPoints(0); // nếu có points thì xử lý thêm
+        dto.setCodes(Collections.emptyList());
+        dto.setImage(user.getImage());
+
+        return Optional.of(dto);
     }
+
 
     public boolean toggleActiveStatus(Integer id) {
         Optional<Users> optionalUser = usersRepository.findById(id);

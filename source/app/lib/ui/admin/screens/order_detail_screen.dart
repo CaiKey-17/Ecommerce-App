@@ -1,243 +1,536 @@
+import 'package:app/globals/ip.dart';
+import 'package:app/luan/models/order_info.dart';
+import 'package:app/luan/models/bill_info.dart';
+import 'package:app/luan/models/product_variant_info.dart';
+import 'package:app/services/api_admin_service.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
+  final OrderInfo order;
+  final List<BillInfo> bills;
+  final ProductVariant? variant;
+
+  const OrderDetailsScreen({
+    required this.order,
+    required this.bills,
+    this.variant,
+    super.key,
+  });
+
   @override
   _OrderDetailsScreenState createState() => _OrderDetailsScreenState();
 }
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
-  List<Map<String, dynamic>> items = [];
-  Map<String, dynamic> defaultOrderData = {
-    "id": "OD12345",
-    "name": "Đơn hàng mặc định",
-    "client": "Minh Luan",
-    "address": "Địa chỉ mặc định",
-    "status": "Chờ xử lý",
-    "subtotal": 100000.0,
-    "discount": 10000.0,
-    "shippingFee": 20000.0,
-    "totalAmount": 110000.0,
-    "items": [
-      {
-        "imageUrl":
-            "https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=100&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20100w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20200w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=300&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20300w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20400w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20500w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20600w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=700&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20700w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20800w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%20900w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%201000w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%201200w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%201400w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%201600w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%201800w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=2000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D%202000w",
-        "name": "Sản phẩm mặc định mai mai mai mia mai mai mai",
-        "address": "Kho mặc định A",
-        
-        "quantity": 2,
-        "price": 20000.0,
-        "ship": 5000.0,
-      },
-      {
-        "imageUrl":
-            "https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=100&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20100w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20200w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=300&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20300w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20400w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20500w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20600w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=700&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20700w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20800w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%20900w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%201000w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%201200w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%201400w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%201600w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=1800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%201800w,%20https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?w=2000&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aI1hZ2V8ZW58MHx8MHx8fDA%3D%202000w",
-        "name": "Sản phẩm mặc định 2",
-        "address": "Kho mặc định B",
-        "quantity": 1,
-        "price": 30000.0,
-        "ship": 5000.0,
-      },
-    ],
-  };
+  late ApiAdminService apiService;
+  final Dio dio = Dio();
+  String? selectedStatus;
+  String? selectedPaymentStatus;
+  String? productImage; // Lưu image từ Product
+  final List<String> orderStatuses = [
+    'Đang Đặt',
+    'Đang Giao',
+    'Hoàn Tất',
+    'Đã Hủy',
+  ];
 
   @override
   void initState() {
     super.initState();
-    final order = defaultOrderData;
-    items = List<Map<String, dynamic>>.from(order['items'] ?? []);
-    print("Dữ liệu order được sử dụng: $order");
+    apiService = ApiAdminService(dio);
+    selectedStatus = _translateStatus(widget.order.process);
+    selectedPaymentStatus = _getPaymentStatus();
+
+    // In thông tin ProductVariant
+    if (widget.variant != null) {
+      debugPrint('ProductVariant:');
+      debugPrint('  Name: ${widget.variant!.nameVariant}');
+      debugPrint('  fkVariantProduct: ${widget.variant!.fkVariantProduct}');
+      // Thêm các trường khác nếu ProductVariant có
+    } else {
+      debugPrint('ProductVariant is null');
+    }
+
+    // Lấy image từ Product qua API
+    _fetchProductImage();
   }
 
-  void removeItem(int index) {
-    setState(() {
-      items.removeAt(index);
-    });
+  Future<void> _fetchProductImage() async {
+    if (widget.variant == null || widget.variant!.fkVariantProduct == null) {
+      debugPrint('Không thể lấy Product: variant hoặc fkVariantProduct là null');
+      return;
+    }
+
+    try {
+      debugPrint('Gọi API getProductById với ID: ${widget.variant!.fkVariantProduct}');
+      final product = await apiService.getProductById(widget.variant!.fkVariantProduct!);
+      setState(() {
+        productImage = product.mainImage;
+      });
+      debugPrint('Product:');
+      debugPrint('  Image: ${product.mainImage}');
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi lấy Product: $e');
+      debugPrint('StackTrace: $stackTrace');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi lấy thông tin sản phẩm: $e')),
+      );
+    }
+  }
+
+  String formatCurrency(double? amount) {
+    try {
+      if (amount == null) return 'N/A';
+      return NumberFormat("#,###", "vi_VN").format(amount) + " VNĐ";
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi định dạng tiền tệ: $e');
+      debugPrint('StackTrace: $stackTrace');
+      return 'N/A';
+    }
+  }
+
+  String formatDate(String? date) {
+    try {
+      if (date == null) return 'N/A';
+      final parsedDate = DateTime.parse(date);
+      return DateFormat('dd/MM/yyyy HH:mm').format(parsedDate);
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi định dạng ngày: $e');
+      debugPrint('StackTrace: $stackTrace');
+      return 'N/A';
+    }
+  }
+
+  String _translateStatus(String? backendStatus) {
+    try {
+      switch (backendStatus?.toLowerCase()) {
+        case 'dahuy':
+          return 'Đã Hủy';
+        case 'danggiao':
+          return 'Đang Giao';
+        case 'hoantat':
+          return 'Hoàn Tất';
+        case 'dangdat':
+          return 'Đang Đặt';
+        default:
+          debugPrint('Trạng thái backend không xác định: $backendStatus');
+          return 'Đang Đặt';
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi dịch trạng thái: $e');
+      debugPrint('StackTrace: $stackTrace');
+      return 'Đang Đặt';
+    }
+  }
+
+  String _toBackendStatus(String uiStatus) {
+    try {
+      switch (uiStatus) {
+        case 'Đã Hủy':
+          return 'dahuy';
+        case 'Đang Giao':
+          return 'danggiao';
+        case 'Hoàn Tất':
+          return 'hoantat';
+        case 'Đang Đặt':
+          return 'dangdat';
+        default:
+          debugPrint('Trạng thái giao diện không xác định: $uiStatus');
+          return 'dangdat';
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi chuyển trạng thái sang backend: $e');
+      debugPrint('StackTrace: $stackTrace');
+      return 'dangdat';
+    }
+  }
+
+  String _getPaymentStatus() {
+    try {
+      if (widget.bills.isEmpty) {
+        debugPrint('Không tìm thấy bill cho đơn hàng ID: ${widget.order.id}');
+        return 'Chưa thanh toán';
+      }
+      if (widget.bills.any((bill) => bill.statusOrder?.toLowerCase() == 'dathanhtoan')) {
+        return 'Đã thanh toán';
+      }
+      return 'Chưa thanh toán';
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi lấy trạng thái thanh toán cho đơn hàng ${widget.order.id}: $e');
+      debugPrint('StackTrace: $stackTrace');
+      return 'Chưa thanh toán';
+    }
+  }
+
+  String _getPaymentMethod() {
+    try {
+      if (widget.bills.isEmpty || widget.bills.first.methodPayment == null) {
+        debugPrint('Không có phương thức thanh toán cho đơn hàng ID: ${widget.order.id}');
+        return 'N/A';
+      }
+      final method = widget.bills.first.methodPayment!.toLowerCase();
+      if (method == 'tienmat') {
+        return 'Tiền mặt';
+      }
+      return widget.bills.first.methodPayment!;
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi lấy phương thức thanh toán cho đơn hàng ${widget.order.id}: $e');
+      debugPrint('StackTrace: $stackTrace');
+      return 'N/A';
+    }
+}
+
+  String _toBackendPaymentStatus(String uiStatus) {
+    try {
+      switch (uiStatus) {
+        case 'Đã thanh toán':
+          return 'dathanhtoan';
+        case 'Chưa thanh toán':
+          return 'chuathanhtoan';
+        default:
+          debugPrint('Trạng thái thanh toán giao diện không xác định: $uiStatus');
+          return 'chuathanhtoan';
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi chuyển trạng thái thanh toán sang backend: $e');
+      debugPrint('StackTrace: $stackTrace');
+      return 'chuathanhtoan';
+    }
+  }
+
+  Future<void> _updateOrderStatus(String newStatus) async {
+    if (widget.order.id == null) {
+      debugPrint('Lỗi: order.id là null khi cập nhật trạng thái');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lỗi: Không xác định được ID đơn hàng')),
+      );
+      return;
+    }
+
+    try {
+      debugPrint('Cập nhật trạng thái cho đơn hàng ID: ${widget.order.id}, Trạng thái mới: $newStatus');
+      final backendStatus = _toBackendStatus(newStatus);
+      await apiService.updateOrderProcess(widget.order.id!, backendStatus);
+      debugPrint('Cập nhật trạng thái đơn hàng ID: ${widget.order.id} thành công');
+
+      setState(() {
+        selectedStatus = newStatus;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật trạng thái đơn hàng thành công')),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi cập nhật trạng thái đơn hàng ID: ${widget.order.id}: $e');
+      debugPrint('StackTrace: $stackTrace');
+      String errorMessage = 'Lỗi khi cập nhật trạng thái: $e';
+      if (e is DioException) {
+        errorMessage = 'Lỗi khi cập nhật trạng thái: ${e.response?.statusCode} - ${e.message}';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+  }
+
+  Future<void> _updatePaymentStatus(String newStatus) async {
+    if (widget.order.id == null) {
+      debugPrint('Lỗi: order.id là null khi cập nhật trạng thái thanh toán');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lỗi: Không xác định được ID đơn hàng')),
+      );
+      return;
+    }
+
+    try {
+      debugPrint('Cập nhật trạng thái thanh toán cho đơn hàng ID: ${widget.order.id}, Trạng thái mới: $newStatus');
+      if (widget.bills.isEmpty) {
+        debugPrint('Lỗi: Không tìm thấy hóa đơn cho đơn hàng ID: ${widget.order.id}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lỗi: Không tìm thấy hóa đơn cho đơn hàng')),
+        );
+        return;
+      }
+
+      final bill = widget.bills.first;
+      if (bill.id == null) {
+        debugPrint('Lỗi: bill.id là null cho đơn hàng ID: ${widget.order.id}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lỗi: Không xác định được ID hóa đơn')),
+        );
+        return;
+      }
+
+      final backendStatus = _toBackendPaymentStatus(newStatus);
+      debugPrint('Gửi yêu cầu cập nhật trạng thái thanh toán tới backend: billId=${bill.id}, statusOrder=$backendStatus');
+      await apiService.updateBillStatus(bill.id!, backendStatus);
+      debugPrint('Cập nhật trạng thái thanh toán hóa đơn ID: ${bill.id} thành công');
+
+      setState(() {
+        selectedPaymentStatus = newStatus;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật trạng thái thanh toán thành công')),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi cập nhật trạng thái thanh toán cho đơn hàng ID: ${widget.order.id}: $e');
+      debugPrint('StackTrace: $stackTrace');
+      String errorMessage = 'Lỗi khi cập nhật trạng thái thanh toán: $e';
+      if (e is DioException) {
+        errorMessage = 'Lỗi khi cập nhật trạng thái thanh toán: ${e.response?.statusCode} - ${e.message}';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final order = defaultOrderData;
-
     return Scaffold(
       appBar: AppBar(
-        title: Text("Chi tiết đơn hàng"),
+        title: const Text("Chi tiết đơn hàng"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16.0),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Image.network(items[index]['imageUrl'],
-                                      width: 100, height: 100),
-                                  SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          items[index]['name'],
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            color: Colors.blue,
-                                          ),
-                                        ),
-                                        Text(
-                                          "Địa chỉ: ${items[index]['address']}",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                        Text(
-                                          "SL: ${items[index]['quantity']}",
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "Giá: ",
-                                              style: TextStyle(fontSize: 14),
-                                            ),
-                                            Text(
-                                              "${items[index]['price']}",
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey[700]),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Thông tin sản phẩm
+              Card(
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Thông tin sản phẩm",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          productImage != null
+                              ? Image.network(
+                                  productImage!,
+                                  width: 100,
+                                  height: 100,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.image_not_supported),
+                                )
+                              : const Icon(Icons.image_not_supported, size: 100),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.variant?.nameVariant ?? 'N/A',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.blue,
                                   ),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(width: 10),
-                                  Text("Ship: ${items[index]['ship']}"),
-                                  SizedBox(width: 10),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        "Tổng: ",
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        "${items[index]['price'] * items[index]['quantity'] + items[index]['ship']}",
-                                        style: TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                            ],
+                                ),
+                                Text(
+                                  "Số lượng: ${widget.order.quantityTotal ?? 'N/A'}",
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                Text(
+                                  "Giá: ${formatCurrency(widget.order.priceTotal)}",
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                Text(
+                                  "Phí ship: ${formatCurrency(widget.order.ship)}",
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        Positioned(
-                          top: -8,
-                          right: -8,
-                          child: IconButton(
-                            icon: Icon(Icons.close),
-                            onPressed: () => removeItem(index),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey[300]!)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Thông tin đơn hàng:",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Khách hàng:", style: TextStyle(fontSize: 16)),
-                      Text("${order['client']}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Đơn giá:", style: TextStyle(fontSize: 16)),
-                      Text("${order['subtotal']}", style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Giảm giá:", style: TextStyle(fontSize: 16)),
-                      Text("${order['discount']}", style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Tiền ship:", style: TextStyle(fontSize: 16)),
-                      Text("${order['shippingFee']}", style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Trạng thái:", style: TextStyle(fontSize: 16)),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          "${order['status']}",
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
+                        ],
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+              ),
+              // Thông tin đơn hàng
+              Card(
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Tổng đơn hàng:",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                      Text("${order['totalAmount']}",
-                          style: TextStyle(
-                              color: Colors.red, fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Text(
+                        "Thông tin đơn hàng",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildInfoRow(
+                        "Mã đơn",
+                        'ORD${widget.order.id.toString().padLeft(3, '0')}',
+                      ),
+                      _buildInfoRow(
+                        "Địa chỉ",
+                        widget.order.address ?? 'N/A',
+                        isAddress: true,
+                      ),
+                      _buildInfoRow(
+                        "Phương thức thanh toán",
+                        _getPaymentMethod(),
+                      ),
+                      _buildInfoRow(
+                        "Chiết khấu",
+                        formatCurrency(widget.order.couponTotal),
+                      ),
+                      _buildInfoRow(
+                        "Điểm",
+                        formatCurrency(widget.order.pointTotal),
+                      ),
+                      _buildInfoRow(
+                        "Thời gian",
+                        formatDate(widget.order.createdAt),
+                      ),
+                      _buildInfoRow(
+                        "Mã coupon",
+                        widget.order.fkCouponId?.toString() ?? 'N/A',
+                      ),
+                      _buildInfoRow(
+                        "Tổng tiền",
+                        formatCurrency(widget.order.total),
+                        isBold: true,
+                        valueColor: Colors.red,
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+              // Trạng thái và thanh toán
+              Card(
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Cập nhật trạng thái",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Trạng thái",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                          ),
+                          DropdownButton<String>(
+                            value: selectedStatus,
+                            onChanged: (newValue) {
+                              if (newValue != null) {
+                                _updateOrderStatus(newValue);
+                              }
+                            },
+                            items: orderStatuses
+                                .map<DropdownMenuItem<String>>((String status) {
+                              return DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(
+                                  status,
+                                  style: const TextStyle(fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Thanh toán",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                          ),
+                          DropdownButton<String>(
+                            value: selectedPaymentStatus,
+                            onChanged: (newValue) {
+                              if (newValue != null &&
+                                  newValue != selectedPaymentStatus) {
+                                _updatePaymentStatus(newValue);
+                              }
+                            },
+                            items: ['Đã thanh toán', 'Chưa thanh toán']
+                                .map<DropdownMenuItem<String>>((String status) {
+                              return DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(
+                                  status,
+                                  style: const TextStyle(fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value,
+      {bool isBold = false, Color? valueColor, bool isAddress = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: valueColor,
+              ),
+              textAlign: TextAlign.end,
+              softWrap: isAddress,
+              overflow: isAddress ? TextOverflow.visible : TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

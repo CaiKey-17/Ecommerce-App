@@ -13,6 +13,7 @@ class _ApiServiceSentiment implements ApiServiceSentiment {
     this._dio, {
     this.baseUrl,
   }) {
+
     baseUrl ??= 'http://192.168.70.182:5001';
   }
 

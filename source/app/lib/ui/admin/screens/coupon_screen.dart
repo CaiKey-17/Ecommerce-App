@@ -2,11 +2,13 @@ import 'dart:math';
 import 'package:app/globals/convert_money.dart';
 import 'package:app/models/coupon_admin_info.dart';
 import 'package:app/services/api_service.dart';
+import 'package:app/ui/admin/screens/order_screen.dart';
 import 'package:app/ui/admin/widgets/sidebar.dart';
 import 'package:app/ui/product/product_details.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CouponScreen extends StatefulWidget {
   @override
@@ -17,12 +19,34 @@ class _CouponScreenState extends State<CouponScreen> {
   bool isLoading = false;
   List<CouponAdminData> coupons = [];
   late ApiService apiService;
+  String? token;
 
   final valueOptions = ["10,000", "20,000", "50,000", "100,000"];
   String? selectedValue;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController maxUsageController = TextEditingController();
   final TextEditingController minOrderValueController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    apiService = ApiService(Dio());
+    _loadToken();
+    fetchCoupons();
+  }
+
+  Future<void> _loadToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        token = prefs.getString('token') ?? "";
+        debugPrint('Token loaded for CouponScreen: $token');
+      });
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi tải token từ SharedPreferences: $e');
+      debugPrint('StackTrace: $stackTrace');
+    }
+  }
 
   Future<void> fetchCoupons() async {
     setState(() {
@@ -96,17 +120,10 @@ class _CouponScreenState extends State<CouponScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    apiService = ApiService(Dio());
-    fetchCoupons();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      drawer: SideBar(token: token),
+      drawer: SideBar(token: token ?? ''),
       appBar: AppBar(
         foregroundColor: Colors.white,
         title: Text(
@@ -116,27 +133,25 @@ class _CouponScreenState extends State<CouponScreen> {
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
-      body:
-          isLoading
-              ? Center(child: CircularProgressIndicator(color: Colors.blue))
-              : Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Container(
-                          width: 800,
-                          child: _buildCouponTable(),
-                        ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator(color: Colors.blue))
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        width: 800,
+                        child: _buildCouponTable(),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-
+            ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
         onPressed: () {
@@ -196,28 +211,27 @@ class _CouponScreenState extends State<CouponScreen> {
               ),
             ),
           ],
-          rows:
-              coupons.map((coupon) {
-                return DataRow(
-                  cells: [
-                    DataCell(Text(coupon.name)),
-                    DataCell(
-                      Text(
-                        "${ConvertMoney.currencyFormatter.format(coupon.couponValue)} ₫",
-                      ),
-                    ),
-                    DataCell(Text(formatDate(coupon.createdAt))),
-                    DataCell(Text(coupon.maxAllowedUses.toString())),
-                    DataCell(Text(coupon.usedCount.toString())),
-                    DataCell(
-                      Text(
-                        "${ConvertMoney.currencyFormatter.format(coupon.minOrderValue)} ₫",
-                      ),
-                    ),
-                  ],
-                  onLongPress: () => _showCouponOptions(coupon),
-                );
-              }).toList(),
+          rows: coupons.map((coupon) {
+            return DataRow(
+              cells: [
+                DataCell(Text(coupon.name)),
+                DataCell(
+                  Text(
+                    "${ConvertMoney.currencyFormatter.format(coupon.couponValue)} ₫",
+                  ),
+                ),
+                DataCell(Text(formatDate(coupon.createdAt))),
+                DataCell(Text(coupon.maxAllowedUses.toString())),
+                DataCell(Text(coupon.usedCount.toString())),
+                DataCell(
+                  Text(
+                    "${ConvertMoney.currencyFormatter.format(coupon.minOrderValue)} ₫",
+                  ),
+                ),
+              ],
+              onLongPress: () => _showCouponOptions(coupon),
+            );
+          }).toList(),
         ),
       ),
     );
@@ -239,7 +253,14 @@ class _CouponScreenState extends State<CouponScreen> {
                 textColor: Colors.blue,
                 iconColor: Colors.blue,
                 onTap: () {
+                  debugPrint('Điều hướng đến OrderScreen với couponId: ${coupon.id}');
                   Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderScreen(couponId: coupon.id),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -296,7 +317,6 @@ class _CouponScreenState extends State<CouponScreen> {
                     ),
                   ),
                   SizedBox(height: 20),
-
                   DropdownButtonFormField<String>(
                     dropdownColor: Colors.white,
                     decoration: InputDecoration(
@@ -307,27 +327,22 @@ class _CouponScreenState extends State<CouponScreen> {
                       ),
                     ),
                     value: selectedValue,
-                    items:
-                        ["10,000", "20,000", "50,000", "100,000"]
-                            .map(
-                              (value) => DropdownMenuItem(
-                                child: Text("$value ₫"),
-                                value: value,
-                              ),
-                            )
-                            .toList(),
+                    items: ["10,000", "20,000", "50,000", "100,000"]
+                        .map(
+                          (value) => DropdownMenuItem(
+                            child: Text("$value ₫"),
+                            value: value,
+                          ),
+                        )
+                        .toList(),
                     onChanged: (value) => selectedValue = value,
-                    validator:
-                        (value) =>
-                            value == null ? "Vui lòng chọn giá trị" : null,
+                    validator: (value) =>
+                        value == null ? "Vui lòng chọn giá trị" : null,
                   ),
-
                   SizedBox(height: 16),
-
                   TextFormField(
                     controller: maxUsageController,
                     keyboardType: TextInputType.number,
-
                     decoration: InputDecoration(
                       labelText: "Số lần sử dụng tối đa",
                       border: OutlineInputBorder(),
@@ -335,7 +350,6 @@ class _CouponScreenState extends State<CouponScreen> {
                         borderSide: BorderSide(color: Colors.blue, width: 2),
                       ),
                     ),
-
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Không được để trống';
@@ -346,7 +360,6 @@ class _CouponScreenState extends State<CouponScreen> {
                       return null;
                     },
                   ),
-
                   SizedBox(height: 16),
                   TextFormField(
                     controller: minOrderValueController,
@@ -361,12 +374,10 @@ class _CouponScreenState extends State<CouponScreen> {
                     ),
                     onChanged: (value) {
                       String newText = value.replaceAll(RegExp(r'[^\d]'), '');
-
                       if (newText.isEmpty) {
                         minOrderValueController.text = '';
                         return;
                       }
-
                       final formatted = currencyFormatter.format(
                         int.parse(newText),
                       );
@@ -380,30 +391,24 @@ class _CouponScreenState extends State<CouponScreen> {
                     validator: (value) {
                       if (value == null || value.isEmpty)
                         return 'Không được để trống';
-
                       final plainNumber = value.replaceAll(
                         RegExp(r'[^\d]'),
                         '',
                       );
                       final parsed = int.tryParse(plainNumber);
                       if (parsed == null) return 'Phải là số';
-
                       final plainCouponValue = selectedValue!.replaceAll(
                         RegExp(r'[^\d]'),
                         '',
                       );
                       final couponValue = int.tryParse(plainCouponValue);
-
                       if (couponValue != null && parsed <= couponValue) {
                         return 'Giá trị đơn hàng tối thiểu phải lớn hơn trị giá mã giảm giá';
                       }
-
                       return null;
                     },
                   ),
-
                   SizedBox(height: 24),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -435,7 +440,6 @@ class _CouponScreenState extends State<CouponScreen> {
                             final minOrderValueInt = int.tryParse(
                               minOrderValue,
                             );
-
                             if (minOrderValueInt != null &&
                                 couponValue != null &&
                                 minOrderValueInt <= couponValue) {
@@ -446,18 +450,14 @@ class _CouponScreenState extends State<CouponScreen> {
                                   ),
                                 ),
                               );
-
                               return;
                             }
-
                             int c = int.parse(plainCouponValue);
                             int max = int.parse(maxUsageController.text);
                             int min = int.parse(minOrderValue);
-
                             addCoupon(c, max, min);
                           }
                         },
-
                         child: Text(
                           "Thêm",
                           style: TextStyle(color: Colors.white),

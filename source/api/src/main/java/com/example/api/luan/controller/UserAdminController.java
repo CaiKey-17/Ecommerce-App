@@ -24,7 +24,7 @@ public class UserAdminController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Integer id) {
+    public ResponseEntity<UserInfoDTO> getUserById(@PathVariable Integer id) {
         return userAdminService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

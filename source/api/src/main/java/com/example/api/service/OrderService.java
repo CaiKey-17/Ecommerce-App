@@ -41,8 +41,10 @@ public class OrderService {
     }
     public OrderStatisticsDTO getOrderStatistics() {
         long count = orderRepository.countOrdersNotInCart();
-        long totalRevenue = orderRepository.getTotalRevenue();
-        return new OrderStatisticsDTO(count, totalRevenue);
+        Long totalRevenue = orderRepository.getTotalRevenue();
+        long revenue = totalRevenue != null ? totalRevenue.longValue() : 0L;
+
+        return new OrderStatisticsDTO(count, revenue);
     }
 
     public List<TopSellingProductDTO> getTopSellingProducts() {

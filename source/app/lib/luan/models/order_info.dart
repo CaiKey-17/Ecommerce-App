@@ -47,9 +47,9 @@ class OrderInfo {
       email: json['email'],
       total: (json['total'] as num?)?.toDouble(),
       process: json['process'],
-      idFkCustomer: json['idFkCustomer'],
-      idFkProductVariant: json['idFkProductVariant'],
-      fkCouponId: json['fkCouponId'],
+      idFkCustomer: json['id_fk_customer'],
+      idFkProductVariant: json['id_fk_product_variant'],
+      fkCouponId: json['fk_couponId'],
     );
   }
 
@@ -67,9 +67,9 @@ class OrderInfo {
       'email': email,
       'total': total,
       'process': process,
-      'idFkCustomer': idFkCustomer,
-      'idFkProductVariant': idFkProductVariant,
-      'fkCouponId': fkCouponId,
+      'id_fk_customer': idFkCustomer,
+      'id_fk_product_variant': idFkProductVariant,
+      'fk_couponId': fkCouponId,
     };
   }
 
@@ -78,4 +78,3 @@ class OrderInfo {
     return 'OrderInfo{id: $id, quantityTotal: $quantityTotal, priceTotal: $priceTotal, couponTotal: $couponTotal, pointTotal: $pointTotal, ship: $ship, tax: $tax, createdAt: $createdAt, address: $address, email: $email, total: $total, process: $process, idFkCustomer: $idFkCustomer, idFkProductVariant: $idFkProductVariant, fkCouponId: $fkCouponId}';
   }
 }
-  

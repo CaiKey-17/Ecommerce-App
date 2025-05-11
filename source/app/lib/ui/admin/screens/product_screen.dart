@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/sidebar.dart';
 import 'package:intl/intl.dart';
+import 'dart:developer' as developer;
 
 class ProductScreen extends StatefulWidget {
   @override
@@ -29,6 +30,7 @@ class _ProductScreenState extends State<ProductScreen> {
   Future<void> fetchProductsManager() async {
     setState(() {
       isLoading = true;
+      errorMessage = null;
     });
     try {
       final productsData = await apiAdminService.getAllProducts();
@@ -41,6 +43,56 @@ class _ProductScreenState extends State<ProductScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Lỗi khi lấy danh sách sản phẩm: $e")),
       );
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _deleteProduct(int productId, int index) async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+    try {
+      // Lấy danh sách các biến thể của sản phẩm
+      final variants = await apiAdminService.getVariantsByProductId(productId);
+      
+      // Xóa từng biến thể và các màu sắc liên quan
+      for (var variant in variants) {
+        if (variant.id != 0) {
+          // Lấy danh sách màu sắc của biến thể
+          final colors = await apiAdminService.getColorsByVariantId(variant.id);
+          for (var color in colors) {
+            developer.log("Deleting color with ID: ${color.id}");
+            await apiAdminService.deleteProductColor(color.id);
+          }
+          developer.log("Deleting variant with ID: ${variant.id}");
+          await apiAdminService.deleteProductVariant(variant.id);
+        }
+      }
+      
+      // Xóa sản phẩm
+      developer.log("Deleting product with ID: $productId");
+      await apiAdminService.deleteProduct(productId);
+
+      // Cập nhật danh sách sản phẩm
+      setState(() {
+        products.removeAt(index);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Đã xóa sản phẩm thành công")),
+      );
+    } catch (e) {
+      developer.log("Error deleting product: $e");
+      setState(() {
+        errorMessage = "Không thể xóa sản phẩm: $e";
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Không thể xóa sản phẩm: $e")),
+      );
+    } finally {
       setState(() {
         isLoading = false;
       });
@@ -103,7 +155,6 @@ class _ProductScreenState extends State<ProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: SideBar(token: token),
-
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
@@ -128,7 +179,6 @@ class _ProductScreenState extends State<ProductScreen> {
           ],
         ),
       ),
-
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
         onPressed: () async {
@@ -277,21 +327,6 @@ class _ProductScreenState extends State<ProductScreen> {
             ),
           ),
         Expanded(
-          // child: NotificationListener<ScrollNotification>(
-          //   onNotification: (ScrollNotification scrollInfo) {
-          //     if (!_showSearchField && scrollInfo is ScrollUpdateNotification) {
-          //       if (scrollInfo.scrollDelta! > 0 && _showSortBar) {
-          //         setState(() {
-          //           _showSortBar = false;
-          //         });
-          //       } else if (scrollInfo.scrollDelta! < 0 && !_showSortBar) {
-          //         setState(() {
-          //           _showSortBar = true;
-          //         });
-          //       }
-          //     }
-          //     return true;
-          //   },
           child: ListView.builder(
             padding: EdgeInsets.only(bottom: 100.0),
             itemCount: products.length,
@@ -354,9 +389,31 @@ class _ProductScreenState extends State<ProductScreen> {
                         child: IconButton(
                           icon: Icon(Icons.close, color: Colors.red, size: 20),
                           onPressed: () {
-                            setState(() {
-                              products.removeAt(index);
-                            });
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text("Xác nhận xóa"),
+                                content: Text(
+                                  "Bạn có chắc chắn muốn xóa sản phẩm '${product.name}'? Tất cả biến thể và màu sắc liên quan sẽ bị xóa.",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text("Hủy"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      Navigator.pop(context); // Đóng dialog
+                                      await _deleteProduct(product.id!, index);
+                                    },
+                                    child: Text(
+                                      "Xóa",
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
                           },
                         ),
                       ),

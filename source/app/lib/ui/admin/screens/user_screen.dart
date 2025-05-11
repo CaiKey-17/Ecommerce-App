@@ -2,9 +2,7 @@ import 'package:app/luan/models/user_info.dart';
 import 'package:app/services/api_admin_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../widgets/sidebar.dart';
 import '../screens/user_detail_screen.dart';
 
@@ -58,12 +56,6 @@ class _UserScreenState extends State<UserScreen> {
     fetchUsersManager();
   }
 
-  final _formKey = GlobalKey<FormState>();
-  String _fullName = '';
-  String _email = '';
-  String _address = '';
-  String _password = '';
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,15 +77,6 @@ class _UserScreenState extends State<UserScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [Expanded(child: _buildUserList(context))],
         ),
-      ),
-
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blue,
-        onPressed: () {
-          _showAddUserDialog(context);
-        },
-        child: Icon(Icons.add, color: Colors.white),
-        shape: CircleBorder(),
       ),
     );
   }
@@ -250,101 +233,4 @@ class _UserScreenState extends State<UserScreen> {
     );
   }
 
-  Future<void> _showAddUserDialog(BuildContext context) async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Thêm người dùng mới'),
-          content: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Họ và tên'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập họ và tên';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _fullName = value!;
-                    },
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Email'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập email';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _email = value!;
-                    },
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Địa chỉ'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập địa chỉ';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _address = value!;
-                    },
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(labelText: 'Mật khẩu'),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Vui lòng nhập mật khẩu';
-                      }
-                      return null;
-                    },
-                    onSaved: (value) {
-                      _password = value!;
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Hủy', style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            // ElevatedButton(
-            //   child: Text('Xong', style: TextStyle(color: Colors.white)),
-            //   onPressed: () {
-            //     if (_formKey.currentState!.validate()) {
-            //       _formKey.currentState!.save();
-            //       setState(() {
-            //         users.add({
-            //           "id": "#U00${users.length}",
-            //           "name": _fullName,
-            //           "email": _email,
-            //           "phone": "Chưa có",
-            //           "address": _address,
-            //           "isBlocked": "false",
-            //         });
-            //       });
-            //       Navigator.of(context).pop();
-            //     }
-            //   },
-            //   style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            // ),
-          ],
-        );
-      },
-    );
-  }
 }

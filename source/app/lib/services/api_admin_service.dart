@@ -1,4 +1,5 @@
 import 'package:app/globals/ip.dart';
+import 'package:app/luan/models/bill_info.dart';
 import 'package:app/luan/models/brand_info.dart';
 import 'package:app/luan/models/category_info.dart';
 import 'package:app/luan/models/order_info.dart';
@@ -97,8 +98,39 @@ abstract class ApiAdminService {
   );
 
   // Order
+  @GET("/admin/orders")
+  Future<List<OrderInfo>> getAllOrders();
+  
   @GET("/admin/orders/customer/{customerId}")
   Future<List<OrderInfo>> getOrdersByCustomer(@Path("customerId") int customerId);
+
+  @GET("/admin/orders/{orderId}")
+  Future<OrderInfo> getOrderById(@Path("orderId") int orderId);
+
+  @PUT("/admin/orders/{orderId}/process")
+  Future<void> updateOrderProcess(
+    @Path("orderId") int orderId,
+    @Query("process") String process,
+  );
+
+  @GET("/admin/orders/coupon/{couponId}")
+  Future<List<OrderInfo>> getOrdersByCouponId(@Path("couponId") int couponId);
+
+  //Bill
+  @GET("/admin/bills")
+  Future<List<BillInfo>> getAllBills();
+
+  @GET("/admin/bills/order/{orderId}")
+  Future<List<BillInfo>> getBillsByOrder(@Path("orderId") int orderId);
+
+  @GET("/admin/bills/{billId}")
+  Future<BillInfo> getBillById(@Path("billId") int billId);
+
+  @PUT("/admin/bills/{billId}/status")
+  Future<void> updateBillStatus(
+    @Path("billId") int billId,
+    @Query("statusOrder") String statusOrder,
+  );
 
   // Product
   @GET("/admin/products")
