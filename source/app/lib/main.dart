@@ -47,10 +47,12 @@ class _MyAppState extends State<MyApp> {
       child: MaterialApp(
         locale: Locale('vi', 'VN'),
         supportedLocales: [Locale('en', 'US'), Locale('vi', 'VN')],
-        localizationsDelegates: [
+        localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
         ],
+
         debugShowCheckedModeBanner: false,
         title: 'Ecommerce App',
         theme: ThemeData(
