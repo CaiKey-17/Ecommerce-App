@@ -1,4 +1,5 @@
 import 'package:app/globals/ip.dart';
+import 'package:app/models/total_product_by_year.dart';
 import 'package:app/models/address.dart';
 import 'package:app/models/address_response.dart';
 import 'package:app/models/admin_info.dart';
@@ -402,6 +403,39 @@ abstract class ApiService {
   // API thống kê sản phẩm theo khoảng thời gian tùy chỉnh (start, end)
   @GET("/statistic/product-stats/custom")
   Future<ApiResponse1<List<ProductDataDTO>>> getCustomProductData(
+    @Query("start") String start,
+    @Query("end") String end,
+  );
+
+  @GET("/statistic/sold-products-by-year")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYear();
+
+  @GET("/statistic/sold-products-by-year-month")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonth(
+    @Query("year") int year,
+  );
+
+  @GET("/statistic/sold-products-by-year-month-v2")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonthV2(
+    @Query("year") int year,
+    @Query("month") int month,
+  );
+
+  @GET("/statistic/sold-products-by-year-quarter")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearQuarter(
+    @Query("year") int year,
+    @Query("quarter") int quarter,
+  );
+
+  @GET("/statistic/sold-products-by-year-month-week")
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonthWeek(
+    @Query("year") int year,
+    @Query("month") int month,
+    @Query("week") int week,
+  );
+
+  @GET("/statistic/sold-products/custom")
+  Future<ApiResponse1<List<TotalProductByYear>>> getTotalProductByDayBetween(
     @Query("start") String start,
     @Query("end") String end,
   );
