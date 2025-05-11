@@ -1,3 +1,4 @@
+import 'package:app/models/total_product_by_year.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/admin/widgets/sidebar.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,8 @@ class _DashboardPageState extends State<DashboardPage> {
   DateTimeRange? selectedRange;
 
   List<PerformanceDataDTO> performanceData = [];
+  List<TotalProductByYear> toldResponse = [];
+
   List<ProductData> productData = [];
 
   final api = ApiService(Dio());
@@ -38,6 +41,25 @@ class _DashboardPageState extends State<DashboardPage> {
     setState(() {
       token = prefs.getString('token') ?? "";
     });
+  }
+
+  String _getTotalOrders() {
+    return performanceData
+        .fold(0, (sum, item) => sum + item.tongSoDon)
+        .toString();
+  }
+
+  double _getTotalRevenue() {
+    return performanceData.fold(0.0, (sum, item) => sum + item.tongDoanhThu);
+  }
+
+  double _getTotalProfit() {
+    return performanceData.fold(0.0, (sum, item) => sum + item.tongLoiNhuan);
+  }
+
+  String _formatCurrency(double value) {
+    final formatCurrency = NumberFormat.currency(locale: "vi_VN", symbol: "₫");
+    return formatCurrency.format(value);
   }
 
   @override
@@ -70,36 +92,25 @@ class _DashboardPageState extends State<DashboardPage> {
         print("Không có dữ liệu performance");
       }
 
-      // Lấy dữ liệu thống kê sản phẩm theo năm-quý-tháng
-      // final prodResponse = year != null && quarter != null && month != null
-      //     ? await api.getProductDataByYearQuarterMonth(year, quarter, month) // API cho năm-quý-tháng
-      //     : year != null && quarter != null
-      //         ? await api.getProductDataByYearQuarter(year, quarter) // API cho năm-quý
-      //         : year != null && month != null
-      //             ? await api.getProductDataByYearMonth(year, month) // API cho năm-tháng
-      //             : year != null
-      //                 ? await api.getProductDataByYear(year) // API cho năm
-      //                 : await api.getProductData(selectedPeriod); // Nếu không có năm, chọn period mặc định
+      final response =
+          (year != null && month != null && week != null)
+              ? await api.getSoldProductsByYearMonthWeek(year, month, week)
+              : (year != null && quarter != null && month != null
+                  ? await api.getSoldProductsByYearMonthV2(year, month)
+                  : (year != null && quarter != null
+                      ? await api.getSoldProductsByYearQuarter(year, quarter)
+                      : (year != null && month != null
+                          ? await api.getSoldProductsByYearMonthV2(year, month)
+                          : year != null
+                          ? await api.getSoldProductsByYearMonth(year)
+                          : await api.getSoldProductsByYear())));
 
-      final prodResponse =
-          year != null && quarter != null && month != null
-              ? await api.getProductData(selectedPeriod) // API
-              : year != null && quarter != null
-              ? await api.getProductData(selectedPeriod) // API cho năm-quý
-              : year != null && month != null
-              ? await api.getProductData(selectedPeriod) // API cho năm-tháng
-              : year != null
-              ? await api.getProductData(selectedPeriod) // API cho năm
-              : await api.getProductData(
-                selectedPeriod,
-              ); // Nếu không có năm, chọn period mặc định
-      if (prodResponse.data != null) {
+      if (response.data != null) {
         setState(() {
-          productData =
-              prodResponse.data!.map((e) => e.toProductData()).toList();
+          toldResponse = response.data!;
         });
       } else {
-        print("Không có dữ liệu sản phẩm");
+        print("Không có dữ liệu performance");
       }
     } catch (e) {
       print("Lỗi khi lấy dữ liệu: $e");
@@ -120,14 +131,13 @@ class _DashboardPageState extends State<DashboardPage> {
         print("Không có dữ liệu performance cho khoảng thời gian này");
       }
 
-      final prodResponse = await api.getCustomProductData(start, end);
-      if (prodResponse.data != null) {
+      final response = await api.getTotalProductByDayBetween(start, end);
+      if (perfResponse.data != null) {
         setState(() {
-          productData =
-              prodResponse.data!.map((e) => e.toProductData()).toList();
+          toldResponse = response.data!;
         });
       } else {
-        print("Không có dữ liệu sản phẩm cho khoảng thời gian này");
+        print("Không có dữ liệu performance cho khoảng thời gian này");
       }
     } catch (e) {
       print("Lỗi khi lấy dữ liệu theo khoảng thời gian tùy chỉnh: $e");
@@ -396,7 +406,24 @@ class _DashboardPageState extends State<DashboardPage> {
                 ],
               ),
 
-            SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildSummaryCard("Orders", _getTotalOrders(), Colors.orange),
+                _buildSummaryCard(
+                  "Revenue",
+                  _formatCurrency(_getTotalRevenue()),
+                  Colors.green,
+                ),
+                _buildSummaryCard(
+                  "Profit",
+                  _formatCurrency(_getTotalProfit()),
+                  Colors.blue,
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+
             _buildChartsSection(),
           ],
         ),
@@ -419,19 +446,19 @@ class _DashboardPageState extends State<DashboardPage> {
             primaryXAxis: CategoryAxis(),
             series: <CartesianSeries<PerformanceDataDTO, String>>[
               LineSeries<PerformanceDataDTO, String>(
-                name: 'Orders',
+                name: 'Đơn hàng',
                 dataSource: performanceData,
                 xValueMapper: (data, _) => data.thoiGian,
                 yValueMapper: (data, _) => data.tongSoDon,
               ),
               LineSeries<PerformanceDataDTO, String>(
-                name: 'Revenue',
+                name: 'Doanh thu',
                 dataSource: performanceData,
                 xValueMapper: (data, _) => data.thoiGian,
                 yValueMapper: (data, _) => data.tongDoanhThu,
               ),
               LineSeries<PerformanceDataDTO, String>(
-                name: 'Profit',
+                name: 'Lợi nhuận',
                 dataSource: performanceData,
                 xValueMapper: (data, _) => data.thoiGian,
                 yValueMapper: (data, _) => data.tongLoiNhuan,
@@ -439,41 +466,137 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
         ),
+
         SizedBox(height: 24),
         Text(
-          "Product Comparison",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          "So sánh Doanh thu và Lợi nhuận",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        SizedBox(
+        SizedBox(height: 8),
+        Container(
           height: 300,
           child: SfCartesianChart(
-            title: ChartTitle(text: 'Products Sold by Type'),
             primaryXAxis: CategoryAxis(),
-            series: <CartesianSeries<ProductData, String>>[
-              ColumnSeries<ProductData, String>(
-                dataSource: productData,
-                xValueMapper: (data, _) => data.category,
-                yValueMapper: (data, _) => data.quantity,
-                dataLabelSettings: DataLabelSettings(isVisible: true),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 200,
-          child: SfCircularChart(
             legend: Legend(isVisible: true),
-            series: <CircularSeries<ProductData, String>>[
-              PieSeries<ProductData, String>(
-                dataSource: productData,
-                xValueMapper: (data, _) => data.category,
-                yValueMapper: (data, _) => data.quantity,
+            tooltipBehavior: TooltipBehavior(enable: true),
+            series: <CartesianSeries>[
+              ColumnSeries<PerformanceDataDTO, String>(
+                name: 'Doanh thu',
+                dataSource: performanceData,
+                xValueMapper: (PerformanceDataDTO data, _) => data.thoiGian,
+                yValueMapper: (PerformanceDataDTO data, _) => data.tongDoanhThu,
+                color: Colors.blue,
+                dataLabelSettings: DataLabelSettings(isVisible: true),
+              ),
+              ColumnSeries<PerformanceDataDTO, String>(
+                name: 'Lợi nhuận',
+                dataSource: performanceData,
+                xValueMapper: (PerformanceDataDTO data, _) => data.thoiGian,
+                yValueMapper: (PerformanceDataDTO data, _) => data.tongLoiNhuan,
+                color: Colors.green,
                 dataLabelSettings: DataLabelSettings(isVisible: true),
               ),
             ],
           ),
         ),
+
+        SizedBox(height: 24),
+        Text(
+          "Số lượng sản phẩm đã bán được",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        SizedBox(height: 8),
+        Container(
+          height: 300,
+          child: SfCartesianChart(
+            primaryXAxis: CategoryAxis(),
+            legend: Legend(isVisible: true),
+            tooltipBehavior: TooltipBehavior(enable: true),
+            series: <CartesianSeries>[
+              ColumnSeries<TotalProductByYear, String>(
+                name: 'Sản phẩm',
+                dataSource: toldResponse,
+                xValueMapper: (TotalProductByYear data, _) => data.thoiGian,
+                yValueMapper: (TotalProductByYear data, _) => data.tongSanPham,
+                color: Colors.blue,
+                dataLabelSettings: DataLabelSettings(isVisible: true),
+              ),
+            ],
+          ),
+        ),
+
+        // SizedBox(height: 24),
+        // Text(
+        //   "Product Comparison",
+        //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        // ),
+        // SizedBox(
+        //   height: 300,
+        //   child: SfCartesianChart(
+        //     title: ChartTitle(text: 'Products Sold by Type'),
+        //     primaryXAxis: CategoryAxis(),
+        //     series: <CartesianSeries<ProductData, String>>[
+        //       ColumnSeries<ProductData, String>(
+        //         dataSource: productData,
+        //         xValueMapper: (data, _) => data.category,
+        //         yValueMapper: (data, _) => data.quantity,
+        //         dataLabelSettings: DataLabelSettings(isVisible: true),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        // SizedBox(
+        //   height: 200,
+        //   child: SfCircularChart(
+        //     legend: Legend(isVisible: true),
+        //     series: <CircularSeries<ProductData, String>>[
+        //       PieSeries<ProductData, String>(
+        //         dataSource: productData,
+        //         xValueMapper: (data, _) => data.category,
+        //         yValueMapper: (data, _) => data.quantity,
+        //         dataLabelSettings: DataLabelSettings(isVisible: true),
+        //       ),
+        //     ],
+        //   ),
+        // ),
       ],
+    );
+  }
+
+  Widget _buildSummaryCard(String title, String value, Color color) {
+    return Expanded(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 4),
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color, width: 1.5),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+            SizedBox(height: 8),
+
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

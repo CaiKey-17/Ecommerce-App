@@ -1408,6 +1408,7 @@ class _ApiService implements ApiService {
               .map((item) => PerformanceDataDTO.fromJson(item))
               .toList(),
     );
+
     return value;
   }
 
@@ -1439,6 +1440,74 @@ class _ApiService implements ApiService {
               .map((item) => PerformanceDataDTO.fromJson(item))
               .toList(),
     );
+
+    return value;
+  }
+
+  @override
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonthV2(
+    year,
+    month,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'year': year, r'month': month};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse1<List<TotalProductByYear>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/sold-products-by-year-month-v2',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse1<List<TotalProductByYear>>.fromJson(
+      _result.data!, // _result.data là Map<String, dynamic>
+      (data) =>
+          (data as List)
+              .map((item) => TotalProductByYear.fromJson(item))
+              .toList(),
+    );
+
+    return value;
+  }
+
+  @override
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearQuarter(
+    year,
+    quarter,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'year': year,
+      r'quarter': quarter,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse1<List<TotalProductByYear>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/sold-products-by-year-quarter',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse1<List<TotalProductByYear>>.fromJson(
+      _result.data!, // _result.data là Map<String, dynamic>
+      (data) =>
+          (data as List)
+              .map((item) => TotalProductByYear.fromJson(item))
+              .toList(),
+    );
+
     return value;
   }
 
@@ -1475,6 +1544,44 @@ class _ApiService implements ApiService {
               .map((item) => PerformanceDataDTO.fromJson(item))
               .toList(),
     );
+
+    return value;
+  }
+
+  @override
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonthWeek(
+    year,
+    month,
+    week,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{
+      r'year': year,
+      r'month': month,
+      r'week': week,
+    };
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse1<List<TotalProductByYear>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/sold-products-by-year-month-week',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse1<List<TotalProductByYear>>.fromJson(
+      _result.data!, // _result.data là Map<String, dynamic>
+      (data) =>
+          (data as List)
+              .map((item) => TotalProductByYear.fromJson(item))
+              .toList(),
+    );
+
     return value;
   }
 
@@ -1501,6 +1608,7 @@ class _ApiService implements ApiService {
       (data) =>
           (data as List).map((item) => ProductDataDTO.fromJson(item)).toList(),
     );
+
     return value;
   }
 
@@ -1561,7 +1669,96 @@ class _ApiService implements ApiService {
       (data) =>
           (data as List).map((item) => ProductDataDTO.fromJson(item)).toList(),
     );
+    return value;
+  }
 
+  @override
+  Future<ApiResponse1<List<TotalProductByYear>>> getTotalProductByDayBetween(
+    start,
+    end,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'start': start, r'end': end};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse1<List<TotalProductByYear>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/sold-products/custom',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse1<List<TotalProductByYear>>.fromJson(
+      _result.data!, // _result.data là Map<String, dynamic>
+      (data) =>
+          (data as List)
+              .map((item) => TotalProductByYear.fromJson(item))
+              .toList(),
+    );
+    return value;
+  }
+
+  @override
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYearMonth(
+    year,
+  ) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'year': year};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse1<List<TotalProductByYear>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/sold-products-by-year-month',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse1<List<TotalProductByYear>>.fromJson(
+      _result.data!, // _result.data là Map<String, dynamic>
+      (data) =>
+          (data as List)
+              .map((item) => TotalProductByYear.fromJson(item))
+              .toList(),
+    );
+
+    return value;
+  }
+
+  @override
+  Future<ApiResponse1<List<TotalProductByYear>>> getSoldProductsByYear() async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse1<List<TotalProductByYear>>>(
+        Options(method: 'GET', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/statistic/sold-products-by-year',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse1<List<TotalProductByYear>>.fromJson(
+      _result.data!, // _result.data là Map<String, dynamic>
+      (data) =>
+          (data as List)
+              .map((item) => TotalProductByYear.fromJson(item))
+              .toList(),
+    );
     return value;
   }
 

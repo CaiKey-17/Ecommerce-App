@@ -118,4 +118,55 @@ public class StatisticController {
 //        ApiResponse<List<PerformanceDataProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
 //        return ResponseEntity.ok(response);
 //    }
+
+
+    @GetMapping("/sold-products-by-year")
+    public ResponseEntity<ApiResponse<List<TotalProductByYearProjection>>> getSoldProductsByYear() {
+        List<TotalProductByYearProjection> productData = orderRepository.getTotalProductByYear();
+        ApiResponse<List<TotalProductByYearProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-products-by-year-month")
+    public ResponseEntity<ApiResponse<List<TotalProductByYearProjection>>> getSoldProductsByYearMonth(@RequestParam("year") int year) {
+        List<TotalProductByYearProjection> productData = orderRepository.getTotalProductByYearMonth(year);
+        ApiResponse<List<TotalProductByYearProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-products-by-year-month-v2")
+    public ResponseEntity<ApiResponse<List<TotalProductByYearProjection>>> getSoldProductsByYearMonthV2(@RequestParam("year") int year,@RequestParam("month") int month) {
+        List<TotalProductByYearProjection> productData = orderRepository.getTotalProductByYearMonth(year,month);
+        ApiResponse<List<TotalProductByYearProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-products-by-year-quarter")
+    public ResponseEntity<ApiResponse<List<TotalProductByYearProjection>>> getSoldProductsByYearQuarter(@RequestParam("year") int year,@RequestParam("quarter") int quarter) {
+        List<TotalProductByYearProjection> productData = orderRepository.getTotalProductByYearQuarter(year,quarter);
+        ApiResponse<List<TotalProductByYearProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-products-by-year-month-week")
+    public ResponseEntity<ApiResponse<List<TotalProductByYearProjection>>> getSoldProductsByYearMonthWeek(@RequestParam("year") int year,@RequestParam("month") int month,@RequestParam("week") int week) {
+        List<TotalProductByYearProjection> performanceData = orderRepository.getTotalProductByYearMonthWeek(year,month,week);
+        ApiResponse<List<TotalProductByYearProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-products/custom")
+    public ResponseEntity<ApiResponse<List<TotalProductByYearProjection>>> getTotalProductByDayBetween(@RequestParam("start") String start, @RequestParam("end") String end) {
+        List<TotalProductByYearProjection> productData = orderRepository.getTotalProductByDayBetween(start, end);
+        ApiResponse<List<TotalProductByYearProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
+
+
+
+
 }
