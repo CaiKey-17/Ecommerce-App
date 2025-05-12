@@ -1,3 +1,4 @@
+import 'package:app/models/category_sales.dart';
 import 'package:app/models/total_product_by_year.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/admin/widgets/sidebar.dart';
@@ -25,6 +26,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   List<PerformanceDataDTO> performanceData = [];
   List<TotalProductByYear> toldResponse = [];
+  List<CategorySalesProjection> typeResponse = [];
 
   List<ProductData> productData = [];
 
@@ -110,6 +112,33 @@ class _DashboardPageState extends State<DashboardPage> {
           toldResponse = response.data!;
         });
       } else {
+        print("Không có dữ liệu type");
+      }
+
+      final response1 =
+          (year != null && month != null && week != null)
+              ? await api.getSoldTypeProductsByYearMonthWeek(year, month, week)
+              : (year != null && quarter != null && month != null
+                  ? await api.getSoldTypeProductsByYearMonthV2(year, month)
+                  : (year != null && quarter != null
+                      ? await api.getSoldTypeProductsByYearQuarter(
+                        year,
+                        quarter,
+                      )
+                      : (year != null && month != null
+                          ? await api.getSoldTypeProductsByYearMonthV2(
+                            year,
+                            month,
+                          )
+                          : year != null
+                          ? await api.getSoldTypeProductsByYearMonth(year)
+                          : await api.getSoldTypeProductsByYear())));
+
+      if (response1.data != null) {
+        setState(() {
+          typeResponse = response1.data!;
+        });
+      } else {
         print("Không có dữ liệu performance");
       }
     } catch (e) {
@@ -132,9 +161,18 @@ class _DashboardPageState extends State<DashboardPage> {
       }
 
       final response = await api.getTotalProductByDayBetween(start, end);
-      if (perfResponse.data != null) {
+      if (response.data != null) {
         setState(() {
           toldResponse = response.data!;
+        });
+      } else {
+        print("Không có dữ liệu performance cho khoảng thời gian này");
+      }
+
+      final response1 = await api.getTotalTypeProductByDayBetween(start, end);
+      if (response1.data != null) {
+        setState(() {
+          typeResponse = response1.data!;
         });
       } else {
         print("Không có dữ liệu performance cho khoảng thời gian này");
@@ -525,6 +563,47 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
 
+        SizedBox(height: 24),
+        Text(
+          "Số lượng sản phẩm theo danh mục",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        SizedBox(height: 8),
+        Container(
+          height: 300,
+          child: SfCartesianChart(
+            primaryXAxis: CategoryAxis(),
+            legend: Legend(isVisible: true, position: LegendPosition.bottom),
+            tooltipBehavior: TooltipBehavior(enable: true),
+            series: _buildCategorySeries(),
+          ),
+        ),
+
+        SizedBox(height: 24),
+        Text(
+          "Phân bố sản phẩm theo danh mục",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        SizedBox(height: 8),
+        Container(
+          height: 300,
+          child: SfCircularChart(
+            legend: Legend(isVisible: true, position: LegendPosition.bottom),
+            tooltipBehavior: TooltipBehavior(enable: true),
+            series: <CircularSeries>[
+              PieSeries<CategorySalesProjection, String>(
+                dataSource: _aggregateCategoryData(),
+                xValueMapper:
+                    (CategorySalesProjection data, _) => data.tenLoaiSanPham,
+                yValueMapper:
+                    (CategorySalesProjection data, _) => data.tongSanPham,
+                dataLabelSettings: DataLabelSettings(isVisible: true),
+                enableTooltip: true,
+              ),
+            ],
+          ),
+        ),
+
         // SizedBox(height: 24),
         // Text(
         //   "Product Comparison",
@@ -561,6 +640,64 @@ class _DashboardPageState extends State<DashboardPage> {
         // ),
       ],
     );
+  }
+
+  List<CartesianSeries<CategorySalesProjection, String>>
+  _buildCategorySeries() {
+    // Get unique categories
+    final categories =
+        typeResponse.map((e) => e.tenLoaiSanPham).toSet().toList();
+
+    // Create a series for each category
+    return categories.map((category) {
+      return ColumnSeries<CategorySalesProjection, String>(
+        name: category,
+        dataSource:
+            typeResponse.where((e) => e.tenLoaiSanPham == category).toList(),
+        xValueMapper: (CategorySalesProjection data, _) => data.thoiGian,
+        yValueMapper: (CategorySalesProjection data, _) => data.tongSanPham,
+        dataLabelSettings: DataLabelSettings(isVisible: true),
+        // Assign a unique color for each category
+        color: _getColorForCategory(category),
+      );
+    }).toList();
+  }
+
+  List<CategorySalesProjection> _aggregateCategoryData() {
+    // Aggregate total products by category
+    final Map<String, int> categoryTotals = {};
+    for (var item in typeResponse) {
+      categoryTotals.update(
+        item.tenLoaiSanPham,
+        (value) => value + item.tongSanPham,
+        ifAbsent: () => item.tongSanPham,
+      );
+    }
+
+    // Convert to CategorySalesProjection list
+    return categoryTotals.entries.map((entry) {
+      return CategorySalesProjection(
+        thoiGian: 'Tổng', // Dummy value for pie chart
+        tenLoaiSanPham: entry.key,
+        tongSanPham: entry.value,
+      );
+    }).toList();
+  }
+
+  Color _getColorForCategory(String category) {
+    // Simple hash-based color assignment for consistency
+    final colors = [
+      Colors.blue,
+      Colors.green,
+      Colors.red,
+      Colors.orange,
+      Colors.purple,
+      Colors.teal,
+      Colors.cyan,
+      Colors.amber,
+    ];
+    final index = category.hashCode % colors.length;
+    return colors[index];
   }
 
   Widget _buildSummaryCard(String title, String value, Color color) {

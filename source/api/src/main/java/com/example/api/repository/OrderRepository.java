@@ -493,4 +493,187 @@ ORDER BY d.date_value
 
 
 
+/// /
+///
+
+    @Query(value = """
+SELECT 
+    CONCAT('Năm ', y.nam) AS thoiGian,
+    COALESCE(c.name, '') AS tenLoaiSanPham,            
+    COALESCE(SUM(od.quantity), 0) AS tongSanPham
+FROM 
+    (SELECT YEAR(CURDATE()) - 4 AS nam UNION ALL
+     SELECT YEAR(CURDATE()) - 3 UNION ALL
+     SELECT YEAR(CURDATE()) - 2 UNION ALL
+     SELECT YEAR(CURDATE()) - 1 UNION ALL
+     SELECT YEAR(CURDATE())) y
+LEFT JOIN orders o ON YEAR(o.created_at) = y.nam AND o.process = 'hoantat'
+LEFT JOIN order_details od ON o.id = od.fk_order_id
+LEFT JOIN product_variant pv ON pv.id = od.fk_product_id
+LEFT JOIN product p ON p.id = pv.fk_variant_product
+LEFT JOIN category c ON c.name = p.fk_category
+GROUP BY y.nam, c.name
+ORDER BY y.nam, c.name
+""", nativeQuery = true)
+    List<CategorySalesProjection> getTypeProduct();
+
+    @Query(value = """
+    SELECT 
+        CONCAT('Tháng ', m.thang) AS thoiGian,
+        COALESCE(c.name, '') AS tenLoaiSanPham,            
+        COALESCE(SUM(od.quantity), 0) AS tongSanPham
+    FROM 
+        (SELECT 1 AS thang UNION ALL 
+         SELECT 2 UNION ALL 
+         SELECT 3 UNION ALL 
+         SELECT 4 UNION ALL 
+         SELECT 5 UNION ALL 
+         SELECT 6 UNION ALL 
+         SELECT 7 UNION ALL 
+         SELECT 8 UNION ALL 
+         SELECT 9 UNION ALL 
+         SELECT 10 UNION ALL 
+         SELECT 11 UNION ALL 
+         SELECT 12) m
+    LEFT JOIN orders o ON MONTH(o.created_at) = m.thang 
+        AND YEAR(o.created_at) = :year AND o.process = 'hoantat'
+    LEFT JOIN order_details od ON o.id = od.fk_order_id
+    LEFT JOIN product_variant pv ON pv.id = od.fk_product_id
+    LEFT JOIN product p ON p.id = pv.fk_variant_product
+    LEFT JOIN category c ON c.name = p.fk_category
+    GROUP BY m.thang, c.name
+    ORDER BY m.thang, c.name
+    """, nativeQuery = true)
+    List<CategorySalesProjection> getTypeProductByYear(@Param("year") int year);
+
+    @Query(value = """
+    SELECT 
+        CONCAT('Tháng ', m.thang) AS thoiGian,
+        COALESCE(c.name, '') AS tenLoaiSanPham,
+        COALESCE(SUM(od.quantity), 0) AS tongSanPham
+    FROM 
+        (SELECT 1 AS thang UNION ALL
+         SELECT 2 UNION ALL
+         SELECT 3 UNION ALL
+         SELECT 4 UNION ALL
+         SELECT 5 UNION ALL
+         SELECT 6 UNION ALL
+         SELECT 7 UNION ALL
+         SELECT 8 UNION ALL
+         SELECT 9 UNION ALL
+         SELECT 10 UNION ALL
+         SELECT 11 UNION ALL
+         SELECT 12) m
+    LEFT JOIN orders o ON MONTH(o.created_at) = m.thang 
+        AND YEAR(o.created_at) = :year AND o.process = 'hoantat'
+    LEFT JOIN order_details od ON o.id = od.fk_order_id
+    LEFT JOIN product_variant pv ON pv.id = od.fk_product_id
+    LEFT JOIN product p ON p.id = pv.fk_variant_product
+    LEFT JOIN category c ON c.name = p.fk_category
+    WHERE 
+        (m.thang BETWEEN 
+            CASE 
+                WHEN :quarter = 1 THEN 1
+                WHEN :quarter = 2 THEN 4
+                WHEN :quarter = 3 THEN 7
+                WHEN :quarter = 4 THEN 10
+            END
+        AND 
+            CASE 
+                WHEN :quarter = 1 THEN 3
+                WHEN :quarter = 2 THEN 6
+                WHEN :quarter = 3 THEN 9
+                WHEN :quarter = 4 THEN 12
+            END)
+    GROUP BY m.thang, c.name
+    ORDER BY m.thang, c.name
+    """, nativeQuery = true)
+    List<CategorySalesProjection> getTypeProductByYearQuarter(@Param("year") int year, @Param("quarter") int quarter);
+
+
+    @Query(value = """
+    WITH RECURSIVE DateRange AS (
+        SELECT DATE(CONCAT(:year, '-', :month, '-01')) AS date_value
+        UNION ALL
+        SELECT DATE_ADD(date_value, INTERVAL 1 DAY)
+        FROM DateRange
+        WHERE date_value < LAST_DAY(DATE(CONCAT(:year, '-', :month, '-01')))
+    )
+    SELECT 
+        CONCAT(DAY(d.date_value), '/', :month) AS thoiGian,
+        COALESCE(c.name, '') AS tenLoaiSanPham,
+        COALESCE(SUM(od.quantity), 0) AS tongSanPham
+    FROM 
+        DateRange d
+    LEFT JOIN orders o ON DAY(o.created_at) = DAY(d.date_value) 
+        AND YEAR(o.created_at) = :year
+        AND MONTH(o.created_at) = :month
+        AND o.process = 'hoantat'
+    LEFT JOIN order_details od ON o.id = od.fk_order_id
+    LEFT JOIN product_variant pv ON pv.id = od.fk_product_id
+    LEFT JOIN product p ON p.id = pv.fk_variant_product
+    LEFT JOIN category c ON c.name = p.fk_category
+    GROUP BY d.date_value, c.name
+    ORDER BY d.date_value, c.name
+    """, nativeQuery = true)
+    List<CategorySalesProjection> getTypeProductByYearMonth(@Param("year") int year, @Param("month") int month);
+
+    @Query(value = """
+    WITH RECURSIVE DateRange AS (
+        SELECT DATE(CONCAT(:year, '-', :month, '-01')) AS date_value
+        UNION ALL
+        SELECT DATE_ADD(date_value, INTERVAL 1 DAY)
+        FROM DateRange
+        WHERE date_value < LAST_DAY(DATE(CONCAT(:year, '-', :month, '-01')))
+    )
+    SELECT 
+        CONCAT(DAY(d.date_value), '/', :month) AS thoiGian,
+        COALESCE(c.name, '') AS tenLoaiSanPham,
+        COALESCE(SUM(od.quantity), 0) AS tongSanPham
+    FROM 
+        DateRange d
+    LEFT JOIN orders o ON DAY(o.created_at) = DAY(d.date_value) 
+        AND YEAR(o.created_at) = :year
+        AND MONTH(o.created_at) = :month
+        AND o.process = 'hoantat'
+    LEFT JOIN order_details od ON o.id = od.fk_order_id
+    LEFT JOIN product_variant pv ON pv.id = od.fk_product_id
+    LEFT JOIN product p ON p.id = pv.fk_variant_product
+    LEFT JOIN category c ON c.name = p.fk_category
+    WHERE 
+        (
+            (DAY(d.date_value) BETWEEN 1 AND 7 AND :week = 1) OR
+            (DAY(d.date_value) BETWEEN 8 AND 14 AND :week = 2) OR
+            (DAY(d.date_value) BETWEEN 15 AND 21 AND :week = 3) OR
+            (DAY(d.date_value) BETWEEN 22 AND 28 AND :week = 4)
+        )
+    GROUP BY d.date_value, c.name
+    ORDER BY d.date_value, c.name
+    """, nativeQuery = true)
+    List<CategorySalesProjection> getTypeProductByYearWeek(@Param("year") int year, @Param("month") int month, @Param("week") int week);
+
+
+    @Query(value = """
+    WITH RECURSIVE DateRange AS (
+        SELECT DATE(:startDate) AS date_value
+        UNION ALL
+        SELECT DATE_ADD(date_value, INTERVAL 1 DAY)
+        FROM DateRange
+        WHERE date_value < DATE(:endDate)
+    )
+    SELECT 
+        DATE_FORMAT(d.date_value, '%d-%m-%Y') AS thoiGian,
+        COALESCE(c.name, '') AS tenLoaiSanPham,        
+        COALESCE(SUM(od.quantity), 0) AS tongSanPham
+    FROM 
+        DateRange d
+    LEFT JOIN orders o ON DATE(o.created_at) = d.date_value AND o.process = 'hoantat'
+    LEFT JOIN order_details od ON o.id = od.fk_order_id
+    LEFT JOIN product_variant pv ON pv.id = od.fk_product_id
+    LEFT JOIN product p ON p.id = pv.fk_variant_product
+    LEFT JOIN category c ON c.name = p.fk_category
+    GROUP BY d.date_value, c.name
+    ORDER BY d.date_value, c.name
+    """, nativeQuery = true)
+    List<CategorySalesProjection> getTypeProductByDayBetween(@Param("startDate") String startDate, @Param("endDate") String endDate);
 }
