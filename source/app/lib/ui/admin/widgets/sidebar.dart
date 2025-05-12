@@ -77,7 +77,7 @@ class _SideBarState extends State<SideBar> {
                 MaterialPageRoute(builder: (context) => DashboardScreen()),
               );
             }),
-            _buildDrawerItem(Icons.dashboard, 'Dashboard nâng cao', () {
+            _buildDrawerItem(Icons.insights, 'Dashboard nâng cao', () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => DashboardPage()),

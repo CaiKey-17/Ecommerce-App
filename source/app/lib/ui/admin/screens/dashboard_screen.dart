@@ -31,8 +31,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int? totalUser;
   int? newUser;
   String selectedFilter = "Năm";
-  DateTime? startDate;
-  DateTime? endDate;
   List<SalesData> salesData = [];
   UserStatistics? userStatistics;
   OrderStatisticsDTO? orderStatisticsDTO;
@@ -42,7 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     apiService = ApiService(Dio());
 
-    _fetchData();
+    // _fetchData();
     _loadUserData();
     getUserStatistics();
     getOrderStatistics();
@@ -126,15 +124,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       token = prefs.getString('token') ?? "";
     });
-  }
-
-  Future<void> _fetchData() async {
-    final data = await fetchSalesData(
-      selectedFilter,
-      start: startDate,
-      end: endDate,
-    );
-    setState(() => salesData = data);
   }
 
   Future<List<SalesData>> fetchSalesData(
@@ -504,115 +493,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [_buildLegendItem(Colors.orange, "Số đơn hàng")],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDateRangePicker() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: () async {
-            final picked = await showDateRangePicker(
-              context: context,
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-              initialDateRange:
-                  startDate != null && endDate != null
-                      ? DateTimeRange(start: startDate!, end: endDate!)
-                      : null,
-            );
-            if (picked != null) {
-              setState(() {
-                startDate = picked.start;
-                endDate = picked.end;
-                selectedFilter = "Tùy chỉnh";
-                _fetchData();
-              });
-            }
-          },
-          child: Text("Chọn khoảng thời gian"),
-        ),
-        SizedBox(width: 16),
-        Text(
-          startDate != null && endDate != null
-              ? "${startDate!.day}/${startDate!.month} - ${endDate!.day}/${endDate!.month}"
-              : "Chưa chọn",
-          style: TextStyle(fontSize: 14),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFilterButton(String title) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        foregroundColor: selectedFilter == title ? Colors.white : Colors.black,
-        backgroundColor:
-            selectedFilter == title ? Colors.blue : Colors.grey[300],
-      ),
-      onPressed: () {
-        setState(() {
-          selectedFilter = title;
-          startDate = null;
-          endDate = null;
-          _fetchData();
-        });
-      },
-      child: Text(title),
-    );
-  }
-
-  Widget _buildStatisticsTable(List<SalesData> data) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Thống kê chi tiết",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            DataTable(
-              columns: [
-                DataColumn(label: Text("Chỉ số")),
-                DataColumn(label: Text("Giá trị")),
-              ],
-              rows: [
-                DataRow(
-                  cells: [
-                    DataCell(Text("Doanh thu")),
-                    DataCell(
-                      Text(
-                        "${data.fold(0.0, (sum, e) => sum + e.revenue)} VNĐ",
-                      ),
-                    ),
-                  ],
-                ),
-                DataRow(
-                  cells: [
-                    DataCell(Text("Lợi nhuận")),
-                    DataCell(
-                      Text("${data.fold(0.0, (sum, e) => sum + e.profit)} VNĐ"),
-                    ),
-                  ],
-                ),
-                DataRow(
-                  cells: [
-                    DataCell(Text("Sản phẩm bán chạy")),
-                    DataCell(
-                      Text(data.isNotEmpty ? data[0].topProduct : "N/A"),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
