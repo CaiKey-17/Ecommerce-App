@@ -29,7 +29,6 @@ class ApiResponse<T> {
   }
 }
 
-
 @RestApi(baseUrl: ApiConfig.baseUrlAPI)
 abstract class ApiAdminService {
   factory ApiAdminService(Dio dio, {String baseUrl}) = _ApiAdminService;
@@ -100,9 +99,11 @@ abstract class ApiAdminService {
   // Order
   @GET("/admin/orders")
   Future<List<OrderInfo>> getAllOrders();
-  
+
   @GET("/admin/orders/customer/{customerId}")
-  Future<List<OrderInfo>> getOrdersByCustomer(@Path("customerId") int customerId);
+  Future<List<OrderInfo>> getOrdersByCustomer(
+    @Path("customerId") int customerId,
+  );
 
   @GET("/admin/orders/{orderId}")
   Future<OrderInfo> getOrderById(@Path("orderId") int orderId);
