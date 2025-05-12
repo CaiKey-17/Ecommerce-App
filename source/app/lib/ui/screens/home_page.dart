@@ -62,6 +62,8 @@ class _HomePageState extends State<HomePage> {
   int points = 0;
   bool _isFetching = false;
   bool _isLoading = true;
+  bool _isLoadingPromotion = true;
+
   int _currentIndex = 0;
   String token = "";
   List<CategoryInfo> categories = [];
@@ -275,18 +277,18 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchProductsPromotion() async {
     setState(() {
-      isLoading = true;
+      _isLoadingPromotion = true;
     });
     try {
       final response = await apiService.getProductsPromotion();
       setState(() {
         productsPromotion = response;
-        isLoading = false;
+        _isLoadingPromotion = false;
       });
     } catch (e) {
       print("Lỗi khi gọi API: $e");
       setState(() {
-        isLoading = false;
+        _isLoadingPromotion = false;
       });
     }
   }
@@ -623,7 +625,7 @@ class _HomePageState extends State<HomePage> {
             ),
             SliverList(
               delegate: SliverChildListDelegate([
-                _isLoading
+                _isLoadingPromotion
                     ? _buildHorizontalListShimmer()
                     : _buildHorizontalList(),
                 _isLoading ? _buildBannerShimmer() : _buildBanner(),
