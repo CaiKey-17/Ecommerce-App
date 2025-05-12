@@ -7,6 +7,7 @@ import 'package:app/services/api_admin_service.dart';
 import 'package:app/services/api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
@@ -29,11 +30,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late ApiAdminService apiService;
   late ApiService apiCartService;
   final Dio dio = Dio();
-  String? selectedStatus;
-  String? selectedPaymentStatus;
   String? productImage; // Lưu image từ Product
   List<CartInfo> cartItems = [];
   bool isLoadingCartItems = true;
+  String? currentStatus; // Biến để theo dõi trạng thái hiện tại
   final List<String> orderStatuses = ['Chấp nhận', 'Không chấp nhận'];
 
   @override
@@ -41,15 +41,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     super.initState();
     apiService = ApiAdminService(dio);
     apiCartService = ApiService(dio);
-    selectedStatus = _translateStatus(widget.order.process);
-    selectedPaymentStatus = _getPaymentStatus();
+    currentStatus = widget.order.process; // Khởi tạo trạng thái từ order
 
     // In thông tin ProductVariant
     if (widget.variant != null) {
       debugPrint('ProductVariant:');
       debugPrint('  Name: ${widget.variant!.nameVariant}');
       debugPrint('  fkVariantProduct: ${widget.variant!.fkVariantProduct}');
-      // Thêm các trường khác nếu ProductVariant có
     } else {
       debugPrint('ProductVariant is null');
     }
@@ -73,8 +71,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         cartItems = response;
         isLoadingCartItems = false;
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
       debugPrint("Lỗi khi gọi API getItemInCartDetail: $error");
+      debugPrint('StackTrace: $stackTrace');
       setState(() {
         isLoadingCartItems = false;
       });
@@ -136,28 +135,32 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   String _translateStatus(String? backendStatus) {
     try {
       switch (backendStatus?.toLowerCase()) {
-        case 'dahuy':
-          return 'Không chấp nhận';
+        case 'dangdat':
+          return 'Đang đặt';
         case 'danggiao':
-          return 'Chấp nhận';
+          return 'Đang giao';
+        case 'dahuy':
+          return 'Đã hủy';
+        case 'hoantat':
+          return 'Hoàn tất';
         default:
           debugPrint('Trạng thái backend không xác định: $backendStatus');
-          return 'Đang Đặt';
+          return 'Đang đặt';
       }
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi dịch trạng thái: $e');
       debugPrint('StackTrace: $stackTrace');
-      return 'Đang Đặt';
+      return 'Đang đặt';
     }
   }
 
   String _toBackendStatus(String uiStatus) {
     try {
       switch (uiStatus) {
-        case 'Không chấp nhận':
-          return 'dahuy';
         case 'Chấp nhận':
           return 'danggiao';
+        case 'Không chấp nhận':
+          return 'dahuy';
         default:
           debugPrint('Trạng thái giao diện không xác định: $uiStatus');
           return 'dangdat';
@@ -226,13 +229,25 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         'Cập nhật trạng thái cho đơn hàng ID: ${widget.order.id}, Trạng thái mới: $newStatus',
       );
       final backendStatus = _toBackendStatus(newStatus);
-      await apiService.updateOrderProcess(widget.order.id!, backendStatus);
       debugPrint(
-        'Cập nhật trạng thái đơn hàng ID: ${widget.order.id} thành công',
+        'Gửi yêu cầu cập nhật trạng thái tới backend: orderId=${widget.order.id}, process=$backendStatus',
       );
 
+      // Gọi API để cập nhật trạng thái
+      if (newStatus == 'Chấp nhận') {
+        await apiCartService.acceptToCart(widget.order.id!);
+        debugPrint('Chấp nhận đơn hàng ID: ${widget.order.id} thành công');
+      } else if (newStatus == 'Không chấp nhận') {
+        await apiCartService.cancelToCart(widget.order.id!);
+        debugPrint('Hủy đơn hàng ID: ${widget.order.id} thành công');
+      } else {
+        throw Exception('Trạng thái không hợp lệ: $newStatus');
+      }
+
+      // Cập nhật trạng thái cục bộ mà không gọi lại dữ liệu khác
       setState(() {
-        selectedStatus = newStatus;
+        currentStatus = backendStatus;
+        widget.order.process = backendStatus; // Cập nhật trạng thái trong order
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -249,10 +264,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       if (e is DioException) {
         errorMessage =
             'Lỗi khi cập nhật trạng thái: ${e.response?.statusCode} - ${e.message}';
+        debugPrint(
+          'DioException details: StatusCode=${e.response?.statusCode}, ResponseData=${e.response?.data}',
+        );
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     }
   }
 
@@ -285,111 +303,115 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       isLoadingCartItems
                           ? const Center(child: CircularProgressIndicator())
                           : cartItems.isEmpty
-                          ? const Center(
-                            child: Text(
-                              "Không có sản phẩm",
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          )
-                          : ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: cartItems.length,
-                            itemBuilder: (context, index) {
-                              final item = cartItems[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: 80,
-                                      height: 80,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(5),
-                                        child:
-                                            (item.image == null ||
-                                                    item.image!.isEmpty)
-                                                ? Image.asset(
-                                                  'assets/images/default.jpg',
-                                                  fit: BoxFit.cover,
-                                                  width: double.infinity,
-                                                  height: 80,
-                                                )
-                                                : Image.network(
-                                                  item.image!,
-                                                  fit: BoxFit.cover,
-                                                  width: double.infinity,
-                                                  height: 80,
-                                                  errorBuilder: (
-                                                    context,
-                                                    error,
-                                                    stackTrace,
-                                                  ) {
-                                                    return Image.asset(
+                              ? const Center(
+                                  child: Text(
+                                    "Không có sản phẩm",
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: cartItems.length,
+                                  itemBuilder: (context, index) {
+                                    final item = cartItems[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 10),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 80,
+                                            height: 80,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              child: (item.image == null ||
+                                                      item.image!.isEmpty)
+                                                  ? Image.asset(
                                                       'assets/images/default.jpg',
                                                       fit: BoxFit.cover,
                                                       width: double.infinity,
                                                       height: 80,
-                                                    );
-                                                  },
+                                                    )
+                                                  : Image.network(
+                                                      item.image!,
+                                                      fit: BoxFit.cover,
+                                                      width: double.infinity,
+                                                      height: 80,
+                                                      errorBuilder: (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) {
+                                                        return Image.asset(
+                                                          'assets/images/default.jpg',
+                                                          fit: BoxFit.cover,
+                                                          width: double.infinity,
+                                                          height: 80,
+                                                        );
+                                                      },
+                                                    ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.nameVariant ?? 'N/A',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color: Colors.blue,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item.nameVariant ?? 'N/A',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16,
-                                              color: Colors.blue,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Text(
-                                            (item.colorName?.trim().isEmpty ??
-                                                    true)
-                                                ? 'Mặc định'
-                                                : item.colorName!,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Text(
-                                            "Số lượng: ${item.quantity ?? 'N/A'}",
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                          Text(
-                                            "Giá: ${formatCurrency(item.price)}",
-                                            style: const TextStyle(
-                                              fontSize: 14,
+                                                Text(
+                                                  (item.colorName
+                                                              ?.trim()
+                                                              .isEmpty ??
+                                                          true)
+                                                      ? 'Mặc định'
+                                                      : item.colorName!,
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  "Số lượng: ${item.quantity ?? 'N/A'}",
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "Giá: ${formatCurrency(item.price)}",
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                  ],
+                                    );
+                                  },
                                 ),
-                              );
-                            },
-                          ),
                       const SizedBox(height: 10),
                       Text(
                         "Phí ship: ${formatCurrency(widget.order.ship)}",
@@ -420,6 +442,28 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         'ORD${widget.order.id.toString().padLeft(3, '0')}',
                       ),
                       _buildInfoRow(
+                        "Giá",
+                        formatCurrency(widget.order.priceTotal),
+                      ),
+                      _buildInfoRow(
+                        "Số lượng",
+                        widget.order.quantityTotal?.toString() ?? 'N/A',
+                      ),
+                      _buildInfoRow(
+                        "Phí ship",
+                        formatCurrency(widget.order.ship),
+                      ),
+                      _buildInfoRow(
+                        "Thuế",
+                        formatCurrency(widget.order.tax),
+                      ),
+                      _buildInfoRow(
+                        "Tổng tiền",
+                        formatCurrency(widget.order.total),
+                        isBold: true,
+                        valueColor: Colors.red,
+                      ),
+                      _buildInfoRow(
                         "Địa chỉ",
                         widget.order.address ?? 'N/A',
                         isAddress: true,
@@ -441,22 +485,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         formatDate(widget.order.createdAt),
                       ),
                       _buildInfoRow(
-                        "Mã coupon",
-                        widget.order.fkCouponId?.toString() ?? 'N/A',
-                      ),
-                      _buildInfoRow(
                         "Trạng thái thanh toán",
                         _getPaymentStatus(),
-                        valueColor:
-                            _getPaymentStatus() == 'Đã thanh toán'
-                                ? Colors.green
-                                : Colors.red,
-                      ),
-                      _buildInfoRow(
-                        "Tổng tiền",
-                        formatCurrency(widget.order.total),
-                        isBold: true,
-                        valueColor: Colors.red,
+                        valueColor: _getPaymentStatus() == 'Đã thanh toán'
+                            ? Colors.green
+                            : Colors.red,
                       ),
                     ],
                   ),
@@ -481,33 +514,54 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            "Trạng thái",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.normal,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Trạng thái",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  _translateStatus(widget.order.process),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: widget.order.process
+                                                ?.toLowerCase() ==
+                                            'danggiao'
+                                        ? Colors.green
+                                        : widget.order.process?.toLowerCase() ==
+                                                'dahuy'
+                                            ? Colors.red
+                                            : widget.order.process
+                                                        ?.toLowerCase() ==
+                                                    'hoantat'
+                                                ? Colors.blue
+                                                : Colors.black,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          DropdownButton<String>(
-                            value: selectedStatus,
-                            onChanged: (newValue) {
-                              if (newValue != null) {
-                                _updateOrderStatus(newValue);
-                              }
-                            },
-                            items:
-                                orderStatuses.map<DropdownMenuItem<String>>((
-                                  String status,
-                                ) {
-                                  return DropdownMenuItem<String>(
-                                    value: status,
-                                    child: Text(
-                                      status,
-                                      style: const TextStyle(fontSize: 14),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  );
-                                }).toList(),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Text(
+                                  "Hành động",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                _buildActionWidget(),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -552,12 +606,81 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
               textAlign: TextAlign.end,
               softWrap: isAddress,
-              overflow:
-                  isAddress ? TextOverflow.visible : TextOverflow.ellipsis,
+              overflow: isAddress ? TextOverflow.visible : TextOverflow.ellipsis,
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildActionWidget() {
+    try {
+      final backendStatus = currentStatus?.toLowerCase();
+      if (backendStatus == 'dangdat') {
+        return DropdownButton<String>(
+          hint: const Text('Chọn hành động'),
+          onChanged: (newValue) {
+            try {
+              if (newValue != null) {
+                debugPrint(
+                  'Thay đổi trạng thái cho đơn hàng ID: ${widget.order.id} thành: $newValue',
+                );
+                _updateOrderStatus(newValue);
+              } else {
+                debugPrint(
+                  'Không có giá trị trạng thái mới cho đơn hàng ID: ${widget.order.id}',
+                );
+              }
+            } catch (e, stackTrace) {
+              debugPrint(
+                'Lỗi khi thay đổi trạng thái dropdown cho đơn hàng ID: ${widget.order.id}: $e',
+              );
+              debugPrint('StackTrace: $stackTrace');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Lỗi khi thay đổi trạng thái: $e')),
+              );
+            }
+          },
+          items: orderStatuses.map<DropdownMenuItem<String>>((String status) {
+            return DropdownMenuItem<String>(
+              value: status,
+              child: Text(
+                status,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: status == 'Chấp nhận' ? Colors.green : Colors.red,
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      } else if (backendStatus == 'danggiao') {
+        return const Text(
+          'Đã chấp nhận',
+          style: TextStyle(fontSize: 14, color: Colors.green),
+          textAlign: TextAlign.center,
+        );
+      } else if (backendStatus == 'dahuy') {
+        return const Text(
+          'Không chấp nhận',
+          style: TextStyle(fontSize: 14, color: Colors.red),
+          textAlign: TextAlign.center,
+        );
+      } else if (backendStatus == 'hoantat') {
+        return const Text(
+          'Hoàn tất',
+          style: TextStyle(fontSize: 14, color: Colors.blue),
+          textAlign: TextAlign.center,
+        );
+      }
+      return const SizedBox.shrink();
+    } catch (e, stackTrace) {
+      debugPrint(
+        'Lỗi khi xây dựng widget hành động cho đơn hàng ID: ${widget.order.id}: $e',
+      );
+      debugPrint('StackTrace: $stackTrace');
+      return const SizedBox.shrink();
+    }
   }
 }

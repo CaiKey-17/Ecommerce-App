@@ -4,6 +4,7 @@ import 'package:app/luan/models/bill_info.dart';
 import 'package:app/luan/models/product_variant_info.dart';
 import 'package:app/luan/models/user_info.dart';
 import 'package:app/services/api_admin_service.dart';
+import 'package:app/services/api_service.dart'; // Thêm import cho ApiService
 import 'package:app/ui/admin/screens/order_detail_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -35,15 +36,15 @@ class _OrderScreenState extends State<OrderScreen> {
   DateTime? endDate;
   bool isLoading = false;
   final Dio dio = Dio();
-  late ApiAdminService apiService;
-
-  final List<String> orderStatuses = ['Chấp nhận', 'Không chấp nhận'];
+  late ApiAdminService apiAdminService;
+  late ApiService apiService; // Thêm ApiService
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
-    apiService = ApiAdminService(dio);
+    apiAdminService = ApiAdminService(dio);
+    apiService = ApiService(dio); // Khởi tạo ApiService
     _fetchOrdersAndBills();
   }
 
@@ -72,8 +73,8 @@ class _OrderScreenState extends State<OrderScreen> {
       debugPrint('Bắt đầu tải danh sách đơn hàng...');
       final fetchedOrders =
           widget.couponId != null
-              ? await apiService.getOrdersByCouponId(widget.couponId!)
-              : await apiService.getAllOrders();
+              ? await apiAdminService.getOrdersByCouponId(widget.couponId!)
+              : await apiAdminService.getAllOrders();
       orders =
           fetchedOrders..sort(
             (a, b) => DateTime.parse(
@@ -97,7 +98,7 @@ class _OrderScreenState extends State<OrderScreen> {
         if (order.id != null) {
           try {
             debugPrint('Tải bills cho đơn hàng ID: ${order.id}');
-            final bills = await apiService.getBillsByOrder(order.id!);
+            final bills = await apiAdminService.getBillsByOrder(order.id!);
             debugPrint('BILLS cho đơn hàng ${order.id}: $bills');
             orderBills[order.id!] = bills;
           } catch (e, stackTrace) {
@@ -110,7 +111,7 @@ class _OrderScreenState extends State<OrderScreen> {
               debugPrint(
                 'Tải biến thể cho idFkProductVariant: ${order.idFkProductVariant}',
               );
-              final variants = await apiService.getVariantsByProductId(
+              final variants = await apiAdminService.getVariantsByProductId(
                 order.idFkProductVariant!,
               );
               debugPrint(
@@ -140,7 +141,7 @@ class _OrderScreenState extends State<OrderScreen> {
               debugPrint(
                 'Tải thông tin khách hàng cho idFkCustomer: ${order.idFkCustomer}',
               );
-              final customer = await apiService.getUserById(
+              final customer = await apiAdminService.getUserById(
                 order.idFkCustomer!,
               );
               debugPrint(
@@ -324,36 +325,40 @@ class _OrderScreenState extends State<OrderScreen> {
   String _translateStatus(String? backendStatus) {
     try {
       switch (backendStatus?.toLowerCase()) {
-        case 'dahuy':
-          return 'Không chấp nhận';
+        case 'dangdat':
+          return 'Đang đặt';
         case 'danggiao':
-          return 'Chấp nhận';
+          return 'Đang giao';
+        case 'dahuy':
+          return 'Đã hủy';
+        case 'hoantat':
+          return 'Hoàn tất';
         default:
           debugPrint('Trạng thái backend không xác định: $backendStatus');
-          return 'Chấp nhận';
+          return 'Đang đặt';
       }
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi dịch trạng thái: $e');
       debugPrint('StackTrace: $stackTrace');
-      return 'Chấp nhận';
+      return 'Đang đặt';
     }
   }
 
   String _toBackendStatus(String uiStatus) {
     try {
       switch (uiStatus) {
-        case 'Không chấp nhận':
-          return 'dahuy';
         case 'Chấp nhận':
           return 'danggiao';
+        case 'Không chấp nhận':
+          return 'dahuy';
         default:
           debugPrint('Trạng thái giao diện không xác định: $uiStatus');
-          return 'danggiao';
+          return 'dangdat';
       }
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi chuyển trạng thái sang backend: $e');
       debugPrint('StackTrace: $stackTrace');
-      return 'danggiao';
+      return 'dangdat';
     }
   }
 
@@ -417,8 +422,15 @@ class _OrderScreenState extends State<OrderScreen> {
       debugPrint(
         'Gửi yêu cầu cập nhật trạng thái tới backend: orderId=${order.id}, process=$backendStatus',
       );
-      await apiService.updateOrderProcess(order.id!, backendStatus);
-      debugPrint('Cập nhật trạng thái đơn hàng ID: ${order.id} thành công');
+
+      // Sử dụng ApiService thay vì ApiAdminService
+      if (newStatus == 'Chấp nhận') {
+        await apiService.acceptToCart(order.id);
+        debugPrint('Chấp nhận đơn hàng ID: ${order.id} thành công');
+      } else if (newStatus == 'Không chấp nhận') {
+        await apiService.cancelToCart(order.id);
+        debugPrint('Hủy đơn hàng ID: ${order.id} thành công');
+      }
 
       setState(() {
         final index = orders.indexWhere((o) => o.id == order.id);
@@ -602,6 +614,7 @@ class _OrderScreenState extends State<OrderScreen> {
           _buildHeaderColumn("Thời gian"),
           _buildHeaderColumn("Thanh toán"),
           _buildHeaderColumn("Trạng thái"),
+          _buildHeaderColumn("Hành động"),
         ],
         rows: List.generate(
           pagedOrders.length,
@@ -656,7 +669,23 @@ class _OrderScreenState extends State<OrderScreen> {
           _buildTableCell(formatCurrency(order.pointTotal)),
           _buildTableCell(formatDate(order.createdAt)),
           DataCell(_buildPaymentStatusText(order)),
-          DataCell(_buildStatusDropdown(order)),
+          DataCell(
+            Text(
+              _translateStatus(order.process),
+              style: TextStyle(
+                fontSize: 14,
+                color: order.process?.toLowerCase() == 'danggiao'
+                    ? Colors.green
+                    : order.process?.toLowerCase() == 'dahuy'
+                        ? Colors.red
+                        : order.process?.toLowerCase() == 'hoantat'
+                            ? Colors.blue
+                            : Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataCell(_buildActionDropdown(order)),
         ],
         onSelectChanged: (isSelected) {
           try {
@@ -673,7 +702,6 @@ class _OrderScreenState extends State<OrderScreen> {
                       ),
                 ),
               ).then((value) {
-                // Reload dữ liệu khi quay lại từ OrderDetailsScreen
                 _fetchOrdersAndBills();
               });
             }
@@ -713,49 +741,70 @@ class _OrderScreenState extends State<OrderScreen> {
     }
   }
 
-  Widget _buildStatusDropdown(OrderInfo order) {
+  Widget _buildActionDropdown(OrderInfo order) {
     try {
-      final currentStatus = _translateStatus(order.process);
-      return DropdownButton<String>(
-        value: currentStatus,
-        onChanged: (newValue) {
-          try {
-            if (newValue != null) {
+      final backendStatus = order.process?.toLowerCase();
+      if (backendStatus == 'dangdat') {
+        return DropdownButton<String>(
+          hint: Text('Chọn hành động'),
+          onChanged: (newValue) {
+            try {
+              if (newValue != null) {
+                debugPrint(
+                  'Thay đổi trạng thái cho đơn hàng ID: ${order.id} thành: $newValue',
+                );
+                _updateOrderStatus(order, newValue);
+              } else {
+                debugPrint(
+                  'Không có giá trị trạng thái mới cho đơn hàng ID: ${order.id}',
+                );
+              }
+            } catch (e, stackTrace) {
               debugPrint(
-                'Thay đổi trạng thái cho đơn hàng ID: ${order.id} thành: $newValue',
+                'Lỗi khi thay đổi trạng thái dropdown cho đơn hàng ID: ${order.id}: $e',
               );
-              _updateOrderStatus(order, newValue);
-            } else {
-              debugPrint(
-                'Không có giá trị trạng thái mới cho đơn hàng ID: ${order.id}',
+              debugPrint('StackTrace: $stackTrace');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Lỗi khi thay đổi trạng thái: $e')),
               );
             }
-          } catch (e, stackTrace) {
-            debugPrint(
-              'Lỗi khi thay đổi trạng thái dropdown cho đơn hàng ID: ${order.id}: $e',
-            );
-            debugPrint('StackTrace: $stackTrace');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Lỗi khi thay đổi trạng thái: $e')),
-            );
-          }
-        },
-        items:
-            orderStatuses.map<DropdownMenuItem<String>>((String status) {
-              return DropdownMenuItem<String>(
-                value: status,
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    color: status == 'Chấp nhận' ? Colors.green : Colors.red,
+          },
+          items: ['Chấp nhận', 'Không chấp nhận']
+              .map<DropdownMenuItem<String>>((String status) {
+                return DropdownMenuItem<String>(
+                  value: status,
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: status == 'Chấp nhận' ? Colors.green : Colors.red,
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-      );
+                );
+              }).toList(),
+        );
+      } else if (backendStatus == 'danggiao') {
+        return Text(
+          'Đã chấp nhận',
+          style: TextStyle(fontSize: 14, color: Colors.green),
+          textAlign: TextAlign.center,
+        );
+      } else if (backendStatus == 'dahuy') {
+        return Text(
+          'Không chấp nhận',
+          style: TextStyle(fontSize: 14, color: Colors.red),
+          textAlign: TextAlign.center,
+        );
+      } else if (backendStatus == 'hoantat') {
+        return Text(
+          'Hoàn tất',
+          style: TextStyle(fontSize: 14, color: Colors.blue),
+          textAlign: TextAlign.center,
+        );
+      }
+      return SizedBox.shrink();
     } catch (e, stackTrace) {
       debugPrint(
-        'Lỗi khi xây dựng dropdown trạng thái cho đơn hàng ID: ${order.id}: $e',
+        'Lỗi khi xây dựng dropdown hành động cho đơn hàng ID: ${order.id}: $e',
       );
       debugPrint('StackTrace: $stackTrace');
       return SizedBox.shrink();
