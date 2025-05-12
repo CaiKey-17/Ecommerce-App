@@ -1227,6 +1227,28 @@ class _ApiService implements ApiService {
   }
 
   @override
+  Future<ApiResponse<dynamic>> acceptToCart(orderId) async {
+    const _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{r'orderId': orderId};
+    final _headers = <String, dynamic>{};
+    final Map<String, dynamic>? _data = null;
+    final _result = await _dio.fetch<Map<String, dynamic>>(
+      _setStreamType<ApiResponse<dynamic>>(
+        Options(method: 'POST', headers: _headers, extra: _extra)
+            .compose(
+              _dio.options,
+              '/order/accept',
+              queryParameters: queryParameters,
+              data: _data,
+            )
+            .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl),
+      ),
+    );
+    final value = ApiResponse<dynamic>.fromJson(_result.data!);
+    return value;
+  }
+
+  @override
   Future<ApiResponse<dynamic>> received(orderId) async {
     const _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'orderId': orderId};

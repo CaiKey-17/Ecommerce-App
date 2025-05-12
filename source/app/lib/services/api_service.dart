@@ -347,6 +347,9 @@ abstract class ApiService {
   @POST("/order/cancel")
   Future<ApiResponse> cancelToCart(@Query("orderId") int orderId);
 
+  @POST("/order/accept")
+  Future<ApiResponse> acceptToCart(@Query("orderId") int orderId);
+
   @POST("/order/received")
   Future<ApiResponse> received(@Query("orderId") int orderId);
 
