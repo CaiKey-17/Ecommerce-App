@@ -2,7 +2,9 @@ import 'package:app/globals/ip.dart';
 import 'package:app/luan/models/order_info.dart';
 import 'package:app/luan/models/bill_info.dart';
 import 'package:app/luan/models/product_variant_info.dart';
+import 'package:app/models/cart_info.dart';
 import 'package:app/services/api_admin_service.dart';
+import 'package:app/services/api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -25,21 +27,23 @@ class OrderDetailsScreen extends StatefulWidget {
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late ApiAdminService apiService;
+  late ApiService apiCartService;
   final Dio dio = Dio();
   String? selectedStatus;
   String? selectedPaymentStatus;
   String? productImage; // Lưu image từ Product
+  List<CartInfo> cartItems = [];
+  bool isLoadingCartItems = true;
   final List<String> orderStatuses = [
-    'Đang Đặt',
-    'Đang Giao',
-    'Hoàn Tất',
-    'Đã Hủy',
+    'Chấp nhận',
+    'Không chấp nhận',
   ];
 
   @override
   void initState() {
     super.initState();
     apiService = ApiAdminService(dio);
+    apiCartService = ApiService(dio);
     selectedStatus = _translateStatus(widget.order.process);
     selectedPaymentStatus = _getPaymentStatus();
 
@@ -55,6 +59,27 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     // Lấy image từ Product qua API
     _fetchProductImage();
+    // Lấy danh sách sản phẩm qua API
+    _fetchCartItems();
+  }
+
+  Future<void> _fetchCartItems() async {
+    setState(() {
+      isLoadingCartItems = true;
+    });
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+      List<CartInfo> response = await apiCartService.getItemInCartDetail(orderId: widget.order.id!);
+      setState(() {
+        cartItems = response;
+        isLoadingCartItems = false;
+      });
+    } catch (error) {
+      debugPrint("Lỗi khi gọi API getItemInCartDetail: $error");
+      setState(() {
+        isLoadingCartItems = false;
+      });
+    }
   }
 
   Future<void> _fetchProductImage() async {
@@ -107,13 +132,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     try {
       switch (backendStatus?.toLowerCase()) {
         case 'dahuy':
-          return 'Đã Hủy';
+          return 'Không chấp nhận';
         case 'danggiao':
-          return 'Đang Giao';
-        case 'hoantat':
-          return 'Hoàn Tất';
-        case 'dangdat':
-          return 'Đang Đặt';
+          return 'Chấp nhận';
         default:
           debugPrint('Trạng thái backend không xác định: $backendStatus');
           return 'Đang Đặt';
@@ -128,14 +149,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   String _toBackendStatus(String uiStatus) {
     try {
       switch (uiStatus) {
-        case 'Đã Hủy':
+        case 'Không chấp nhận':
           return 'dahuy';
-        case 'Đang Giao':
+        case 'Chấp nhận':
           return 'danggiao';
-        case 'Hoàn Tất':
-          return 'hoantat';
-        case 'Đang Đặt':
-          return 'dangdat';
         default:
           debugPrint('Trạng thái giao diện không xác định: $uiStatus');
           return 'dangdat';
@@ -180,24 +197,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       debugPrint('StackTrace: $stackTrace');
       return 'N/A';
     }
-}
-
-  String _toBackendPaymentStatus(String uiStatus) {
-    try {
-      switch (uiStatus) {
-        case 'Đã thanh toán':
-          return 'dathanhtoan';
-        case 'Chưa thanh toán':
-          return 'chuathanhtoan';
-        default:
-          debugPrint('Trạng thái thanh toán giao diện không xác định: $uiStatus');
-          return 'chuathanhtoan';
-      }
-    } catch (e, stackTrace) {
-      debugPrint('Lỗi khi chuyển trạng thái thanh toán sang backend: $e');
-      debugPrint('StackTrace: $stackTrace');
-      return 'chuathanhtoan';
-    }
   }
 
   Future<void> _updateOrderStatus(String newStatus) async {
@@ -235,59 +234,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     }
   }
 
-  Future<void> _updatePaymentStatus(String newStatus) async {
-    if (widget.order.id == null) {
-      debugPrint('Lỗi: order.id là null khi cập nhật trạng thái thanh toán');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lỗi: Không xác định được ID đơn hàng')),
-      );
-      return;
-    }
-
-    try {
-      debugPrint('Cập nhật trạng thái thanh toán cho đơn hàng ID: ${widget.order.id}, Trạng thái mới: $newStatus');
-      if (widget.bills.isEmpty) {
-        debugPrint('Lỗi: Không tìm thấy hóa đơn cho đơn hàng ID: ${widget.order.id}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lỗi: Không tìm thấy hóa đơn cho đơn hàng')),
-        );
-        return;
-      }
-
-      final bill = widget.bills.first;
-      if (bill.id == null) {
-        debugPrint('Lỗi: bill.id là null cho đơn hàng ID: ${widget.order.id}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lỗi: Không xác định được ID hóa đơn')),
-        );
-        return;
-      }
-
-      final backendStatus = _toBackendPaymentStatus(newStatus);
-      debugPrint('Gửi yêu cầu cập nhật trạng thái thanh toán tới backend: billId=${bill.id}, statusOrder=$backendStatus');
-      await apiService.updateBillStatus(bill.id!, backendStatus);
-      debugPrint('Cập nhật trạng thái thanh toán hóa đơn ID: ${bill.id} thành công');
-
-      setState(() {
-        selectedPaymentStatus = newStatus;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cập nhật trạng thái thanh toán thành công')),
-      );
-    } catch (e, stackTrace) {
-      debugPrint('Lỗi khi cập nhật trạng thái thanh toán cho đơn hàng ID: ${widget.order.id}: $e');
-      debugPrint('StackTrace: $stackTrace');
-      String errorMessage = 'Lỗi khi cập nhật trạng thái thanh toán: $e';
-      if (e is DioException) {
-        errorMessage = 'Lỗi khi cập nhật trạng thái thanh toán: ${e.response?.statusCode} - ${e.message}';
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -316,47 +262,108 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          productImage != null
-                              ? Image.network(
-                                  productImage!,
-                                  width: 100,
-                                  height: 100,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(Icons.image_not_supported),
-                                )
-                              : const Icon(Icons.image_not_supported, size: 100),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.variant?.nameVariant ?? 'N/A',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.blue,
+                      isLoadingCartItems
+                          ? const Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : cartItems.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    "Không có sản phẩm",
+                                    style: TextStyle(fontSize: 16),
                                   ),
+                                )
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: cartItems.length,
+                                  itemBuilder: (context, index) {
+                                    final item = cartItems[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 10),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            width: 80,
+                                            height: 80,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(5),
+                                              border: Border.all(
+                                                color: Colors.grey.shade300,
+                                              ),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(5),
+                                              child: (item.image == null || item.image!.isEmpty)
+                                                  ? Image.asset(
+                                                      'assets/images/default.jpg',
+                                                      fit: BoxFit.cover,
+                                                      width: double.infinity,
+                                                      height: 80,
+                                                    )
+                                                  : Image.network(
+                                                      item.image!,
+                                                      fit: BoxFit.cover,
+                                                      width: double.infinity,
+                                                      height: 80,
+                                                      errorBuilder: (context, error, stackTrace) {
+                                                        return Image.asset(
+                                                          'assets/images/default.jpg',
+                                                          fit: BoxFit.cover,
+                                                          width: double.infinity,
+                                                          height: 80,
+                                                        );
+                                                      },
+                                                    ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.nameVariant ?? 'N/A',
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                    color: Colors.blue,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  (item.colorName?.trim().isEmpty ?? true)
+                                                      ? 'Mặc định'
+                                                      : item.colorName!,
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.grey.shade600,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  "Số lượng: ${item.quantity ?? 'N/A'}",
+                                                  style: const TextStyle(fontSize: 14),
+                                                ),
+                                                Text(
+                                                  "Giá: ${formatCurrency(item.price)}",
+                                                  style: const TextStyle(fontSize: 14),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
-                                Text(
-                                  "Số lượng: ${widget.order.quantityTotal ?? 'N/A'}",
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                                Text(
-                                  "Giá: ${formatCurrency(widget.order.priceTotal)}",
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                                Text(
-                                  "Phí ship: ${formatCurrency(widget.order.ship)}",
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 10),
+                      Text(
+                        "Phí ship: ${formatCurrency(widget.order.ship)}",
+                        style: const TextStyle(fontSize: 14),
                       ),
                     ],
                   ),
@@ -408,6 +415,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         widget.order.fkCouponId?.toString() ?? 'N/A',
                       ),
                       _buildInfoRow(
+                        "Trạng thái thanh toán",
+                        _getPaymentStatus(),
+                        valueColor: _getPaymentStatus() == 'Đã thanh toán' ? Colors.green : Colors.red,
+                      ),
+                      _buildInfoRow(
                         "Tổng tiền",
                         formatCurrency(widget.order.total),
                         isBold: true,
@@ -417,7 +429,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ),
                 ),
               ),
-              // Trạng thái và thanh toán
+              // Cập nhật trạng thái
               Card(
                 margin: const EdgeInsets.only(bottom: 16.0),
                 child: Padding(
@@ -448,36 +460,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               }
                             },
                             items: orderStatuses
-                                .map<DropdownMenuItem<String>>((String status) {
-                              return DropdownMenuItem<String>(
-                                value: status,
-                                child: Text(
-                                  status,
-                                  style: const TextStyle(fontSize: 14),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            "Thanh toán",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
-                          ),
-                          DropdownButton<String>(
-                            value: selectedPaymentStatus,
-                            onChanged: (newValue) {
-                              if (newValue != null &&
-                                  newValue != selectedPaymentStatus) {
-                                _updatePaymentStatus(newValue);
-                              }
-                            },
-                            items: ['Đã thanh toán', 'Chưa thanh toán']
                                 .map<DropdownMenuItem<String>>((String status) {
                               return DropdownMenuItem<String>(
                                 value: status,

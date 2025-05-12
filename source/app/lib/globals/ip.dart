@@ -1,7 +1,7 @@
 class ApiConfig {
-  // static const String ip = "192.168.1.5";
-  // static const String ip = "172.16.10.26";
-  static const String ip = "192.168.70.182";
+  static const String ip = "172.16.10.26";
+  // static const String ip = "192.168.1.181";
+  // static const String ip = "192.168.70.182";
 
   static const String baseUrlSentiment = "http://$ip:5001";
   static const String baseUrlAPI = "http://$ip:8080/api";
