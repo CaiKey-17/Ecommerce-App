@@ -18,7 +18,7 @@ public class OrderAdminService {
     private OrderAdminRepository orderRepository;
 
     public List<Order> getOrdersByCustomerId(Integer customerId) {
-        return orderRepository.findByIdFkCustomer(customerId);
+        return orderRepository.findByCustomerIdExcludeGioHang(customerId);
     }
 
     public List<Order> getOrdersByCouponId(Integer couponId) {
@@ -30,7 +30,7 @@ public class OrderAdminService {
     }
 
     public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+        return orderRepository.findAllExcludeGioHang();
     }
 
     @Transactional

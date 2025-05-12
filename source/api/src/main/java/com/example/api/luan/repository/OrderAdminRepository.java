@@ -19,4 +19,13 @@ public interface OrderAdminRepository extends JpaRepository<Order, Integer> {
     @Query("UPDATE Order o SET o.process = :process WHERE o.id = :orderId")
     int updateOrderProcess(@Param("orderId") Integer orderId, @Param("process") String process);
 
+    @Query("SELECT o FROM Order o WHERE o.process <> 'giohang'")
+    List<Order> findAllExcludeGioHang();
+
+
+    @Query("SELECT o FROM Order o WHERE o.id_fk_customer = :customerId AND o.process <> 'giohang'")
+    List<Order> findByCustomerIdExcludeGioHang(@Param("customerId") Integer customerId);
+
+
+
 }
