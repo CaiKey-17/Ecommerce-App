@@ -162,6 +162,48 @@ public class StatisticController {
         return ResponseEntity.ok(response);
     }
 
+//ádasdasdas
+@GetMapping("/sold-type-products-by-year")
+public ResponseEntity<ApiResponse<List<CategorySalesProjection>>> getSoldTypeProductsByYear() {
+    List<CategorySalesProjection> productData = orderRepository.getTypeProduct();
+    ApiResponse<List<CategorySalesProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+    return ResponseEntity.ok(response);
+}
+
+    @GetMapping("/sold-type-products-by-year-month")
+    public ResponseEntity<ApiResponse<List<CategorySalesProjection>>> getSoldTypeProductsByYearMonth(@RequestParam("year") int year) {
+        List<CategorySalesProjection> productData = orderRepository.getTypeProductByYear(year);
+        ApiResponse<List<CategorySalesProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-type-products-by-year-month-v2")
+    public ResponseEntity<ApiResponse<List<CategorySalesProjection>>> getSoldTypeProductsByYearMonthV2(@RequestParam("year") int year,@RequestParam("month") int month) {
+        List<CategorySalesProjection> productData = orderRepository.getTypeProductByYearMonth(year,month);
+        ApiResponse<List<CategorySalesProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-type-products-by-year-quarter")
+    public ResponseEntity<ApiResponse<List<CategorySalesProjection>>> getSoldTypeProductsByYearQuarter(@RequestParam("year") int year,@RequestParam("quarter") int quarter) {
+        List<CategorySalesProjection> productData = orderRepository.getTypeProductByYearQuarter(year,quarter);
+        ApiResponse<List<CategorySalesProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-type-products-by-year-month-week")
+    public ResponseEntity<ApiResponse<List<CategorySalesProjection>>> getSoldTypeProductsByYearMonthWeek(@RequestParam("year") int year,@RequestParam("month") int month,@RequestParam("week") int week) {
+        List<CategorySalesProjection> performanceData = orderRepository.getTypeProductByYearWeek(year,month,week);
+        ApiResponse<List<CategorySalesProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", performanceData);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/sold-type-products/custom")
+    public ResponseEntity<ApiResponse<List<CategorySalesProjection>>> getTotalTypeProductByDayBetween(@RequestParam("start") String start, @RequestParam("end") String end) {
+        List<CategorySalesProjection> productData = orderRepository.getTypeProductByDayBetween(start, end);
+        ApiResponse<List<CategorySalesProjection>> response = new ApiResponse<>(200, "Dữ liệu được tải về thành công", productData);
+        return ResponseEntity.ok(response);
+    }
 
 
 
