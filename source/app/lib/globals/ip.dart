@@ -1,5 +1,7 @@
 class ApiConfig {
-  static const String ip = "172.16.10.26";
+  // static const String ip = "172.16.10.26";
+  static const String ip = "172.20.10.3";
+
   // static const String ip = "192.168.1.181";
   // static const String ip = "192.168.70.182";
 

@@ -268,16 +268,29 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           'DioException details: StatusCode=${e.response?.statusCode}, ResponseData=${e.response?.data}',
         );
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Chi tiết đơn hàng")),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          "Chi tiết đơn hàng",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => {Navigator.pop(context)},
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -285,8 +298,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Thông tin sản phẩm
-              Card(
+              Container(
                 margin: const EdgeInsets.only(bottom: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -301,117 +327,117 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       ),
                       const SizedBox(height: 10),
                       isLoadingCartItems
-                          ? const Center(child: CircularProgressIndicator())
+                          ? const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.blue,
+                            ),
+                          )
                           : cartItems.isEmpty
-                              ? const Center(
-                                  child: Text(
-                                    "Không có sản phẩm",
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                )
-                              : ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: cartItems.length,
-                                  itemBuilder: (context, index) {
-                                    final item = cartItems[index];
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 10),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            width: 80,
-                                            height: 80,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                              border: Border.all(
-                                                color: Colors.grey.shade300,
-                                              ),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                              child: (item.image == null ||
-                                                      item.image!.isEmpty)
-                                                  ? Image.asset(
+                          ? const Center(
+                            child: Text(
+                              "Không có sản phẩm",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          )
+                          : ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: cartItems.length,
+                            itemBuilder: (context, index) {
+                              final item = cartItems[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(5),
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(5),
+                                        child:
+                                            (item.image == null ||
+                                                    item.image!.isEmpty)
+                                                ? Image.asset(
+                                                  'assets/images/default.jpg',
+                                                  fit: BoxFit.cover,
+                                                  width: double.infinity,
+                                                  height: 80,
+                                                )
+                                                : Image.network(
+                                                  item.image!,
+                                                  fit: BoxFit.cover,
+                                                  width: double.infinity,
+                                                  height: 80,
+                                                  errorBuilder: (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) {
+                                                    return Image.asset(
                                                       'assets/images/default.jpg',
                                                       fit: BoxFit.cover,
                                                       width: double.infinity,
                                                       height: 80,
-                                                    )
-                                                  : Image.network(
-                                                      item.image!,
-                                                      fit: BoxFit.cover,
-                                                      width: double.infinity,
-                                                      height: 80,
-                                                      errorBuilder: (
-                                                        context,
-                                                        error,
-                                                        stackTrace,
-                                                      ) {
-                                                        return Image.asset(
-                                                          'assets/images/default.jpg',
-                                                          fit: BoxFit.cover,
-                                                          width: double.infinity,
-                                                          height: 80,
-                                                        );
-                                                      },
-                                                    ),
+                                                    );
+                                                  },
+                                                ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item.nameVariant ?? 'N/A',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.blue,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            (item.colorName?.trim().isEmpty ??
+                                                    true)
+                                                ? 'Mặc định'
+                                                : item.colorName!,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(
+                                            "Số lượng: ${item.quantity ?? 'N/A'}",
+                                            style: const TextStyle(
+                                              fontSize: 14,
                                             ),
                                           ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  item.nameVariant ?? 'N/A',
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 16,
-                                                    color: Colors.blue,
-                                                  ),
-                                                  maxLines: 2,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                                Text(
-                                                  (item.colorName
-                                                              ?.trim()
-                                                              .isEmpty ??
-                                                          true)
-                                                      ? 'Mặc định'
-                                                      : item.colorName!,
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: Colors.grey.shade600,
-                                                  ),
-                                                  maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                                Text(
-                                                  "Số lượng: ${item.quantity ?? 'N/A'}",
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  "Giá: ${formatCurrency(item.price)}",
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                              ],
+                                          Text(
+                                            "Giá: ${formatCurrency(item.price)}",
+                                            style: const TextStyle(
+                                              fontSize: 14,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    );
-                                  },
+                                    ),
+                                  ],
                                 ),
+                              );
+                            },
+                          ),
                       const SizedBox(height: 10),
                       Text(
                         "Phí ship: ${formatCurrency(widget.order.ship)}",
@@ -422,8 +448,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 ),
               ),
               // Thông tin đơn hàng
-              Card(
+              Container(
                 margin: const EdgeInsets.only(bottom: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -453,10 +492,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         "Phí ship",
                         formatCurrency(widget.order.ship),
                       ),
-                      _buildInfoRow(
-                        "Thuế",
-                        formatCurrency(widget.order.tax),
-                      ),
+                      _buildInfoRow("Thuế", formatCurrency(widget.order.tax)),
                       _buildInfoRow(
                         "Tổng tiền",
                         formatCurrency(widget.order.total),
@@ -487,17 +523,32 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       _buildInfoRow(
                         "Trạng thái thanh toán",
                         _getPaymentStatus(),
-                        valueColor: _getPaymentStatus() == 'Đã thanh toán'
-                            ? Colors.green
-                            : Colors.red,
+                        valueColor:
+                            _getPaymentStatus() == 'Đã thanh toán'
+                                ? Colors.green
+                                : Colors.red,
                       ),
                     ],
                   ),
                 ),
               ),
               // Cập nhật trạng thái
-              Card(
+              Container(
                 margin: const EdgeInsets.only(bottom: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -530,18 +581,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                   _translateStatus(widget.order.process),
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: widget.order.process
-                                                ?.toLowerCase() ==
-                                            'danggiao'
-                                        ? Colors.green
-                                        : widget.order.process?.toLowerCase() ==
+                                    color:
+                                        widget.order.process?.toLowerCase() ==
+                                                'danggiao'
+                                            ? Colors.green
+                                            : widget.order.process
+                                                    ?.toLowerCase() ==
                                                 'dahuy'
                                             ? Colors.red
                                             : widget.order.process
-                                                        ?.toLowerCase() ==
-                                                    'hoantat'
-                                                ? Colors.blue
-                                                : Colors.black,
+                                                    ?.toLowerCase() ==
+                                                'hoantat'
+                                            ? Colors.blue
+                                            : Colors.black,
                                   ),
                                 ),
                               ],
@@ -606,7 +658,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
               textAlign: TextAlign.end,
               softWrap: isAddress,
-              overflow: isAddress ? TextOverflow.visible : TextOverflow.ellipsis,
+              overflow:
+                  isAddress ? TextOverflow.visible : TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -642,18 +695,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               );
             }
           },
-          items: orderStatuses.map<DropdownMenuItem<String>>((String status) {
-            return DropdownMenuItem<String>(
-              value: status,
-              child: Text(
-                status,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: status == 'Chấp nhận' ? Colors.green : Colors.red,
-                ),
-              ),
-            );
-          }).toList(),
+          items:
+              orderStatuses.map<DropdownMenuItem<String>>((String status) {
+                return DropdownMenuItem<String>(
+                  value: status,
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: status == 'Chấp nhận' ? Colors.green : Colors.red,
+                    ),
+                  ),
+                );
+              }).toList(),
         );
       } else if (backendStatus == 'danggiao') {
         return const Text(
