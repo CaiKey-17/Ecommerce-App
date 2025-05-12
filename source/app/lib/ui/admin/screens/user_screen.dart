@@ -87,150 +87,94 @@ class _UserScreenState extends State<UserScreen> {
       itemCount: users.length,
       itemBuilder: (context, index) {
         final user = users[index];
-        return Container(
-          margin: EdgeInsets.symmetric(vertical: 6),
-          padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 4,
-                offset: Offset(0, 2),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserDetailsScreen(user: users[index]),
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Colors.blue,
-                backgroundImage:
-                    user.image.isNotEmpty ? NetworkImage(user.image) : null,
-                child:
-                    user.image.isEmpty
-                        ? Text(
-                          user.id.toString(),
-                          style: TextStyle(color: Colors.white),
-                        )
-                        : null,
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.fullName,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(user.email, style: TextStyle(color: Colors.grey[700])),
-                  ],
+            );
+          },
+          child: Container(
+            margin: EdgeInsets.symmetric(vertical: 6),
+            padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
                 ),
-              ),
-              IconButton(
-                onPressed: () async {
-                  try {
-                    await apiAdminService.toggleUserActive(user.id);
-                    await fetchUsersManager();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Đã cập nhật trạng thái người dùng"),
-                      ),
-                    );
-                  } catch (e) {
-                    print("Lỗi khi cập nhật trạng thái: $e");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Lỗi khi cập nhật trạng thái người dùng"),
-                      ),
-                    );
-                  }
-                },
-                icon: Icon(
-                  user.active != 1 ? Icons.lock : Icons.lock_open,
-                  color: user.active != 1 ? Colors.red : Colors.green,
+              ],
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.blue,
+                  backgroundImage:
+                      user.image.isNotEmpty ? NetworkImage(user.image) : null,
+                  child:
+                      user.image.isEmpty
+                          ? Text(
+                            user.id.toString(),
+                            style: TextStyle(color: Colors.white),
+                          )
+                          : null,
                 ),
-              ),
-
-              _buildPopupMenu(context, index),
-            ],
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.fullName,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        user.email,
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () async {
+                    try {
+                      await apiAdminService.toggleUserActive(user.id);
+                      await fetchUsersManager();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Đã cập nhật trạng thái người dùng"),
+                        ),
+                      );
+                    } catch (e) {
+                      print("Lỗi khi cập nhật trạng thái: $e");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Lỗi khi cập nhật trạng thái người dùng",
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  icon: Icon(
+                    user.active != 1 ? Icons.lock : Icons.lock_open,
+                    color: user.active != 1 ? Colors.red : Colors.green,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
-
-  Widget _buildPopupMenu(BuildContext context, int userIndex) {
-    return PopupMenuButton<String>(
-      color: Colors.white,
-      onSelected: (value) {
-        if (value == 'view') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => UserDetailsScreen(user: users[userIndex]),
-            ),
-          );
-        } else if (value == 'delete') {
-          _confirmDeleteUser(context, userIndex);
-        }
-      },
-      itemBuilder:
-          (context) => [
-            PopupMenuItem(value: 'view', child: Text('Xem thông tin')),
-            PopupMenuItem(
-              value: 'delete',
-              child: Text('Xóa', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-      icon: Icon(Icons.more_vert, color: Colors.grey[700]),
-    );
-  }
-
-  void _confirmDeleteUser(BuildContext context, int userIndex) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Xác nhận xóa"),
-          content: Text(
-            "Bạn có chắc muốn xóa ${users[userIndex].fullName} không?",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Hủy"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  await apiAdminService.deleteUser(users[userIndex].id);
-                  setState(() {
-                    users.removeAt(userIndex);
-                  });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Xóa người dùng thành công")),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Lỗi khi xóa người dùng: $e")),
-                  );
-                  Navigator.pop(context);
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: Text("Xóa", style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
 }

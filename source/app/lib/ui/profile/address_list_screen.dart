@@ -147,10 +147,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
             Navigator.pop(context);
           },
         ),
-        title: Text(
-          'Địa chỉ của Tôi',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: Text('Địa chỉ', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         foregroundColor: Colors.white,
         backgroundColor: Colors.blue,
