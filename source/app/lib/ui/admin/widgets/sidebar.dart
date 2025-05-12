@@ -2,7 +2,7 @@ import 'package:app/globals/logout.dart';
 import 'package:app/providers/profile_image_picker.dart';
 import 'package:app/ui/admin/screens/brand_screen.dart';
 import 'package:app/ui/admin/screens/category_screen.dart';
-import 'package:app/ui/admin/screens/test.dart';
+import 'package:app/ui/admin/screens/dashboard_advance_screen.dart';
 import 'package:app/ui/chat/admin_chat_list_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

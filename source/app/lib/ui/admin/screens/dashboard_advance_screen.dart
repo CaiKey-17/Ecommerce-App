@@ -60,8 +60,20 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   String _formatCurrency(double value) {
-    final formatCurrency = NumberFormat.currency(locale: "vi_VN", symbol: "₫");
-    return formatCurrency.format(value);
+    if (value >= 1e9) {
+      return "${(value / 1e9).toStringAsFixed(1)} tỷ";
+    } else if (value >= 1e6) {
+      return "${(value / 1e6).toStringAsFixed(1)} triệu";
+    } else if (value >= 1e3) {
+      return "${(value / 1e3).toStringAsFixed(1)} nghìn";
+    } else {
+      final formatCurrency = NumberFormat.currency(
+        locale: "vi_VN",
+        symbol: "₫",
+        decimalDigits: 0,
+      );
+      return formatCurrency.format(value);
+    }
   }
 
   @override
@@ -447,14 +459,14 @@ class _DashboardPageState extends State<DashboardPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildSummaryCard("Orders", _getTotalOrders(), Colors.orange),
+                _buildSummaryCard("Đơn hàng", _getTotalOrders(), Colors.orange),
                 _buildSummaryCard(
-                  "Revenue",
+                  "Doanh thu",
                   _formatCurrency(_getTotalRevenue()),
                   Colors.green,
                 ),
                 _buildSummaryCard(
-                  "Profit",
+                  "Lợi nhuận",
                   _formatCurrency(_getTotalProfit()),
                   Colors.blue,
                 ),
