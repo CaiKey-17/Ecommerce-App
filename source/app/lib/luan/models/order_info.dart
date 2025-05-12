@@ -10,7 +10,7 @@ class OrderInfo {
   final String? address;
   final String? email;
   final double? total;
-  final String? process;
+  String? process;
   final int? idFkCustomer;
   final int? idFkProductVariant;
   final int? fkCouponId;

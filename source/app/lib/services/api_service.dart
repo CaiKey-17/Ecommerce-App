@@ -34,7 +34,7 @@ import '../models/cart_info.dart';
 part 'api_service.g.dart';
 
 class ApiResponse<T> {
-  final int code;
+  final int? code;
   final String message;
   final T? data;
 

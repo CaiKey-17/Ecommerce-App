@@ -4,6 +4,7 @@ import 'package:app/luan/models/bill_info.dart';
 import 'package:app/luan/models/product_variant_info.dart';
 import 'package:app/luan/models/user_info.dart';
 import 'package:app/services/api_admin_service.dart';
+import 'package:app/services/api_service.dart';
 import 'package:app/ui/admin/screens/order_detail_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +40,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   bool isLoading = false;
   final Dio dio = Dio();
   late ApiAdminService apiService;
+  late ApiService apiCartService;
 
   final List<String> orderStatuses = [
     'Chấp nhận',
@@ -50,6 +52,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     super.initState();
     _loadUserData();
     apiService = ApiAdminService(dio);
+    apiCartService = ApiService(dio);
     updatedFullName = widget.user.fullName;
     nameController = TextEditingController(text: updatedFullName);
     emailController = TextEditingController(text: widget.user.email);
@@ -162,7 +165,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         } else if (selectedFilter == 'yesterday') {
           filteredOrders = orders.where((order) {
             final orderDate = DateTime.parse(order.createdAt ?? '9999-12-31');
-            final yesterday = now.subtract(Duration(days: 1));
+            final yesterday = now.subtract(const Duration(days: 1));
             return orderDate.day == yesterday.day &&
                 orderDate.month == yesterday.month &&
                 orderDate.year == yesterday.year;
@@ -260,38 +263,40 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   String _translateStatus(String? backendStatus) {
     try {
       switch (backendStatus?.toLowerCase()) {
-        case 'dahuy':
-          return 'Không chấp nhận';
-        case 'danggiao':
-          return 'Chấp nhận';
         case 'dangdat':
+          return 'Đang đặt';
+        case 'danggiao':
+          return 'Đang giao';
+        case 'dahuy':
+          return 'Đã hủy';
         case 'hoantat':
+          return 'Hoàn tất';
         default:
-          debugPrint('Trạng thái backend không xác định hoặc không được hỗ trợ: $backendStatus');
-          return 'Chấp nhận'; // Default to Chấp nhận for unhandled statuses
+          debugPrint('Trạng thái backend không xác định: $backendStatus');
+          return 'Đang đặt';
       }
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi dịch trạng thái: $e');
       debugPrint('StackTrace: $stackTrace');
-      return 'Chấp nhận';
+      return 'Đang đặt';
     }
   }
 
   String _toBackendStatus(String uiStatus) {
     try {
       switch (uiStatus) {
-        case 'Không chấp nhận':
-          return 'dahuy';
         case 'Chấp nhận':
           return 'danggiao';
+        case 'Không chấp nhận':
+          return 'dahuy';
         default:
           debugPrint('Trạng thái giao diện không xác định: $uiStatus');
-          return 'danggiao';
+          return 'dangdat';
       }
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi chuyển trạng thái sang backend: $e');
       debugPrint('StackTrace: $stackTrace');
-      return 'danggiao';
+      return 'dangdat';
     }
   }
 
@@ -340,7 +345,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     if (order.id == null) {
       debugPrint('Lỗi: order.id là null khi cập nhật trạng thái');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: Không xác định được ID đơn hàng')),
+        const SnackBar(content: Text('Lỗi: Không xác định được ID đơn hàng')),
       );
       return;
     }
@@ -349,9 +354,19 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       debugPrint('Cập nhật trạng thái cho đơn hàng ID: ${order.id}, Trạng thái mới: $newStatus');
       final backendStatus = _toBackendStatus(newStatus);
       debugPrint('Gửi yêu cầu cập nhật trạng thái tới backend: orderId=${order.id}, process=$backendStatus');
-      await apiService.updateOrderProcess(order.id!, backendStatus);
-      debugPrint('Cập nhật trạng thái đơn hàng ID: ${order.id} thành công');
 
+      // Gọi ApiService
+      if (newStatus == 'Chấp nhận') {
+        await apiCartService.acceptToCart(order.id!);
+        debugPrint('Chấp nhận đơn hàng ID: ${order.id} thành công');
+      } else if (newStatus == 'Không chấp nhận') {
+        await apiCartService.cancelToCart(order.id!);
+        debugPrint('Hủy đơn hàng ID: ${order.id} thành công');
+      } else {
+        throw Exception('Trạng thái không hợp lệ: $newStatus');
+      }
+
+      // Cập nhật trạng thái cục bộ
       setState(() {
         final index = orders.indexWhere((o) => o.id == order.id);
         if (index != -1) {
@@ -380,7 +395,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cập nhật trạng thái đơn hàng thành công')),
+        const SnackBar(content: Text('Cập nhật trạng thái đơn hàng thành công')),
       );
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi cập nhật trạng thái đơn hàng ID: ${order.id}: $e');
@@ -407,7 +422,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       });
       debugPrint('Cập nhật tên người dùng ID: ${widget.user.id} thành công');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Cập nhật tên thành công')),
+        const SnackBar(content: Text('Cập nhật tên thành công')),
       );
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi cập nhật thông tin người dùng ID: ${widget.user.id}: $e');
@@ -442,7 +457,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Thông tin người dùng: ${updatedFullName}"),
+        title: Text("Thông tin người dùng: $updatedFullName"),
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.close : Icons.edit),
@@ -465,14 +480,16 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildUserInfo(),
-            SizedBox(height: 20),
-            Text("Đơn hàng",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 10),
+            const SizedBox(height: 20),
+            const Text(
+              "Đơn hàng",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
             _buildFilterSection(context),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator())
                 : Expanded(
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -481,7 +498,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                   ),
             _buildPaginationControls(),
             if (isEditing) ...[
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
@@ -497,10 +514,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
                       ),
-                      child: Text("Đóng"),
+                      child: const Text("Đóng"),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _updateUserInfo,
@@ -508,7 +525,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                       ),
-                      child: Text("Lưu lại"),
+                      child: const Text("Lưu lại"),
                     ),
                   ),
                 ],
@@ -526,16 +543,16 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Họ và tên",
               border: OutlineInputBorder(),
             ),
             controller: nameController,
             enabled: isEditing,
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           TextField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: "Email",
               border: OutlineInputBorder(),
             ),
@@ -547,7 +564,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi xây dựng thông tin người dùng: $e');
       debugPrint('StackTrace: $stackTrace');
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 
@@ -557,7 +574,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         children: [
           DropdownButton<String>(
             value: selectedFilter,
-            items: [
+            items: const [
               DropdownMenuItem(value: 'all', child: Text('Tất cả')),
               DropdownMenuItem(value: 'today', child: Text('Hôm nay')),
               DropdownMenuItem(value: 'yesterday', child: Text('Hôm qua')),
@@ -592,7 +609,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               padding: const EdgeInsets.only(left: 10),
               child: Text(
                 '${DateFormat('dd/MM/yyyy').format(startDate!)} - ${DateFormat('dd/MM/yyyy').format(endDate!)}',
-                style: TextStyle(fontSize: 14),
+                style: const TextStyle(fontSize: 14),
               ),
             ),
         ],
@@ -600,7 +617,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi xây dựng phần lọc: $e');
       debugPrint('StackTrace: $stackTrace');
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 
@@ -608,29 +625,126 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     try {
       final pagedOrders = _getPagedOrders();
       if (pagedOrders.isEmpty && !isLoading) {
-        return Center(child: Text("Không có đơn hàng nào"));
+        return const Center(child: Text("Không có đơn hàng nào"));
       }
       return DataTable(
         columnSpacing: 10,
         headingRowHeight: 45,
         dataRowHeight: 50,
         border: TableBorder.all(color: Colors.grey.shade300),
-        columns: [
-          _buildHeaderColumn("Mã đơn"),
-          _buildHeaderColumn("Giá"),
-          _buildHeaderColumn("Số lượng"),
-          _buildHeaderColumn("Phí ship"),
-          _buildHeaderColumn("Thuế"),
-          _buildHeaderColumn("Tổng tiền"),
-          _buildHeaderColumn("Địa chỉ"),
-          _buildHeaderColumn("Phương thức thanh toán"),
-          _buildHeaderColumn("Chiết khấu"),
-          _buildHeaderColumn("Điểm"),
-          _buildHeaderColumn("Thời gian"),
-          _buildHeaderColumn("Biến thể"),
-          _buildHeaderColumn("Mã coupon"),
-          _buildHeaderColumn("Thanh toán"),
-          _buildHeaderColumn("Trạng thái"),
+        columns: const [
+          DataColumn(
+            label: Text(
+              "Mã đơn",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Giá",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Số lượng",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Phí ship",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Thuế",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Tổng tiền",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Địa chỉ",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Phương thức thanh toán",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Chiết khấu",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Điểm",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Thời gian",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Biến thể",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Mã coupon",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Thanh toán",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Trạng thái",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          DataColumn(
+            label: Text(
+              "Hành động",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
         ],
         rows: List.generate(
           pagedOrders.length,
@@ -643,27 +757,27 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi khi xây dựng bảng đơn hàng: $e')),
       );
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 
-  DataColumn _buildHeaderColumn(String title) {
+  DataCell _buildTableCell(String text) {
     try {
-      return DataColumn(
-        label: Container(
+      return DataCell(
+        Container(
           alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(vertical: 5),
           child: Text(
-            title,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            text,
+            style: const TextStyle(fontSize: 14),
             textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       );
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi xây dựng tiêu đề cột: $title, Lỗi: $e');
+      debugPrint('Lỗi khi xây dựng ô bảng với nội dung: $text, Lỗi: $e');
       debugPrint('StackTrace: $stackTrace');
-      return DataColumn(label: Text(''));
+      return const DataCell(SizedBox.shrink());
     }
   }
 
@@ -685,7 +799,8 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           _buildTableCell(productVariants[order.idFkProductVariant]?.nameVariant ?? 'N/A'),
           _buildTableCell(order.fkCouponId?.toString() ?? 'N/A'),
           DataCell(_buildPaymentStatusText(order)),
-          DataCell(_buildStatusDropdown(order)),
+          DataCell(_buildStatusText(order)),
+          DataCell(_buildActionWidget(order)),
         ],
         onSelectChanged: (isSelected) {
           try {
@@ -694,13 +809,16 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => OrderDetailsScreen(
-                    order: order,
-                    bills: orderBills[order.id] ?? [],
-                    variant: productVariants[order.idFkProductVariant],
-                  ),
+                  builder:
+                      (context) => OrderDetailsScreen(
+                        order: order,
+                        bills: orderBills[order.id] ?? [],
+                        variant: productVariants[order.idFkProductVariant],
+                      ),
                 ),
-              );
+              ).then((value) {
+                _loadOrdersAndBills();
+              });
             }
           } catch (e, stackTrace) {
             debugPrint('Lỗi khi chọn đơn hàng ID: ${order.id}: $e');
@@ -718,64 +836,89 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     }
   }
 
-  DataCell _buildTableCell(String text) {
+  Widget _buildStatusText(OrderInfo order) {
     try {
-      return DataCell(
-        Container(
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 14),
-            textAlign: TextAlign.center,
-            overflow: TextOverflow.ellipsis,
-          ),
+      final status = _translateStatus(order.process);
+      return Text(
+        status,
+        style: TextStyle(
+          fontSize: 14,
+          color: order.process?.toLowerCase() == 'danggiao'
+              ? Colors.green
+              : order.process?.toLowerCase() == 'dahuy'
+                  ? Colors.red
+                  : order.process?.toLowerCase() == 'hoantat'
+                      ? Colors.blue
+                      : Colors.black,
         ),
+        textAlign: TextAlign.center,
       );
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi xây dựng ô bảng với nội dung: $text, Lỗi: $e');
+      debugPrint('Lỗi khi xây dựng văn bản trạng thái cho đơn hàng ID: ${order.id}: $e');
       debugPrint('StackTrace: $stackTrace');
-      return DataCell(SizedBox.shrink());
+      return const SizedBox.shrink();
     }
   }
 
-  Widget _buildStatusDropdown(OrderInfo order) {
+  Widget _buildActionWidget(OrderInfo order) {
     try {
-      final currentStatus = _translateStatus(order.process);
-      return DropdownButton<String>(
-        value: currentStatus,
-        onChanged: (newValue) {
-          try {
-            if (newValue != null) {
-              debugPrint('Thay đổi trạng thái cho đơn hàng ID: ${order.id} thành: $newValue');
-              _updateOrderStatus(order, newValue);
-            } else {
-              debugPrint('Không có giá trị trạng thái mới cho đơn hàng ID: ${order.id}');
+      final backendStatus = order.process?.toLowerCase();
+      if (backendStatus == 'dangdat') {
+        return DropdownButton<String>(
+          hint: const Text('Chọn hành động'),
+          onChanged: (newValue) {
+            try {
+              if (newValue != null) {
+                debugPrint('Thay đổi trạng thái cho đơn hàng ID: ${order.id} thành: $newValue');
+                _updateOrderStatus(order, newValue);
+              } else {
+                debugPrint('Không có giá trị trạng thái mới cho đơn hàng ID: ${order.id}');
+              }
+            } catch (e, stackTrace) {
+              debugPrint('Lỗi khi thay đổi trạng thái dropdown cho đơn hàng ID: ${order.id}: $e');
+              debugPrint('StackTrace: $stackTrace');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Lỗi khi thay đổi trạng thái: $e')),
+              );
             }
-          } catch (e, stackTrace) {
-            debugPrint('Lỗi khi thay đổi trạng thái dropdown cho đơn hàng ID: ${order.id}: $e');
-            debugPrint('StackTrace: $stackTrace');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Lỗi khi thay đổi trạng thái: $e')),
-            );
-          }
-        },
-        items: orderStatuses.map<DropdownMenuItem<String>>((String status) {
-          return DropdownMenuItem<String>(
-            value: status,
-            child: Text(
-              status,
-              style: TextStyle(
-                fontSize: 14,
-                color: status == 'Chấp nhận' ? Colors.green : Colors.red,
+          },
+          items: orderStatuses.map<DropdownMenuItem<String>>((String status) {
+            return DropdownMenuItem<String>(
+              value: status,
+              child: Text(
+                status,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: status == 'Chấp nhận' ? Colors.green : Colors.red,
+                ),
               ),
-            ),
-          );
-        }).toList(),
-      );
+            );
+          }).toList(),
+        );
+      } else if (backendStatus == 'danggiao') {
+        return const Text(
+          'Đã chấp nhận',
+          style: TextStyle(fontSize: 14, color: Colors.green),
+          textAlign: TextAlign.center,
+        );
+      } else if (backendStatus == 'dahuy') {
+        return const Text(
+          'Không chấp nhận',
+          style: TextStyle(fontSize: 14, color: Colors.red),
+          textAlign: TextAlign.center,
+        );
+      } else if (backendStatus == 'hoantat') {
+        return const Text(
+          'Hoàn tất',
+          style: TextStyle(fontSize: 14, color: Colors.blue),
+          textAlign: TextAlign.center,
+        );
+      }
+      return const SizedBox.shrink();
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi xây dựng dropdown trạng thái cho đơn hàng ID: ${order.id}: $e');
+      debugPrint('Lỗi khi xây dựng widget hành động cho đơn hàng ID: ${order.id}: $e');
       debugPrint('StackTrace: $stackTrace');
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 
@@ -793,7 +936,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi xây dựng trạng thái thanh toán cho đơn hàng ID: ${order.id}: $e');
       debugPrint('StackTrace: $stackTrace');
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 
@@ -804,7 +947,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: currentPage > 1
                 ? () {
                     setState(() {
@@ -816,7 +959,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           ),
           Text('Trang $currentPage / $totalPages'),
           IconButton(
-            icon: Icon(Icons.arrow_forward),
+            icon: const Icon(Icons.arrow_forward),
             onPressed: currentPage < totalPages
                 ? () {
                     setState(() {
@@ -831,7 +974,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi xây dựng điều khiển phân trang: $e');
       debugPrint('StackTrace: $stackTrace');
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 }
