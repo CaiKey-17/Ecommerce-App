@@ -28,6 +28,14 @@ class ImageUploader {
   Future<void> uploadImage() async {
     if (_image == null) return;
 
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Center(child: CircularProgressIndicator(color: Colors.blue));
+      },
+    );
+
     var request = http.MultipartRequest(
       'POST',
       Uri.parse(ApiConfig.baseUrlDetect),
@@ -37,6 +45,8 @@ class ImageUploader {
     try {
       var res = await request.send();
       var response = await http.Response.fromStream(res);
+
+      Navigator.of(context).pop();
 
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(response.body);
@@ -73,6 +83,7 @@ class ImageUploader {
         showToast("Lỗi nhận diện!");
       }
     } catch (e) {
+      Navigator.of(context).pop();
       showToast("Đã xảy ra lỗi kết nối!");
     }
   }

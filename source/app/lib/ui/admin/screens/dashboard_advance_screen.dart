@@ -213,7 +213,6 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// LỰA CHỌN NĂM
             Row(
               children: [
                 Text("Năm:", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -697,7 +696,6 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Color _getColorForCategory(String category) {
-    // Simple hash-based color assignment for consistency
     final colors = [
       Colors.blue,
       Colors.green,
