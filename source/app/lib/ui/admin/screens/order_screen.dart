@@ -198,76 +198,60 @@ class _OrderScreenState extends State<OrderScreen> {
     final now = DateTime.now();
     try {
       setState(() {
-        if (selectedFilter == 'today') {
-          filteredOrders =
-              orders.where((order) {
-                final orderDate = DateTime.parse(
-                  order.createdAt ?? '9999-12-31',
-                );
-                return orderDate.day == now.day &&
-                    orderDate.month == now.month &&
-                    orderDate.year == now.year;
-              }).toList();
-        } else if (selectedFilter == 'yesterday') {
-          filteredOrders =
-              orders.where((order) {
-                final orderDate = DateTime.parse(
-                  order.createdAt ?? '9999-12-31',
-                );
-                final yesterday = now.subtract(Duration(days: 1));
-                return orderDate.day == yesterday.day &&
-                    orderDate.month == yesterday.month &&
-                    orderDate.year == yesterday.year;
-              }).toList();
-        } else if (selectedFilter == 'week') {
-          filteredOrders =
-              orders.where((order) {
-                final orderDate = DateTime.parse(
-                  order.createdAt ?? '9999-12-31',
-                );
-                final weekStart = now.subtract(Duration(days: now.weekday - 1));
-                return orderDate.isAfter(weekStart) ||
-                    orderDate.isAtSameMomentAs(weekStart);
-              }).toList();
-        } else if (selectedFilter == 'month') {
-          filteredOrders =
-              orders.where((order) {
-                final orderDate = DateTime.parse(
-                  order.createdAt ?? '9999-12-31',
-                );
-                return orderDate.month == now.month &&
-                    orderDate.year == now.year;
-              }).toList();
-        } else if (selectedFilter == 'custom' &&
-            startDate != null &&
-            endDate != null) {
-          filteredOrders =
-              orders.where((order) {
-                final orderDate = DateTime.parse(
-                  order.createdAt ?? '9999-12-31',
-                );
-                return (orderDate.isAfter(startDate!) ||
-                        orderDate.isAtSameMomentAs(startDate!)) &&
-                    (orderDate.isBefore(endDate!) ||
-                        orderDate.isAtSameMomentAs(endDate!));
-              }).toList();
-        } else {
-          filteredOrders = orders;
-        }
+        filteredOrders = orders.where((order) {
+          // Xử lý createdAt null
+          if (order.createdAt == null) {
+            debugPrint('createdAt là null cho đơn hàng ID: ${order.id}');
+            return false;
+          }
+
+          // Phân tích createdAt
+          DateTime? orderDate;
+          try {
+            orderDate = DateTime.parse(order.createdAt!);
+          } catch (e) {
+            debugPrint('Lỗi phân tích createdAt cho đơn hàng ID: ${order.id}: $e');
+            return false;
+          }
+
+          // Chuẩn hóa ngày để chỉ so sánh ngày, tháng, năm
+          final orderDateOnly = DateTime(orderDate.year, orderDate.month, orderDate.day);
+          final nowDateOnly = DateTime(now.year, now.month, now.day);
+
+          if (selectedFilter == 'today') {
+            return orderDateOnly == nowDateOnly;
+          } else if (selectedFilter == 'yesterday') {
+            final yesterday = nowDateOnly.subtract(const Duration(days: 1));
+            return orderDateOnly == yesterday;
+          } else if (selectedFilter == 'week') {
+            final weekStart = nowDateOnly.subtract(Duration(days: now.weekday - 1));
+            return orderDateOnly.isAfter(weekStart) || orderDateOnly == weekStart;
+          } else if (selectedFilter == 'month') {
+            return orderDate.month == now.month && orderDate.year == now.year;
+          } else if (selectedFilter == 'custom' && startDate != null && endDate != null) {
+            final start = DateTime(startDate!.year, startDate!.month, startDate!.day);
+            final end = DateTime(endDate!.year, endDate!.month, endDate!.day);
+            return (orderDateOnly.isAfter(start) || orderDateOnly == start) &&
+                (orderDateOnly.isBefore(end) || orderDateOnly == end);
+          }
+          // Bộ lọc 'all' hoặc trường hợp mặc định
+          return true;
+        }).toList();
+
         currentPage = 1;
+        debugPrint(
+          'Đã áp dụng bộ lọc: $selectedFilter, Kết quả: ${filteredOrders.length} đơn hàng',
+        );
       });
-      debugPrint(
-        'Đã áp dụng bộ lọc: $selectedFilter, Kết quả: ${filteredOrders.length} đơn hàng',
-      );
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi áp dụng bộ lọc: $e');
       debugPrint('StackTrace: $stackTrace');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lỗi khi áp dụng bộ lọc: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi áp dụng bộ lọc: $e')),
+      );
     }
   }
-
+  
   Future<void> _selectDateRange(BuildContext context) async {
     try {
       final picked = await showDateRangePicker(

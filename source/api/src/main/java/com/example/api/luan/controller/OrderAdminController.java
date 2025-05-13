@@ -27,7 +27,7 @@ public class OrderAdminController {
 
     @GetMapping("/customer/{customerId}")
     public List<Order> getOrdersByCustomer(@PathVariable Integer customerId) {
-        return orderService.getOrdersByCustomerId(customerId);
+        return orderAdminService.getOrdersByCustomerId(customerId);
     }
 
     @GetMapping("/coupon/{couponId}")
