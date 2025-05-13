@@ -104,7 +104,7 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     await prefs.setDouble('minPrice', minPrice ?? 10000);
-    await prefs.setDouble('maxPrice', maxPrice ?? 30000000);
+    await prefs.setDouble('maxPrice', maxPrice ?? 49000000);
 
     setState(() {
       _isLoading = true;
@@ -629,6 +629,8 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
         );
       },
       child: Container(
+        width: 180,
+        margin: EdgeInsets.only(right: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: Colors.white,
@@ -643,22 +645,16 @@ class _SearchByNamePageState extends State<SearchByNamePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(10),
-              ),
-              child: Image.network(
-                product.image ?? 'assets/images/linhkien.webp',
-                width: double.infinity,
-                height: 150,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 150,
-                    color: Colors.grey.shade200,
-                    child: const Center(child: Icon(Icons.image_not_supported)),
-                  );
-                },
+            Padding(
+              padding: EdgeInsets.all(10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                child: Image.network(
+                  product.image,
+                  width: double.infinity,
+                  height: 150,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             Padding(
@@ -764,7 +760,7 @@ class _FilterBottomSheet extends StatefulWidget {
 
 class _FilterBottomSheetState extends State<_FilterBottomSheet> {
   double _minPrice = 10000;
-  double _maxPrice = 30000000;
+  double _maxPrice = 49000000;
 
   RangeValues _currentRange = RangeValues(1000000, 5000000);
   final NumberFormat currencyFormat = NumberFormat.currency(
@@ -793,7 +789,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
   Future<void> _loadFilterSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     double minPrice = prefs.getDouble('minPrice') ?? 10000;
-    double maxPrice = prefs.getDouble('maxPrice') ?? 30000000;
+    double maxPrice = prefs.getDouble('maxPrice') ?? 49000000;
     String? savedBrand = prefs.getString('selectedBrand');
     int? savedRating = prefs.getInt('selectedRating');
     String? savedPriceRange = prefs.getString('selectedPriceRange');
@@ -819,7 +815,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
             _currentRange = RangeValues(5000000, 10000000);
             break;
           case "Trên 10 triệu":
-            _currentRange = RangeValues(10000000, 30000000);
+            _currentRange = RangeValues(10000000, 49000000);
             break;
         }
       }
@@ -917,7 +913,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                                     case "Trên 10 triệu":
                                       _currentRange = RangeValues(
                                         10000000,
-                                        30000000,
+                                        49000000,
                                       );
                                       break;
                                     default:

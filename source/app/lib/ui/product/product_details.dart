@@ -594,11 +594,15 @@ class _ProductPageState extends State<ProductPage> {
                                           ),
                                           child: Column(
                                             children: [
-                                              Text(
-                                                versions[index].name,
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
+                                              Container(
+                                                height: 80,
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  versions[index].name,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -686,7 +690,10 @@ class _ProductPageState extends State<ProductPage> {
                                   height: 60,
                                   width: double.infinity,
                                   alignment: Alignment.center,
-                                  color: Colors.grey[200],
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -704,15 +711,16 @@ class _ProductPageState extends State<ProductPage> {
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        "${ConvertMoney.currencyFormatter.format(priceO)} ₫",
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.grey,
-                                          decoration:
-                                              TextDecoration.lineThrough,
+                                      if (priceO > price!)
+                                        Text(
+                                          "${ConvertMoney.currencyFormatter.format(priceO)} ₫",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.grey,
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                          ),
                                         ),
-                                      ),
                                     ],
                                   ),
                                 ),
@@ -2004,6 +2012,9 @@ class _ReviewDialogState extends State<ReviewDialog> {
             const SizedBox(height: 10),
             Text(
               widget.productName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),

@@ -489,12 +489,18 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
       appBar: AppBar(
         title: Text(
           widget.couponId != null
               ? "Đơn hàng sử dụng mã coupon"
               : "Quản lý đơn hàng",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       drawer: SideBar(token: token),
       body: Padding(
@@ -524,6 +530,7 @@ class _OrderScreenState extends State<OrderScreen> {
       return Row(
         children: [
           DropdownButton<String>(
+            dropdownColor: Colors.white,
             value: selectedFilter,
             items: [
               DropdownMenuItem(value: 'all', child: Text('Tất cả')),
@@ -658,13 +665,14 @@ class _OrderScreenState extends State<OrderScreen> {
               _translateStatus(order.process),
               style: TextStyle(
                 fontSize: 14,
-                color: order.process?.toLowerCase() == 'danggiao'
-                    ? Colors.green
-                    : order.process?.toLowerCase() == 'dahuy'
+                color:
+                    order.process?.toLowerCase() == 'danggiao'
+                        ? Colors.green
+                        : order.process?.toLowerCase() == 'dahuy'
                         ? Colors.red
                         : order.process?.toLowerCase() == 'hoantat'
-                            ? Colors.blue
-                            : Colors.black,
+                        ? Colors.blue
+                        : Colors.black,
               ),
               textAlign: TextAlign.center,
             ),
@@ -753,8 +761,10 @@ class _OrderScreenState extends State<OrderScreen> {
               );
             }
           },
-          items: ['Chấp nhận', 'Không chấp nhận']
-              .map<DropdownMenuItem<String>>((String status) {
+          items:
+              ['Chấp nhận', 'Không chấp nhận'].map<DropdownMenuItem<String>>((
+                String status,
+              ) {
                 return DropdownMenuItem<String>(
                   value: status,
                   child: Text(

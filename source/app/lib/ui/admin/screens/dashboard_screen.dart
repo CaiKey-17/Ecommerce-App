@@ -288,19 +288,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 40, // Tăng không gian để chứa nhãn nghiêng
+                      reservedSize: 40,
                       getTitlesWidget: (value, meta) {
                         final index = value.toInt();
                         if (index >= 0 && index < data.length) {
                           return Transform.rotate(
-                            angle:
-                                -45 *
-                                3.14159 /
-                                180, // Xoay 45 độ ngược chiều kim đồng hồ
+                            angle: -45 * 3.14159 / 180,
                             child: Padding(
-                              padding: EdgeInsets.only(
-                                top: 8,
-                              ), // Thêm khoảng cách để tránh chồng lấn
+                              padding: EdgeInsets.only(top: 8),
                               child: Text(
                                 "${data[index].date.month}/${data[index].date.year}",
                                 style: TextStyle(fontSize: 12),
@@ -351,17 +346,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           SizedBox(height: 8),
-          _buildLegend(includeOrders: false), // Không cần số đơn hàng ở đây
+          _buildLegend(includeOrders: false),
         ],
       ),
     );
   }
 
   Widget _buildRevenueProfitChart(List<SalesData> data) {
-    double totalRevenue =
-        data.fold(0.0, (sum, e) => sum + e.revenue) / 1000000; // Triệu VNĐ
-    double totalProfit =
-        data.fold(0.0, (sum, e) => sum + e.profit) / 1000000; // Triệu VNĐ
+    double totalRevenue = data.fold(0.0, (sum, e) => sum + e.revenue) / 1000000;
+    double totalProfit = data.fold(0.0, (sum, e) => sum + e.profit) / 1000000;
 
     return Container(
       height: 350,
@@ -424,7 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           SizedBox(height: 8),
-          _buildLegend(includeOrders: false), // Không cần số đơn hàng ở đây
+          _buildLegend(includeOrders: false),
         ],
       ),
     );
@@ -575,7 +568,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 borderData: FlBorderData(show: true),
-                // Thiết lập maxY để tạo thêm không gian
                 maxY:
                     double.parse(totalU) > double.parse(newU)
                         ? double.parse(totalU) + 2
@@ -748,7 +740,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget buildTopSellingProductsChartCard(List<TopSellingProductDTO> list) {
-    // Giới hạn chỉ lấy 3 sản phẩm đầu tiên
     final top3 = list.take(3).toList();
 
     final List<Color> barColors = [Colors.blue, Colors.green, Colors.orange];
@@ -867,86 +858,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
         foregroundColor: Colors.white,
       ),
       drawer: SideBar(token: token),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GridView.count(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.5,
-              children: [
-                isLoading
-                    ? CircularProgressIndicator()
-                    : _buildStatCard(
-                      "Tổng người dùng",
+      body:
+          isDashboardDataReady
+              ? SingleChildScrollView(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.5,
+                      children: [
+                        _buildStatCard(
+                          "Tổng người dùng",
+                          userStatistics!.totalUsers.toString(),
+                          "+ ${userStatistics!.newUsers} người dùng mới",
+                          Colors.blue,
+                        ),
+                        _buildStatCard(
+                          "Tổng đơn hàng",
+                          orderStatisticsDTO!.countOrder.toString(),
+                          "+ ${ConvertMoney.currencyFormatter.format(orderStatisticsDTO!.totalRevenue)} ₫",
+                          Colors.green,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24),
+                    _buildUserChartCard(
                       userStatistics!.totalUsers.toString(),
-                      "+ " +
-                          userStatistics!.newUsers.toString() +
-                          " người dùng mới",
-
-                      Colors.blue,
+                      userStatistics!.newUsers.toString(),
                     ),
-
-                isLoading
-                    ? CircularProgressIndicator()
-                    : _buildStatCard(
-                      "Tổng đơn hàng",
+                    SizedBox(height: 24),
+                    buildOrderRevenueChartCard(
                       orderStatisticsDTO!.countOrder.toString(),
-                      "+ " +
-                          "${ConvertMoney.currencyFormatter.format(orderStatisticsDTO!.totalRevenue)} ₫",
-
-                      Colors.green,
+                      orderStatisticsDTO!.totalRevenue.toString(),
                     ),
-              ],
-            ),
-            SizedBox(height: 24),
-            isLoading
-                ? CircularProgressIndicator()
-                : _buildUserChartCard(
-                  userStatistics!.totalUsers.toString(),
-                  userStatistics!.newUsers.toString(),
+                    SizedBox(height: 24),
+                    buildTopSellingProductsChartCard(listTopSelling),
+                  ],
                 ),
-            SizedBox(height: 24),
-            isLoading
-                ? CircularProgressIndicator()
-                : buildOrderRevenueChartCard(
-                  orderStatisticsDTO!.countOrder.toString(),
-                  orderStatisticsDTO!.totalRevenue.toString(),
-                ),
-            SizedBox(height: 24),
-            isLoading
-                ? CircularProgressIndicator()
-                : buildTopSellingProductsChartCard(listTopSelling),
-            // SizedBox(height: 24),
-
-            //   Row(
-            //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            //     children:
-            //         [
-            //           "Tuần",
-            //           "Tháng",
-            //           "Quý",
-            //           "Năm",
-            //         ].map((e) => _buildFilterButton(e)).toList(),
-            //   ),
-            //   SizedBox(height: 16),
-            //   _buildDateRangePicker(),
-            //   SizedBox(height: 24),
-            //   _buildLineChart(salesData),
-            //   SizedBox(height: 24),
-            //   _buildRevenueProfitChart(salesData),
-            //   SizedBox(height: 24),
-            //   _buildOrdersChart(salesData),
-            //   SizedBox(height: 24),
-            //   _buildStatisticsTable(salesData),
-          ],
-        ),
-      ),
+              )
+              : Center(child: CircularProgressIndicator(color: Colors.blue)),
     );
+  }
+
+  bool get isDashboardDataReady {
+    return userStatistics != null &&
+        orderStatisticsDTO != null &&
+        listTopSelling.isNotEmpty;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:app/globals/ip.dart';
+import 'package:app/models/category_sales.dart';
 import 'package:app/models/total_product_by_year.dart';
 import 'package:app/models/address.dart';
 import 'package:app/models/address_response.dart';
@@ -390,20 +391,17 @@ abstract class ApiService {
     @Query("week") int week,
   );
 
-  // API thống kê sản phẩm theo period
   @GET("/statistic/product-stats")
   Future<ApiResponse1<List<ProductDataDTO>>> getProductData(
     @Query("period") String period,
   );
 
-  // API thống kê performance theo khoảng thời gian tùy chỉnh (start, end)
   @GET("/statistic/performance/custom")
   Future<ApiResponse1<List<PerformanceDataDTO>>> getCustomPerformanceData(
     @Query("start") String start,
     @Query("end") String end,
   );
 
-  // API thống kê sản phẩm theo khoảng thời gian tùy chỉnh (start, end)
   @GET("/statistic/product-stats/custom")
   Future<ApiResponse1<List<ProductDataDTO>>> getCustomProductData(
     @Query("start") String start,
@@ -439,6 +437,44 @@ abstract class ApiService {
 
   @GET("/statistic/sold-products/custom")
   Future<ApiResponse1<List<TotalProductByYear>>> getTotalProductByDayBetween(
+    @Query("start") String start,
+    @Query("end") String end,
+  );
+
+  ///
+  @GET("/statistic/sold-tpye-products-by-year")
+  Future<ApiResponse1<List<CategorySalesProjection>>>
+  getSoldTypeProductsByYear();
+
+  @GET("/statistic/sold-type-products-by-year-month")
+  Future<ApiResponse1<List<CategorySalesProjection>>>
+  getSoldTypeProductsByYearMonth(@Query("year") int year);
+
+  @GET("/statistic/sold-type-products-by-year-month-v2")
+  Future<ApiResponse1<List<CategorySalesProjection>>>
+  getSoldTypeProductsByYearMonthV2(
+    @Query("year") int year,
+    @Query("month") int month,
+  );
+
+  @GET("/statistic/sold-type-products-by-year-quarter")
+  Future<ApiResponse1<List<CategorySalesProjection>>>
+  getSoldTypeProductsByYearQuarter(
+    @Query("year") int year,
+    @Query("quarter") int quarter,
+  );
+
+  @GET("/statistic/sold-type-products-by-year-month-week")
+  Future<ApiResponse1<List<CategorySalesProjection>>>
+  getSoldTypeProductsByYearMonthWeek(
+    @Query("year") int year,
+    @Query("month") int month,
+    @Query("week") int week,
+  );
+
+  @GET("/statistic/sold-type-products/custom")
+  Future<ApiResponse1<List<CategorySalesProjection>>>
+  getTotalTypeProductByDayBetween(
     @Query("start") String start,
     @Query("end") String end,
   );

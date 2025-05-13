@@ -42,10 +42,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   late ApiAdminService apiService;
   late ApiService apiCartService;
 
-  final List<String> orderStatuses = [
-    'Chấp nhận',
-    'Không chấp nhận',
-  ];
+  final List<String> orderStatuses = ['Chấp nhận', 'Không chấp nhận'];
 
   @override
   void initState() {
@@ -70,9 +67,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi tải token từ SharedPreferences: $e');
       debugPrint('StackTrace: $stackTrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi tải token: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi tải token: $e')));
     }
   }
 
@@ -81,17 +78,28 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       isLoading = true;
     });
     try {
-      debugPrint('Bắt đầu tải danh sách đơn hàng cho khách hàng ID: ${widget.user.id}');
-      final fetchedOrders = await apiService.getOrdersByCustomer(widget.user.id);
-      orders = fetchedOrders
-        ..sort((a, b) => DateTime.parse(b.createdAt ?? '9999-12-31').compareTo(
-            DateTime.parse(a.createdAt ?? '9999-12-31')));
+      debugPrint(
+        'Bắt đầu tải danh sách đơn hàng cho khách hàng ID: ${widget.user.id}',
+      );
+      final fetchedOrders = await apiService.getOrdersByCustomer(
+        widget.user.id,
+      );
+      orders =
+          fetchedOrders..sort(
+            (a, b) => DateTime.parse(
+              b.createdAt ?? '9999-12-31',
+            ).compareTo(DateTime.parse(a.createdAt ?? '9999-12-31')),
+          );
       orderBills.clear();
       productVariants.clear();
 
-      debugPrint('Đã tải ${orders.length} đơn hàng cho khách hàng ID: ${widget.user.id}');
+      debugPrint(
+        'Đã tải ${orders.length} đơn hàng cho khách hàng ID: ${widget.user.id}',
+      );
       for (var order in orders) {
-        debugPrint('Order ID: ${order.id}, CreatedAt: ${order.createdAt}, fkCouponId: ${order.fkCouponId}, Process: ${order.process}');
+        debugPrint(
+          'Order ID: ${order.id}, CreatedAt: ${order.createdAt}, fkCouponId: ${order.fkCouponId}, Process: ${order.process}',
+        );
       }
 
       for (var order in orders) {
@@ -108,20 +116,32 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
 
           if (order.idFkProductVariant != null) {
             try {
-              debugPrint('Tải biến thể cho idFkProductVariant: ${order.idFkProductVariant}');
-              final variants = await apiService.getVariantsByProductId(order.idFkProductVariant!);
-              debugPrint('Biến thể cho idFkProductVariant ${order.idFkProductVariant}: $variants');
+              debugPrint(
+                'Tải biến thể cho idFkProductVariant: ${order.idFkProductVariant}',
+              );
+              final variants = await apiService.getVariantsByProductId(
+                order.idFkProductVariant!,
+              );
+              debugPrint(
+                'Biến thể cho idFkProductVariant ${order.idFkProductVariant}: $variants',
+              );
               if (variants.isNotEmpty) {
                 productVariants[order.idFkProductVariant!] = variants.first;
               } else {
-                debugPrint('Không tìm thấy biến thể cho idFkProductVariant: ${order.idFkProductVariant}');
+                debugPrint(
+                  'Không tìm thấy biến thể cho idFkProductVariant: ${order.idFkProductVariant}',
+                );
               }
             } catch (e, stackTrace) {
-              debugPrint('Lỗi khi lấy biến thể ${order.idFkProductVariant}: $e');
+              debugPrint(
+                'Lỗi khi lấy biến thể ${order.idFkProductVariant}: $e',
+              );
               debugPrint('StackTrace: $stackTrace');
             }
           } else {
-            debugPrint('idFkProductVariant is null cho đơn hàng ID: ${order.id}');
+            debugPrint(
+              'idFkProductVariant is null cho đơn hàng ID: ${order.id}',
+            );
           }
         }
       }
@@ -131,7 +151,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         debugPrint('Không có biến thể sản phẩm nào được tải.');
       } else {
         productVariants.forEach((key, value) {
-          debugPrint('Key: $key, ID: ${value.id}, NameVariant: ${value.nameVariant}');
+          debugPrint(
+            'Key: $key, ID: ${value.id}, NameVariant: ${value.nameVariant}',
+          );
         });
       }
 
@@ -145,9 +167,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       });
       debugPrint('Lỗi khi tải dữ liệu đơn hàng: $e');
       debugPrint('StackTrace: $stackTrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi tải dữ liệu: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi tải dữ liệu: $e')));
     }
   }
 
@@ -155,6 +177,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     final now = DateTime.now();
     try {
       setState(() {
+// <<<<<<< luan
         filteredOrders = orders.where((order) {
           // Xử lý createdAt null
           if (order.createdAt == null) {
@@ -195,6 +218,64 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           return true;
         }).toList();
 
+// =======
+//         if (selectedFilter == 'today') {
+//           filteredOrders =
+//               orders.where((order) {
+//                 final orderDate = DateTime.parse(
+//                   order.createdAt ?? '9999-12-31',
+//                 );
+//                 return orderDate.day == now.day &&
+//                     orderDate.month == now.month &&
+//                     orderDate.year == now.year;
+//               }).toList();
+//         } else if (selectedFilter == 'yesterday') {
+//           filteredOrders =
+//               orders.where((order) {
+//                 final orderDate = DateTime.parse(
+//                   order.createdAt ?? '9999-12-31',
+//                 );
+//                 final yesterday = now.subtract(const Duration(days: 1));
+//                 return orderDate.day == yesterday.day &&
+//                     orderDate.month == yesterday.month &&
+//                     orderDate.year == yesterday.year;
+//               }).toList();
+//         } else if (selectedFilter == 'week') {
+//           filteredOrders =
+//               orders.where((order) {
+//                 final orderDate = DateTime.parse(
+//                   order.createdAt ?? '9999-12-31',
+//                 );
+//                 final weekStart = now.subtract(Duration(days: now.weekday - 1));
+//                 return orderDate.isAfter(weekStart) ||
+//                     orderDate.isAtSameMomentAs(weekStart);
+//               }).toList();
+//         } else if (selectedFilter == 'month') {
+//           filteredOrders =
+//               orders.where((order) {
+//                 final orderDate = DateTime.parse(
+//                   order.createdAt ?? '9999-12-31',
+//                 );
+//                 return orderDate.month == now.month &&
+//                     orderDate.year == now.year;
+//               }).toList();
+//         } else if (selectedFilter == 'custom' &&
+//             startDate != null &&
+//             endDate != null) {
+//           filteredOrders =
+//               orders.where((order) {
+//                 final orderDate = DateTime.parse(
+//                   order.createdAt ?? '9999-12-31',
+//                 );
+//                 return (orderDate.isAfter(startDate!) ||
+//                         orderDate.isAtSameMomentAs(startDate!)) &&
+//                     (orderDate.isBefore(endDate!) ||
+//                         orderDate.isAtSameMomentAs(endDate!));
+//               }).toList();
+//         } else {
+//           filteredOrders = orders;
+//         }
+// >>>>>>> main
         currentPage = 1;
         debugPrint(
           'Đã áp dụng bộ lọc: $selectedFilter, Kết quả: ${filteredOrders.length} đơn hàng',
@@ -203,9 +284,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi áp dụng bộ lọc: $e');
       debugPrint('StackTrace: $stackTrace');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi áp dụng bộ lọc: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi áp dụng bộ lọc: $e')));
     }
   }
 
@@ -215,9 +296,10 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         context: context,
         firstDate: DateTime(2000),
         lastDate: DateTime.now(),
-        initialDateRange: startDate != null && endDate != null
-            ? DateTimeRange(start: startDate!, end: endDate!)
-            : null,
+        initialDateRange:
+            startDate != null && endDate != null
+                ? DateTimeRange(start: startDate!, end: endDate!)
+                : null,
       );
       if (picked != null) {
         setState(() {
@@ -309,7 +391,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         return 'Chưa thanh toán';
       }
       final bills = orderBills[orderId]!;
-      if (bills.any((bill) => bill.statusOrder?.toLowerCase() == 'dathanhtoan')) {
+      if (bills.any(
+        (bill) => bill.statusOrder?.toLowerCase() == 'dathanhtoan',
+      )) {
         return 'Đã thanh toán';
       }
       return 'Chưa thanh toán';
@@ -353,9 +437,13 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
     }
 
     try {
-      debugPrint('Cập nhật trạng thái cho đơn hàng ID: ${order.id}, Trạng thái mới: $newStatus');
+      debugPrint(
+        'Cập nhật trạng thái cho đơn hàng ID: ${order.id}, Trạng thái mới: $newStatus',
+      );
       final backendStatus = _toBackendStatus(newStatus);
-      debugPrint('Gửi yêu cầu cập nhật trạng thái tới backend: orderId=${order.id}, process=$backendStatus');
+      debugPrint(
+        'Gửi yêu cầu cập nhật trạng thái tới backend: orderId=${order.id}, process=$backendStatus',
+      );
 
       // Gọi ApiService
       if (newStatus == 'Chấp nhận') {
@@ -389,53 +477,67 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             idFkProductVariant: order.idFkProductVariant,
             fkCouponId: order.fkCouponId,
           );
-          debugPrint('Đã cập nhật đơn hàng ID: ${order.id} trong danh sách cục bộ');
+          debugPrint(
+            'Đã cập nhật đơn hàng ID: ${order.id} trong danh sách cục bộ',
+          );
           _applyFilter();
         } else {
-          debugPrint('Lỗi: Không tìm thấy đơn hàng ID: ${order.id} trong danh sách');
+          debugPrint(
+            'Lỗi: Không tìm thấy đơn hàng ID: ${order.id} trong danh sách',
+          );
         }
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cập nhật trạng thái đơn hàng thành công')),
+        const SnackBar(
+          content: Text('Cập nhật trạng thái đơn hàng thành công'),
+        ),
       );
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi cập nhật trạng thái đơn hàng ID: ${order.id}: $e');
       debugPrint('StackTrace: $stackTrace');
       String errorMessage = 'Lỗi khi cập nhật trạng thái: $e';
       if (e is DioException) {
-        errorMessage = 'Lỗi khi cập nhật trạng thái: ${e.response?.statusCode} - ${e.message}';
-        debugPrint('DioException details: StatusCode=${e.response?.statusCode}, ResponseData=${e.response?.data}');
+        errorMessage =
+            'Lỗi khi cập nhật trạng thái: ${e.response?.statusCode} - ${e.message}';
+        debugPrint(
+          'DioException details: StatusCode=${e.response?.statusCode}, ResponseData=${e.response?.data}',
+        );
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     }
   }
 
   Future<void> _updateUserInfo() async {
     try {
       final newName = nameController.text;
-      debugPrint('Cập nhật thông tin người dùng ID: ${widget.user.id}, Tên mới: $newName');
+      debugPrint(
+        'Cập nhật thông tin người dùng ID: ${widget.user.id}, Tên mới: $newName',
+      );
       await apiService.updateUserFullName(widget.user.id, newName);
       setState(() {
         updatedFullName = newName;
         isEditing = false;
       });
       debugPrint('Cập nhật tên người dùng ID: ${widget.user.id} thành công');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cập nhật tên thành công')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Cập nhật tên thành công')));
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi cập nhật thông tin người dùng ID: ${widget.user.id}: $e');
+      debugPrint(
+        'Lỗi khi cập nhật thông tin người dùng ID: ${widget.user.id}: $e',
+      );
       debugPrint('StackTrace: $stackTrace');
       String errorMessage = 'Lỗi khi cập nhật tên: $e';
       if (e is DioException) {
-        errorMessage = 'Lỗi khi cập nhật tên: ${e.response?.statusCode} - ${e.message}';
+        errorMessage =
+            'Lỗi khi cập nhật tên: ${e.response?.statusCode} - ${e.message}';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage)));
     }
   }
 
@@ -444,9 +546,12 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       final startIndex = (currentPage - 1) * itemsPerPage;
       final endIndex = startIndex + itemsPerPage;
       final pagedOrders = filteredOrders.sublist(
-          startIndex,
-          endIndex > filteredOrders.length ? filteredOrders.length : endIndex);
-      debugPrint('Lấy trang đơn hàng: Trang $currentPage, Số lượng: ${pagedOrders.length}');
+        startIndex,
+        endIndex > filteredOrders.length ? filteredOrders.length : endIndex,
+      );
+      debugPrint(
+        'Lấy trang đơn hàng: Trang $currentPage, Số lượng: ${pagedOrders.length}',
+      );
       return pagedOrders;
     } catch (e, stackTrace) {
       debugPrint('Lỗi khi phân trang đơn hàng: $e');
@@ -458,8 +563,20 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+
       appBar: AppBar(
-        title: Text("Thông tin người dùng: $updatedFullName"),
+        foregroundColor: Colors.white,
+        title: Text(
+          "Khách hàng: $updatedFullName",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_rounded),
+          onPressed: () => {Navigator.pop(context)},
+        ),
         actions: [
           IconButton(
             icon: Icon(isEditing ? Icons.close : Icons.edit),
@@ -475,7 +592,6 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           ),
         ],
       ),
-      drawer: SideBar(token: token),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -493,11 +609,11 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: _buildOrderTable(context),
-                    ),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildOrderTable(context),
                   ),
+                ),
             _buildPaginationControls(),
             if (isEditing) ...[
               const SizedBox(height: 20),
@@ -548,6 +664,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
             decoration: const InputDecoration(
               labelText: "Họ và tên",
               border: OutlineInputBorder(),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue, width: 2.0),
+              ),
             ),
             controller: nameController,
             enabled: isEditing,
@@ -575,6 +694,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       return Row(
         children: [
           DropdownButton<String>(
+            dropdownColor: Colors.white,
             value: selectedFilter,
             items: const [
               DropdownMenuItem(value: 'all', child: Text('Tất cả')),
@@ -606,7 +726,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               }
             },
           ),
-          if (selectedFilter == 'custom' && startDate != null && endDate != null)
+          if (selectedFilter == 'custom' &&
+              startDate != null &&
+              endDate != null)
             Padding(
               padding: const EdgeInsets.only(left: 10),
               child: Text(
@@ -712,13 +834,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
               textAlign: TextAlign.center,
             ),
           ),
-          DataColumn(
-            label: Text(
-              "Biến thể",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ),
+
           DataColumn(
             label: Text(
               "Mã coupon",
@@ -798,7 +914,7 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           _buildTableCell(formatCurrency(order.couponTotal)),
           _buildTableCell(formatCurrency(order.pointTotal)),
           _buildTableCell(formatDate(order.createdAt)),
-          _buildTableCell(productVariants[order.idFkProductVariant]?.nameVariant ?? 'N/A'),
+
           _buildTableCell(order.fkCouponId?.toString() ?? 'N/A'),
           DataCell(_buildPaymentStatusText(order)),
           DataCell(_buildStatusText(order)),
@@ -845,18 +961,21 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         status,
         style: TextStyle(
           fontSize: 14,
-          color: order.process?.toLowerCase() == 'danggiao'
-              ? Colors.green
-              : order.process?.toLowerCase() == 'dahuy'
+          color:
+              order.process?.toLowerCase() == 'danggiao'
+                  ? Colors.green
+                  : order.process?.toLowerCase() == 'dahuy'
                   ? Colors.red
                   : order.process?.toLowerCase() == 'hoantat'
-                      ? Colors.blue
-                      : Colors.black,
+                  ? Colors.blue
+                  : Colors.black,
         ),
         textAlign: TextAlign.center,
       );
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi xây dựng văn bản trạng thái cho đơn hàng ID: ${order.id}: $e');
+      debugPrint(
+        'Lỗi khi xây dựng văn bản trạng thái cho đơn hàng ID: ${order.id}: $e',
+      );
       debugPrint('StackTrace: $stackTrace');
       return const SizedBox.shrink();
     }
@@ -871,31 +990,38 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
           onChanged: (newValue) {
             try {
               if (newValue != null) {
-                debugPrint('Thay đổi trạng thái cho đơn hàng ID: ${order.id} thành: $newValue');
+                debugPrint(
+                  'Thay đổi trạng thái cho đơn hàng ID: ${order.id} thành: $newValue',
+                );
                 _updateOrderStatus(order, newValue);
               } else {
-                debugPrint('Không có giá trị trạng thái mới cho đơn hàng ID: ${order.id}');
+                debugPrint(
+                  'Không có giá trị trạng thái mới cho đơn hàng ID: ${order.id}',
+                );
               }
             } catch (e, stackTrace) {
-              debugPrint('Lỗi khi thay đổi trạng thái dropdown cho đơn hàng ID: ${order.id}: $e');
+              debugPrint(
+                'Lỗi khi thay đổi trạng thái dropdown cho đơn hàng ID: ${order.id}: $e',
+              );
               debugPrint('StackTrace: $stackTrace');
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Lỗi khi thay đổi trạng thái: $e')),
               );
             }
           },
-          items: orderStatuses.map<DropdownMenuItem<String>>((String status) {
-            return DropdownMenuItem<String>(
-              value: status,
-              child: Text(
-                status,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: status == 'Chấp nhận' ? Colors.green : Colors.red,
-                ),
-              ),
-            );
-          }).toList(),
+          items:
+              orderStatuses.map<DropdownMenuItem<String>>((String status) {
+                return DropdownMenuItem<String>(
+                  value: status,
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: status == 'Chấp nhận' ? Colors.green : Colors.red,
+                    ),
+                  ),
+                );
+              }).toList(),
         );
       } else if (backendStatus == 'danggiao') {
         return const Text(
@@ -918,7 +1044,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
       }
       return const SizedBox.shrink();
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi xây dựng widget hành động cho đơn hàng ID: ${order.id}: $e');
+      debugPrint(
+        'Lỗi khi xây dựng widget hành động cho đơn hàng ID: ${order.id}: $e',
+      );
       debugPrint('StackTrace: $stackTrace');
       return const SizedBox.shrink();
     }
@@ -936,7 +1064,9 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         textAlign: TextAlign.center,
       );
     } catch (e, stackTrace) {
-      debugPrint('Lỗi khi xây dựng trạng thái thanh toán cho đơn hàng ID: ${order.id}: $e');
+      debugPrint(
+        'Lỗi khi xây dựng trạng thái thanh toán cho đơn hàng ID: ${order.id}: $e',
+      );
       debugPrint('StackTrace: $stackTrace');
       return const SizedBox.shrink();
     }
@@ -950,26 +1080,28 @@ class _UserDetailsScreenState extends State<UserDetailsScreen> {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: currentPage > 1
-                ? () {
-                    setState(() {
-                      currentPage--;
-                      debugPrint('Chuyển về trang trước: Trang $currentPage');
-                    });
-                  }
-                : null,
+            onPressed:
+                currentPage > 1
+                    ? () {
+                      setState(() {
+                        currentPage--;
+                        debugPrint('Chuyển về trang trước: Trang $currentPage');
+                      });
+                    }
+                    : null,
           ),
           Text('Trang $currentPage / $totalPages'),
           IconButton(
             icon: const Icon(Icons.arrow_forward),
-            onPressed: currentPage < totalPages
-                ? () {
-                    setState(() {
-                      currentPage++;
-                      debugPrint('Chuyển sang trang sau: Trang $currentPage');
-                    });
-                  }
-                : null,
+            onPressed:
+                currentPage < totalPages
+                    ? () {
+                      setState(() {
+                        currentPage++;
+                        debugPrint('Chuyển sang trang sau: Trang $currentPage');
+                      });
+                    }
+                    : null,
           ),
         ],
       );
