@@ -11,6 +11,7 @@ class ApiConfig {
   // static const String baseUrlWsc = "http://$ip:8080/ws";
   // static const String baseUrlWscHistory = "http://$ip:8080/api";
   //
+  //
   static const String baseUrlSentiment =
       "https://sentiment-analysics.onrender.com";
 
@@ -24,19 +25,8 @@ class ApiConfig {
   static const String baseUrlWscHistory =
       "https://backend-839a.onrender.com/api";
 
-  // static const String domain = "https://backend-839a.onrender.com";
-  // static const String domainSentiment =
-  //     "https://sentiment-analysics.onrender.com";
-
-  // static const String baseUrlSentiment =
-  //     "https://sentiment-analysics.onrender.com";
-  // static const String baseUrlAPI = "$domain/api";
-  // static const String baseUrlDetect =
-  //     "https://detect-product.onrender.com/detect/";
-  // // static const String baseUrlWsc = "$domain/ws";
-  // static const String baseUrlWsc = "https://backend-839a.onrender.com/ws";
-
-  // static const String baseUrlWscHistory = "$domain/api";
+  //
+  //
 
   static Uri getChatMessages(int senderId, int receiverId) {
     return Uri.parse('$baseUrlWscHistory/chat/messages/$senderId/$receiverId');
