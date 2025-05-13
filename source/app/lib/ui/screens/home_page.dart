@@ -730,7 +730,7 @@ class _HomePageState extends State<HomePage> {
                     height: 37,
                     padding: EdgeInsets.only(left: 8),
                     decoration: BoxDecoration(
-                      color: Colors.transparent,
+                      color: Colors.white,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(8),
                         bottomLeft: Radius.circular(8),
@@ -765,7 +765,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             Padding(
-              padding: EdgeInsets.only(left: 16), 
+              padding: EdgeInsets.only(left: 16),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
