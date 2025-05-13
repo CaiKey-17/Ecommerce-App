@@ -6,6 +6,7 @@ import 'package:app/luan/models/product_variant_info.dart';
 import 'package:app/providers/product_detail_image_picker.dart';
 import 'package:app/providers/product_image_picker.dart';
 import 'package:app/services/api_admin_service.dart';
+import 'package:app/ui/admin/product_details_admin.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -1962,7 +1963,29 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             "Chi tiết sản phẩm",
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.message),
+              tooltip: 'Tin nhắn',
+              onPressed: () {
+               final productId = _savedProduct?.id ?? widget.productInfo?.id;
+               if (productId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductAdminPage(productId: productId),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Không tìm thấy ID sản phẩm')),
+                );
+              }
+              },
+            ),
+          ],
         ),
+        
         body:
             isLoading
                 ? Center(child: CircularProgressIndicator())
