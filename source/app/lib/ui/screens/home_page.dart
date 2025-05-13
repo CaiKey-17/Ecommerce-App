@@ -721,7 +721,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         child: Stack(
-          alignment: Alignment.center,
+          alignment: Alignment.centerLeft,
           children: [
             Row(
               children: [
@@ -764,18 +764,19 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-
-            Row(
-              mainAxisSize: MainAxisSize.min,
-
-              children: [
-                Icon(Icons.search, color: Colors.grey, size: 19),
-                SizedBox(width: 8),
-                Text(
-                  "Bạn muốn mua gì hôm nay",
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-              ],
+            Padding(
+              padding: EdgeInsets.only(left: 16), 
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.search, color: Colors.grey, size: 19),
+                  SizedBox(width: 8),
+                  Text(
+                    "Bạn muốn mua gì hôm nay",
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
