@@ -142,6 +142,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsPc();
       setState(() {
         productsPc = response;
+        _pagingController6.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController6, productsPc);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -160,6 +163,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsLaptop();
       setState(() {
         productsLaptop = response;
+        _pagingController3.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController3, productsLaptop);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -178,6 +184,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsPhone();
       setState(() {
         productsPhone = response;
+        _pagingController4.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController4, productsPhone);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -196,6 +205,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsMonitor();
       setState(() {
         productsMonitor = response;
+        _pagingController5.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController5, productsMonitor);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -214,6 +226,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsKeyBoard();
       setState(() {
         productsKeyboard = response;
+        _pagingController7.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController7, productsKeyboard);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -232,6 +247,10 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsNew();
       setState(() {
         productsNew = response;
+        _pagingController.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController, productsNew);
+        });
+        _fetchPage1(5, productsNew);
         isLoading = false;
       });
     } catch (e) {
@@ -283,6 +302,20 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsPromotion();
       setState(() {
         productsPromotion = response;
+        final newItems = productsPromotion.take(_pageSize).toList();
+        final isLastPage =
+            newItems.length < _pageSize ||
+            newItems.length == productsPromotion.length;
+        if (isLastPage) {
+          _pagingController2.appendLastPage(newItems);
+        } else {
+          _pagingController2.appendPage(newItems, 1);
+        }
+
+        _pagingController2.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController2, productsPromotion);
+        });
+
         _isLoadingPromotion = false;
       });
     } catch (e) {
@@ -330,8 +363,10 @@ class _HomePageState extends State<HomePage> {
     cartService = CartService(cartRepository: cartRepository);
     //1
     fetchCategories();
-    //3
+
     fetchProductsPromotion();
+
+    //3
     fetchProductsNew();
     fetchProductsBestSeller();
     //5
@@ -344,35 +379,6 @@ class _HomePageState extends State<HomePage> {
 
     fetchBrands();
     _loadInitialData();
-    _pagingController.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController, productsNew);
-    });
-
-    _pagingController2.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController2, productsPromotion);
-    });
-
-    _pagingController3.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController3, productsLaptop);
-    });
-
-    _pagingController4.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController4, productsPhone);
-    });
-
-    _pagingController5.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController5, productsMonitor);
-    });
-
-    _pagingController6.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController6, productsPc);
-    });
-
-    _pagingController7.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController7, productsKeyboard);
-    });
-
-    _fetchPage1(5, productsNew);
   }
 
   Future<void> _fetchPage(
@@ -381,8 +387,6 @@ class _HomePageState extends State<HomePage> {
     List<ProductInfo> dataList,
   ) async {
     try {
-      await Future.delayed(Duration(milliseconds: 800));
-
       final newItems =
           List.generate(_pageSize, (index) {
             final dataIndex = pageKey * _pageSize + index;
@@ -438,11 +442,11 @@ class _HomePageState extends State<HomePage> {
     double delta = currentOffset - lastOffset;
     final maxScrollExtent = _scrollController.position.maxScrollExtent;
 
-    if (currentOffset >= maxScrollExtent - 200 &&
-        !_isFetching &&
-        _pagingController.nextPageKey != null) {
-      _fetchPage1(_pagingController.nextPageKey!, productsPromotion);
-    }
+    // if (currentOffset >= maxScrollExtent - 200 &&
+    //     !_isFetching &&
+    //     _pagingController.nextPageKey != null) {
+    //   _fetchPage1(_pagingController.nextPageKey!, productsPromotion);
+    // }
 
     if (delta > 0 && !isCollapsed) {
       setState(() => isCollapsed = true);
@@ -625,7 +629,7 @@ class _HomePageState extends State<HomePage> {
             ),
             SliverList(
               delegate: SliverChildListDelegate([
-                _isLoadingPromotion
+                _isLoading
                     ? _buildHorizontalListShimmer()
                     : _buildHorizontalList(),
                 _isLoading ? _buildBannerShimmer() : _buildBanner(),
