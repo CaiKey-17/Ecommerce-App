@@ -5,10 +5,11 @@ import 'package:app/keys/shipping.dart';
 import 'package:app/models/address.dart';
 import 'package:app/models/cart_info.dart';
 import 'package:app/models/coupon_info.dart';
+import 'package:app/providers/user_points_provider.dart';
 import 'package:app/services/api_service.dart';
 import 'package:app/ui/login/update_address_page.dart';
 import 'package:app/ui/order/payment_success.dart';
-import 'package:app/ui/product_details.dart';
+import 'package:app/ui/product/product_details.dart';
 import 'package:app/ui/profile/add_address_screen.dart';
 import 'package:app/ui/profile/address_list_screen.dart';
 import 'package:dio/dio.dart';
@@ -18,6 +19,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 import '../../models/productTest.dart';
 
@@ -213,13 +215,14 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
   double get totalDiscount {
     appliedDiscount = isCouponApplied ? discount : 0;
-    appliedMemberPoints = isMemberPointsUsed ? points.toDouble() : 0;
+    appliedMemberPoints = isMemberPointsUsed ? (points.toDouble() * 1000) : 0;
     return appliedDiscount + appliedMemberPoints;
   }
 
-  Future<void> fetchCoupon(String name) async {
+  Future<void> fetchCoupon(String name, double totalAmount) async {
+    print(totalAmount.toString());
     try {
-      final response = await apiService.findCoupon(name);
+      final response = await apiService.findCoupon(name, totalAmount);
 
       setState(() {
         isLoading = false;
@@ -323,7 +326,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       email = prefs.getString('email') ?? "";
-      points = prefs.getInt('points') ?? 0;
+      setState(() {
+        points = Provider.of<UserPointsProvider>(context, listen: false).points;
+      });
       token = prefs.getString('token') ?? "";
       userId = prefs.getInt('userId') ?? 0;
       tempId = prefs.getString('tempId') ?? "";
@@ -355,6 +360,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     });
 
     try {
+      print("Temp: " + tempId);
+
       final response = await apiService.confirmToCart(
         widget.orderId,
         address,
@@ -368,10 +375,18 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
         userId,
       );
 
+      if (appliedMemberPoints > 0) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('points', 0);
+        Provider.of<UserPointsProvider>(context, listen: false).points = 0;
+      }
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => PaymentSuccessScreen(total: totalAmount),
+          builder:
+              (context) =>
+                  PaymentSuccessScreen(total: totalAmount, tempId: tempId),
         ),
         (route) => false,
       );
@@ -459,7 +474,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
 
                     _buildInfoRow(
                       "Hình thức thanh toán:",
-                      "Thanh toán khi nhận hàng",
+                      "Khi nhận hàng",
                       isBold: true,
                     ),
 
@@ -505,7 +520,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                     if (isMemberPointsUsed && points != 0)
                       _buildSummaryRow(
                         "Giảm giá điểm thành viên:",
-                        isMemberPointsUsed ? -points.toDouble() : 0,
+                        isMemberPointsUsed ? -(points.toDouble() * 1000) : 0,
                       ),
 
                     if (totalDiscount > 0)
@@ -747,7 +762,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
               onChanged: (value) {
                 _couponController.notifyListeners();
               },
-              onSubmitted: (value) => fetchCoupon(value),
+              onSubmitted: (value) => fetchCoupon(value, totalAmount),
             ),
           ),
         ),
@@ -763,7 +778,7 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
                     value.text.isNotEmpty
                         ? () {
                           FocusScope.of(context).unfocus();
-                          fetchCoupon(value.text);
+                          fetchCoupon(value.text, totalAmount);
                         }
                         : null,
                 style: ElevatedButton.styleFrom(

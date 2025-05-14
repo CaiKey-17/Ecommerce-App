@@ -1,4 +1,4 @@
-import 'package:app/ui/product_details.dart';
+import 'package:app/ui/product/product_details.dart';
 import 'package:app/ui/screens/activity_page.dart';
 import 'package:app/ui/screens/category_page.dart';
 import 'package:app/ui/screens/home_page.dart';
@@ -73,7 +73,7 @@ class _MainPageState extends State<MainPage> {
       const HomePage(),
       const CategoryPageList(),
       ShoppingCartPage(key: UniqueKey()),
-      const ActivityPage(),
+      ActivityPage(key: UniqueKey()),
       const ProfilePage(),
     ];
   }

@@ -1,13 +1,23 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
-
+import 'package:app/ui/ai/detect_image.dart';
+import 'package:app/ui/product/main_search.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 import 'package:app/data/banner.dart';
 import 'package:app/globals/convert_money.dart';
 import 'package:app/models/product_info.dart';
 import 'package:app/services/cart_service.dart';
-import 'package:app/ui/main_category.dart';
-import 'package:app/ui/product_details.dart';
-import 'package:app/ui/search_page.dart';
+import 'package:app/services/chat_service.dart';
+import 'package:app/ui/chat/chat_list_page.dart';
+import 'package:app/ui/product/main_category.dart';
+import 'package:app/ui/product/product_details.dart';
+import 'package:app/ui/product/search_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +32,7 @@ import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/user_points_provider.dart';
 import '../../repositories/cart_repository.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -47,11 +58,13 @@ class _HomePageState extends State<HomePage> {
   bool isLoading = true;
   bool isCollapsed = false;
   String fullName = "";
+  int? userId;
   int points = 0;
   bool _isFetching = false;
   bool _isLoading = true;
+  bool _isLoadingPromotion = true;
+
   int _currentIndex = 0;
-  String formattedPoints = "";
   String token = "";
   List<CategoryInfo> categories = [];
   List<ProductInfo> productsPromotion = [];
@@ -65,6 +78,9 @@ class _HomePageState extends State<HomePage> {
   List<ProductInfo> productsMonitor = [];
 
   List<CategoryInfo> brands = [];
+
+  File? _image;
+  String _result = "";
 
   final PagingController<int, ProductInfo> _pagingController = PagingController(
     firstPageKey: 0,
@@ -95,9 +111,8 @@ class _HomePageState extends State<HomePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       fullName = prefs.getString('fullName') ?? "";
-      points = prefs.getInt('points') ?? 0;
-      formattedPoints = NumberFormat("#,###", "de_DE").format(points);
       token = prefs.getString('token') ?? "";
+      userId = prefs.getInt('userId') ?? -1;
     });
   }
 
@@ -127,6 +142,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsPc();
       setState(() {
         productsPc = response;
+        _pagingController6.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController6, productsPc);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -145,6 +163,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsLaptop();
       setState(() {
         productsLaptop = response;
+        _pagingController3.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController3, productsLaptop);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -163,6 +184,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsPhone();
       setState(() {
         productsPhone = response;
+        _pagingController4.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController4, productsPhone);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -181,6 +205,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsMonitor();
       setState(() {
         productsMonitor = response;
+        _pagingController5.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController5, productsMonitor);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -199,6 +226,9 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsKeyBoard();
       setState(() {
         productsKeyboard = response;
+        _pagingController7.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController7, productsKeyboard);
+        });
         isLoading = false;
       });
     } catch (e) {
@@ -217,6 +247,10 @@ class _HomePageState extends State<HomePage> {
       final response = await apiService.getProductsNew();
       setState(() {
         productsNew = response;
+        _pagingController.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController, productsNew);
+        });
+        _fetchPage1(5, productsNew);
         isLoading = false;
       });
     } catch (e) {
@@ -262,18 +296,32 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchProductsPromotion() async {
     setState(() {
-      isLoading = true;
+      _isLoadingPromotion = true;
     });
     try {
       final response = await apiService.getProductsPromotion();
       setState(() {
         productsPromotion = response;
-        isLoading = false;
+        final newItems = productsPromotion.take(_pageSize).toList();
+        final isLastPage =
+            newItems.length < _pageSize ||
+            newItems.length == productsPromotion.length;
+        if (isLastPage) {
+          _pagingController2.appendLastPage(newItems);
+        } else {
+          _pagingController2.appendPage(newItems, 1);
+        }
+
+        _pagingController2.addPageRequestListener((pageKey) {
+          _fetchPage(pageKey, _pagingController2, productsPromotion);
+        });
+
+        _isLoadingPromotion = false;
       });
     } catch (e) {
       print("Lỗi khi gọi API: $e");
       setState(() {
-        isLoading = false;
+        _isLoadingPromotion = false;
       });
     }
   }
@@ -291,6 +339,10 @@ class _HomePageState extends State<HomePage> {
     _scrollController = ScrollController();
     _scrollController1 = ScrollController();
     _scrollController.addListener(_onScroll);
+    Provider.of<UserPointsProvider>(
+      context,
+      listen: false,
+    ).loadPointsFromPrefs();
     _loadUserData();
     remainingTime = const Duration(hours: 32, minutes: 40, seconds: 32);
 
@@ -311,8 +363,10 @@ class _HomePageState extends State<HomePage> {
     cartService = CartService(cartRepository: cartRepository);
     //1
     fetchCategories();
-    //3
+
     fetchProductsPromotion();
+
+    //3
     fetchProductsNew();
     fetchProductsBestSeller();
     //5
@@ -325,35 +379,6 @@ class _HomePageState extends State<HomePage> {
 
     fetchBrands();
     _loadInitialData();
-    _pagingController.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController, productsNew);
-    });
-
-    _pagingController2.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController2, productsPromotion);
-    });
-
-    _pagingController3.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController3, productsLaptop);
-    });
-
-    _pagingController4.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController4, productsPhone);
-    });
-
-    _pagingController5.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController5, productsMonitor);
-    });
-
-    _pagingController6.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController6, productsPc);
-    });
-
-    _pagingController7.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey, _pagingController7, productsKeyboard);
-    });
-
-    _fetchPage1(5, productsNew);
   }
 
   Future<void> _fetchPage(
@@ -362,8 +387,6 @@ class _HomePageState extends State<HomePage> {
     List<ProductInfo> dataList,
   ) async {
     try {
-      await Future.delayed(Duration(milliseconds: 800));
-
       final newItems =
           List.generate(_pageSize, (index) {
             final dataIndex = pageKey * _pageSize + index;
@@ -419,11 +442,11 @@ class _HomePageState extends State<HomePage> {
     double delta = currentOffset - lastOffset;
     final maxScrollExtent = _scrollController.position.maxScrollExtent;
 
-    if (currentOffset >= maxScrollExtent - 200 &&
-        !_isFetching &&
-        _pagingController.nextPageKey != null) {
-      _fetchPage1(_pagingController.nextPageKey!, productsPromotion);
-    }
+    // if (currentOffset >= maxScrollExtent - 200 &&
+    //     !_isFetching &&
+    //     _pagingController.nextPageKey != null) {
+    //   _fetchPage1(_pagingController.nextPageKey!, productsPromotion);
+    // }
 
     if (delta > 0 && !isCollapsed) {
       setState(() => isCollapsed = true);
@@ -538,7 +561,7 @@ class _HomePageState extends State<HomePage> {
                                             ),
                                           ),
                                           child: Text(
-                                            '🪙 ${formattedPoints}',
+                                            '🪙 ${context.watch<UserPointsProvider>().formattedPoints}',
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
@@ -547,10 +570,22 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         ),
                                     const SizedBox(width: 8),
-                                    const Icon(
-                                      Icons.support_agent_rounded,
-                                      color: Colors.white,
-                                      size: 24,
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    ChatScreen(userId: userId!),
+                                          ),
+                                        );
+                                      },
+                                      child: const Icon(
+                                        Icons.support_agent_rounded,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -564,9 +599,22 @@ class _HomePageState extends State<HomePage> {
                                 Expanded(child: _buildSearchBar()),
                                 if (isCollapsed) SizedBox(width: 8),
                                 if (isCollapsed)
-                                  Icon(
-                                    Icons.support_agent_rounded,
-                                    color: Colors.white,
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) =>
+                                                  ChatScreen(userId: userId!),
+                                        ),
+                                      );
+                                    },
+                                    child: const Icon(
+                                      Icons.support_agent_rounded,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
                                   ),
                               ],
                             ),
@@ -673,7 +721,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         child: Stack(
-          alignment: Alignment.center,
+          alignment: Alignment.centerLeft,
           children: [
             Row(
               children: [
@@ -682,7 +730,7 @@ class _HomePageState extends State<HomePage> {
                     height: 37,
                     padding: EdgeInsets.only(left: 8),
                     decoration: BoxDecoration(
-                      color: Colors.transparent,
+                      color: Colors.white,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(8),
                         bottomLeft: Radius.circular(8),
@@ -707,24 +755,28 @@ class _HomePageState extends State<HomePage> {
                       size: 20,
                     ),
                     onPressed: () {
-                      print("Camera pressed");
+                      ImageUploader(
+                        context: context,
+                        onResult: (result) {},
+                      ).pickImageAndUpload();
                     },
                   ),
                 ),
               ],
             ),
-
-            Row(
-              mainAxisSize: MainAxisSize.min,
-
-              children: [
-                Icon(Icons.search, color: Colors.grey, size: 19),
-                SizedBox(width: 8),
-                Text(
-                  "Bạn muốn mua gì hôm nay",
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-              ],
+            Padding(
+              padding: EdgeInsets.only(left: 16),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.search, color: Colors.grey, size: 19),
+                  SizedBox(width: 8),
+                  Text(
+                    "Bạn muốn mua gì hôm nay",
+                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -783,7 +835,12 @@ class _HomePageState extends State<HomePage> {
                         height: 150,
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
-                          return Center(child: CircularProgressIndicator());
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.blue,
+                              padding: EdgeInsets.all(8),
+                            ),
+                          );
                         },
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset("assets/images/gaming.webp");
@@ -796,7 +853,7 @@ class _HomePageState extends State<HomePage> {
                     categories[index].name,
                     style: TextStyle(fontSize: 14, color: Colors.black54),
                     textAlign: TextAlign.center,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -1147,9 +1204,7 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (context) =>
-                                    CategoryPage(selectedCategory: "Giảm giá"),
+                            builder: (context) => SearchByNamePage(name: ""),
                           ),
                         );
                       },
@@ -1244,7 +1299,7 @@ class _HomePageState extends State<HomePage> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
                                       ),
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     SizedBox(height: 4),
@@ -1254,7 +1309,7 @@ class _HomePageState extends State<HomePage> {
                                         fontSize: 12,
                                         color: Colors.grey.shade700,
                                       ),
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     SizedBox(height: 8),
@@ -1604,7 +1659,7 @@ class _HomePageState extends State<HomePage> {
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 4),
@@ -1614,7 +1669,7 @@ class _HomePageState extends State<HomePage> {
                             fontSize: 12,
                             color: Colors.grey.shade700,
                           ),
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 8),
@@ -1840,7 +1895,7 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   product.description ?? '',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),

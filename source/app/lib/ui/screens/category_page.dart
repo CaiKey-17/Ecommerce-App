@@ -1,7 +1,7 @@
 import 'package:app/models/category_info.dart';
-import 'package:app/ui/main_brand.dart';
-import 'package:app/ui/main_category.dart';
-import 'package:app/ui/search_page.dart';
+import 'package:app/ui/product/main_brand.dart';
+import 'package:app/ui/product/main_category.dart';
+import 'package:app/ui/product/search_page.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import 'package:dio/dio.dart';
@@ -73,6 +73,7 @@ class _CategoryPageListState extends State<CategoryPageList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: _buildSearchBar(),
@@ -333,18 +334,31 @@ class _CategoryPageListState extends State<CategoryPageList> {
             height: 60,
             width: 60,
             decoration: BoxDecoration(
-              color: Colors.blue.shade50,
+              color: Colors.white, // nền trắng
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                  offset: Offset(0, 2),
+                ),
+              ],
+              border: Border.all(color: Colors.grey.shade300, width: 1),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child:
                   category.images != null
                       ? Image.network(category.images!, fit: BoxFit.cover)
-                      : Icon(Icons.category, size: 40, color: Colors.grey),
+                      : Icon(
+                        Icons.category,
+                        size: 30,
+                        color: Colors.grey.shade600,
+                      ),
             ),
           ),
+
           SizedBox(height: 5),
           SizedBox(
             height: 37,

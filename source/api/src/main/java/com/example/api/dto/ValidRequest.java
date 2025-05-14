@@ -13,6 +13,8 @@ public class ValidRequest {
 
     private String fullname;
 
+
+
     public String getEmail() {
         return email;
     }

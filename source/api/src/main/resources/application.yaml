@@ -3,6 +3,7 @@ spring:
     url: jdbc:mysql://localhost:3306/flutter
     username: root
     password: 333504
+    
 
   jpa:
     properties:

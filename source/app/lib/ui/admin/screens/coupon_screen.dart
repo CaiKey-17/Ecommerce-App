@@ -1,5 +1,14 @@
 import 'dart:math';
+import 'package:app/globals/convert_money.dart';
+import 'package:app/models/coupon_admin_info.dart';
+import 'package:app/services/api_service.dart';
+import 'package:app/ui/admin/screens/order_screen.dart';
+import 'package:app/ui/admin/widgets/sidebar.dart';
+import 'package:app/ui/product/product_details.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CouponScreen extends StatefulWidget {
   @override
@@ -7,291 +16,461 @@ class CouponScreen extends StatefulWidget {
 }
 
 class _CouponScreenState extends State<CouponScreen> {
-  List<Map<String, dynamic>> coupons = [
-    {
-      "id": "#001",
-      "code": "SD95V",
-      "value": "10%",
-      "created_at": DateTime(2025, 03, 24, 20, 00, 28),
-      "used_count": 4,
-      "max_usage": 100,
-      "orders": ["#ORD0", "#ORD1", "#ORD2"],
-    },
-    {
-      "id": "#002",
-      "code": "GT57X",
-      "value": "15%",
-      "created_at": DateTime(2025, 02, 10, 15, 30, 45),
-      "used_count": 10,
-      "max_usage": 50,
-      "orders": ["#ORD3", "#ORD4"],
-    },
-  ];
+  bool isLoading = false;
+  List<CouponAdminData> coupons = [];
+  late ApiService apiService;
+  String? token;
+
+  final valueOptions = ["10,000", "20,000", "50,000", "100,000"];
+  String? selectedValue;
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController maxUsageController = TextEditingController();
+  final TextEditingController minOrderValueController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    apiService = ApiService(Dio());
+    _loadToken();
+    fetchCoupons();
+  }
+
+  Future<void> _loadToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        token = prefs.getString('token') ?? "";
+        debugPrint('Token loaded for CouponScreen: $token');
+      });
+    } catch (e, stackTrace) {
+      debugPrint('Lỗi khi tải token từ SharedPreferences: $e');
+      debugPrint('StackTrace: $stackTrace');
+    }
+  }
+
+  Future<void> fetchCoupons() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.listCoupon();
+      await Future.delayed(const Duration(seconds: 1));
+
+      setState(() {
+        coupons = response.data;
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi khi lấy danh sách thương hiệu: $e")),
+      );
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> addCoupon(
+    int couponValue,
+    int maxAllowedUses,
+    int minOrderValue,
+  ) async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final response = await apiService.addCoupon(
+        couponValue,
+        maxAllowedUses,
+        minOrderValue,
+      );
+      Navigator.pop(context);
+
+      await fetchCoupons();
+
+      setState(() {
+        isLoading = false;
+        minOrderValueController.clear();
+        maxUsageController.clear();
+        selectedValue = null;
+      });
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+
+      setState(() {
+        isLoading = false;
+      });
+      setState(() {
+        minOrderValueController.clear();
+        maxUsageController.clear();
+        selectedValue = null;
+      });
+
+      Navigator.pop(context);
+    }
+  }
+
+  Future<void> deleteCoupon(int id) async {
+    try {
+      final response = await apiService.deleteCoupon(id);
+    } catch (e) {
+      print("Lỗi khi gọi API: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Colors.white,
+      drawer: SideBar(token: token ?? ''),
       appBar: AppBar(
+        foregroundColor: Colors.white,
         title: Text(
           "Quản lý phiếu giảm giá",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: Colors.blue,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 10),
-            _buildTableHeader(),
-            Expanded(child: _buildCouponTable()),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.blue.shade700,
-        icon: Icon(Icons.add, color: Colors.white),
-        label: Text(
-          "Thêm mã giảm giá",
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator(color: Colors.blue))
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Container(
+                        width: 800,
+                        child: _buildCouponTable(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.blue,
         onPressed: () {
           _showCouponDialog(isEdit: false);
         },
-      ),
-    );
-  }
-
-  Widget _buildTableHeader() {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade700,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _headerCell("ID", flex: 1),
-          _headerCell("Mã giảm giá", flex: 2),
-          _headerCell("Giá trị", flex: 1),
-          _headerCell("Đã dùng", flex: 1), // Cột mới: số lần đã sử dụng
-        ],
-      ),
-    );
-  }
-
-  Widget _headerCell(String text, {required int flex}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        textAlign: TextAlign.center,
+        child: Icon(Icons.add, color: Colors.white),
+        shape: CircleBorder(),
       ),
     );
   }
 
   Widget _buildCouponTable() {
-    return ListView.builder(
-      itemCount: coupons.length,
-      itemBuilder: (context, index) {
-        final coupon = coupons[index];
-        return GestureDetector(
-          onTap: () => _showCouponDetail(coupon),
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Colors.grey.shade300, width: 1),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(color: Colors.white, blurRadius: 8, spreadRadius: 2),
+          ],
+        ),
+        child: DataTable(
+          columnSpacing: 16,
+          horizontalMargin: 16,
+          columns: [
+            DataColumn(
+              label: Text('Mã', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            DataColumn(
+              label: Text(
+                'Trị giá ',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              color: Colors.white,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _tableCell(coupon["id"]!, flex: 1),
-                _tableCell(coupon["code"]!, flex: 2),
-                _tableCell(coupon["value"]!, flex: 1),
-                _tableCell(
-                  coupon["used_count"].toString(),
-                  flex: 1,
-                ), // Hiển thị số lần sử dụng
+            DataColumn(
+              label: Text(
+                'Ngày tạo',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Tối đa',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Đã dùng',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            DataColumn(
+              label: Text(
+                'Giá trị tối thiểu',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+          rows: coupons.map((coupon) {
+            return DataRow(
+              cells: [
+                DataCell(Text(coupon.name)),
+                DataCell(
+                  Text(
+                    "${ConvertMoney.currencyFormatter.format(coupon.couponValue)} ₫",
+                  ),
+                ),
+                DataCell(Text(formatDate(coupon.createdAt))),
+                DataCell(Text(coupon.maxAllowedUses.toString())),
+                DataCell(Text(coupon.usedCount.toString())),
+                DataCell(
+                  Text(
+                    "${ConvertMoney.currencyFormatter.format(coupon.minOrderValue)} ₫",
+                  ),
+                ),
               ],
-            ),
+              onLongPress: () => _showCouponOptions(coupon),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  void _showCouponOptions(CouponAdminData coupon) {
+    showModalBottomSheet(
+      backgroundColor: Colors.white,
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.list_alt),
+                title: Text("Xem các đơn hàng sử dụng"),
+                textColor: Colors.blue,
+                iconColor: Colors.blue,
+                onTap: () {
+                  debugPrint('Điều hướng đến OrderScreen với couponId: ${coupon.id}');
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderScreen(couponId: coupon.id),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete),
+                textColor: Colors.red,
+                iconColor: Colors.red,
+                title: Text("Xóa"),
+                onTap: () {
+                  deleteCoupon(coupon.id);
+                  setState(() {
+                    coupons.removeWhere((c) => c.id == coupon.id);
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _tableCell(String text, {required int flex}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: TextStyle(fontSize: 16, color: Colors.black),
-        textAlign: TextAlign.center,
-      ),
-    );
+  String formatDate(String dateStr) {
+    DateTime date = DateTime.parse(dateStr);
+    return DateFormat('dd/MM/yyyy').format(date);
   }
 
-  void _showCouponDetail(Map<String, dynamic> coupon) {
+  void _showCouponDialog({required bool isEdit}) {
+    final currencyFormatter = NumberFormat("#,##0", "vi_VN");
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Chi tiết mã ${coupon["code"]}",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  "Thời gian tạo: ${coupon["created_at"].toString().split(' ')[0]}",
-                  style: _detailTextStyle(),
-                ),
-                Text("Giá trị: ${coupon["value"]}", style: _detailTextStyle()),
-                Text(
-                  "Số lần đã sử dụng: ${coupon["used_count"]}",
-                  style: _detailTextStyle(),
-                ),
-                Text(
-                  "Số lần sử dụng tối đa: ${coupon["max_usage"]}",
-                  style: _detailTextStyle(),
-                ),
-                SizedBox(height: 12),
-                Text("Danh sách đơn hàng áp dụng:", style: _boldTextStyle()),
-
-                // Kiểm tra xem "orders" có tồn tại và là danh sách không
-                if (coupon.containsKey("orders") &&
-                    coupon["orders"] is List<String> &&
-                    (coupon["orders"] as List).isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children:
-                        (coupon["orders"] as List<String>).map((order) {
-                          return Text(order, style: TextStyle(fontSize: 16));
-                        }).toList(),
-                  )
-                else
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   Text(
-                    "Chưa có đơn hàng nào sử dụng mã này.",
-                    style: _detailTextStyle(),
-                  ),
-
-                SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      "Đóng",
-                      style: TextStyle(fontSize: 16, color: Colors.blue),
+                    isEdit ? "Chỉnh sửa mã giảm giá" : "Thêm mã giảm giá",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCouponDialog({required bool isEdit, int? couponIndex}) {
-    TextEditingController valueController = TextEditingController();
-    TextEditingController maxUsageController = TextEditingController();
-
-    if (isEdit && couponIndex != null) {
-      final coupon = coupons[couponIndex];
-      valueController.text = coupon["value"]!;
-      maxUsageController.text = coupon["max_usage"].toString();
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Thêm",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: valueController,
-                  decoration: InputDecoration(labelText: "Giá trị"),
-                ),
-                TextField(
-                  controller: maxUsageController,
-                  decoration: InputDecoration(
-                    labelText: "Số lần sử dụng tối đa",
+                  SizedBox(height: 20),
+                  DropdownButtonFormField<String>(
+                    dropdownColor: Colors.white,
+                    decoration: InputDecoration(
+                      labelText: "Trị giá",
+                      border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 2),
+                      ),
+                    ),
+                    value: selectedValue,
+                    items: ["10,000", "20,000", "50,000", "100,000"]
+                        .map(
+                          (value) => DropdownMenuItem(
+                            child: Text("$value ₫"),
+                            value: value,
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) => selectedValue = value,
+                    validator: (value) =>
+                        value == null ? "Vui lòng chọn giá trị" : null,
                   ),
-                  keyboardType: TextInputType.number,
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  onPressed: () {
-                    setState(() {
-                      int newId = coupons.length + 1;
-                      coupons.add({
-                        "id": "#${newId.toString().padLeft(3, '0')}",
-                        "code": _generateRandomCode(),
-                        "value": valueController.text,
-                        "created_at": DateTime.now(),
-                        "used_count": 0,
-                        "max_usage": int.parse(maxUsageController.text),
-                        "orders": [],
-                      });
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: Text("Thêm"),
-                ),
-              ],
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: maxUsageController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Số lần sử dụng tối đa",
+                      border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 2),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Không được để trống';
+                      }
+                      int? parsed = int.tryParse(value);
+                      if (parsed == null) return 'Phải là số';
+                      if (parsed > 10) return 'Không được vượt quá 10';
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  TextFormField(
+                    controller: minOrderValueController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Giá trị đơn hàng tối thiểu",
+                      border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue, width: 2),
+                      ),
+                      suffixText: 'đ',
+                    ),
+                    onChanged: (value) {
+                      String newText = value.replaceAll(RegExp(r'[^\d]'), '');
+                      if (newText.isEmpty) {
+                        minOrderValueController.text = '';
+                        return;
+                      }
+                      final formatted = currencyFormatter.format(
+                        int.parse(newText),
+                      );
+                      minOrderValueController.value = TextEditingValue(
+                        text: formatted,
+                        selection: TextSelection.collapsed(
+                          offset: formatted.length,
+                        ),
+                      );
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return 'Không được để trống';
+                      final plainNumber = value.replaceAll(
+                        RegExp(r'[^\d]'),
+                        '',
+                      );
+                      final parsed = int.tryParse(plainNumber);
+                      if (parsed == null) return 'Phải là số';
+                      final plainCouponValue = selectedValue!.replaceAll(
+                        RegExp(r'[^\d]'),
+                        '',
+                      );
+                      final couponValue = int.tryParse(plainCouponValue);
+                      if (couponValue != null && parsed <= couponValue) {
+                        return 'Giá trị đơn hàng tối thiểu phải lớn hơn trị giá mã giảm giá';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          "Hủy",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            final plainCouponValue = selectedValue!.replaceAll(
+                              RegExp(r'[^\d]'),
+                              '',
+                            );
+                            final couponValue = int.tryParse(plainCouponValue);
+                            final minOrderValue = minOrderValueController.text
+                                .replaceAll(RegExp(r'[^\d]'), '');
+                            final minOrderValueInt = int.tryParse(
+                              minOrderValue,
+                            );
+                            if (minOrderValueInt != null &&
+                                couponValue != null &&
+                                minOrderValueInt <= couponValue) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Giá trị đơn hàng tối thiểu phải lớn hơn trị giá mã giảm giá",
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+                            int c = int.parse(plainCouponValue);
+                            int max = int.parse(maxUsageController.text);
+                            int min = int.parse(minOrderValue);
+                            addCoupon(c, max, min);
+                          }
+                        },
+                        child: Text(
+                          "Thêm",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
     );
   }
-
-  String _generateRandomCode() {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    return String.fromCharCodes(
-      Iterable.generate(
-        5,
-        (_) => chars.codeUnitAt(Random().nextInt(chars.length)),
-      ),
-    );
-  }
-
-  TextStyle _detailTextStyle() => TextStyle(fontSize: 16);
-  TextStyle _boldTextStyle() =>
-      TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
 }

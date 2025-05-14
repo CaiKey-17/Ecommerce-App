@@ -1,23 +1,17 @@
 class Chat {
+  final int userId;
   final String userName;
-  String lastMessage;
-  String time;
-  int unreadCount;
-  List<Message> messages;
+  final String image;
+  final String lastMessage;
+  final String time;
+  final int unreadCount;
 
   Chat({
+    required this.userId,
     required this.userName,
     required this.lastMessage,
+    required this.image,
     required this.time,
     required this.unreadCount,
-    required this.messages,
   });
-}
-
-class Message {
-  final String text;
-  final bool isSentByMe;
-  final String time;
-
-  Message({required this.text, required this.isSentByMe, required this.time});
 }
