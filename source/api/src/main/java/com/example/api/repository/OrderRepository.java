@@ -88,7 +88,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             COUNT(DISTINCT o.id) AS tongSoDon
         FROM orders o
         JOIN order_details od ON o.id = od.fk_order_id
-        JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+        JOIN product_variant pv ON od.fk_product_id = pv.id
         WHERE o.process = 'hoantat'
         GROUP BY thoiGian
         ORDER BY thoiGian
@@ -118,7 +118,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             COUNT(DISTINCT o.id) AS tongSoDon
         FROM orders o
         JOIN order_details od ON o.id = od.fk_order_id
-        JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+        JOIN product_variant pv ON od.fk_product_id = pv.id
         WHERE o.process = 'hoantat'
         GROUP BY thoiGian
         ORDER BY thoiGian
@@ -133,7 +133,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             COUNT(DISTINCT o.id) AS tongDonHang
         FROM orders o
         JOIN order_details od ON o.id = od.fk_order_id
-        JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+        JOIN product_variant pv ON od.fk_product_id = pv.id
         WHERE o.process = 'hoantat'
         AND YEAR(o.created_at) = YEAR(CURRENT_DATE)  -- Điều kiện để lấy tuần trong năm này
         GROUP BY WEEK(o.created_at)
@@ -159,7 +159,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
          SELECT YEAR(CURDATE())) y
     LEFT JOIN orders o ON YEAR(o.created_at) = y.nam AND o.process = 'hoantat'
     LEFT JOIN order_details od ON o.id = od.fk_order_id
-    LEFT JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+    LEFT JOIN product_variant pv ON od.fk_product_id = pv.id
     GROUP BY y.nam
     ORDER BY y.nam
     """, nativeQuery = true)
@@ -187,7 +187,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     LEFT JOIN orders o ON MONTH(o.created_at) = m.thang 
         AND YEAR(o.created_at) = :year AND o.process = 'hoantat'
     LEFT JOIN order_details od ON o.id = od.fk_order_id
-    LEFT JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+    LEFT JOIN product_variant pv ON od.fk_product_id = pv.id
     GROUP BY m.thang
     ORDER BY m.thang
     """, nativeQuery = true)
@@ -216,7 +216,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
         LEFT JOIN orders o ON MONTH(o.created_at) = m.thang 
             AND YEAR(o.created_at) = :year AND o.process = 'hoantat'
         LEFT JOIN order_details od ON o.id = od.fk_order_id
-        LEFT JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+        LEFT JOIN product_variant pv ON od.fk_product_id = pv.id
         WHERE 
             (m.thang BETWEEN 
                 CASE 
@@ -257,7 +257,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             AND MONTH(o.created_at) = :month
             AND o.process = 'hoantat'
         LEFT JOIN order_details od ON o.id = od.fk_order_id
-        LEFT JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+        LEFT JOIN product_variant pv ON od.fk_product_id = pv.id
         GROUP BY d.date_value
         ORDER BY d.date_value
     """, nativeQuery = true)
@@ -286,7 +286,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
         AND MONTH(o.created_at) = :month
         AND o.process = 'hoantat'
     LEFT JOIN order_details od ON o.id = od.fk_order_id
-    LEFT JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+    LEFT JOIN product_variant pv ON od.fk_product_id = pv.id
     WHERE 
         (
             (DAY(d.date_value) BETWEEN 1 AND 7 AND :week = 1) OR
@@ -315,7 +315,7 @@ SELECT
 FROM DateRange d
 LEFT JOIN orders o ON DATE(o.created_at) = d.date_value AND o.process = 'hoantat'
 LEFT JOIN order_details od ON o.id = od.fk_order_id
-LEFT JOIN product_variant pv ON o.id_fk_product_variant = pv.id
+LEFT JOIN product_variant pv ON od.fk_product_id = pv.id
 GROUP BY d.date_value
 ORDER BY d.date_value
 """, nativeQuery = true)

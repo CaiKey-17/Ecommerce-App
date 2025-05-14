@@ -10,20 +10,22 @@ class ApiConfig {
   static const String baseUrlDetect = "http://$ip:5002/detect/";
   static const String baseUrlWsc = "http://$ip:8080/ws";
   static const String baseUrlWscHistory = "http://$ip:8080/api";
-  //
+
   //
   // static const String baseUrlSentiment =
   //     "https://sentiment-analysics.onrender.com";
 
-  // static const String baseUrlAPI = "https://backend-839a.onrender.com/api";
+  // static const String baseUrlAPI =
+  //     "http://ec2-54-166-17-246.compute-1.amazonaws.com/api";
 
   // static const String baseUrlDetect =
   //     "https://detect-product.onrender.com/detect/";
 
-  // static const String baseUrlWsc = "https://backend-839a.onrender.com/ws";
+  // static const String baseUrlWsc =
+  //     "http://ec2-54-166-17-246.compute-1.amazonaws.com/ws";
 
   // static const String baseUrlWscHistory =
-  //     "https://backend-839a.onrender.com/api";
+  //     "http://ec2-54-166-17-246.compute-1.amazonaws.com/api";
 
   //
   //
